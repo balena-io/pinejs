@@ -1075,59 +1075,61 @@ export const checkPassword = async (
 	};
 };
 
-const getUserPermissionsQuery = _.once(() =>
-	sbvrUtils.api.Auth.prepare<{ userId: number }>({
-		resource: 'permission',
-		passthrough: {
-			req: rootRead,
-		},
-		options: {
-			$select: 'name',
-			$filter: {
-				$or: {
-					is_of__user: {
-						$any: {
-							$alias: 'uhp',
-							$expr: {
-								uhp: { user: { '@': 'userId' } },
-								$or: [
-									{
-										uhp: { expiry_date: null },
-									},
-									{
-										uhp: {
-											expiry_date: { $gt: { $now: null } },
+const $getUserPermissions = (() => {
+	const getUserPermissionsQuery = _.once(() =>
+		sbvrUtils.api.Auth.prepare<{ userId: number }>({
+			resource: 'permission',
+			passthrough: {
+				req: rootRead,
+			},
+			options: {
+				$select: 'name',
+				$filter: {
+					$or: {
+						is_of__user: {
+							$any: {
+								$alias: 'uhp',
+								$expr: {
+									uhp: { user: { '@': 'userId' } },
+									$or: [
+										{
+											uhp: { expiry_date: null },
 										},
-									},
-								],
+										{
+											uhp: {
+												expiry_date: { $gt: { $now: null } },
+											},
+										},
+									],
+								},
 							},
 						},
-					},
-					is_of__role: {
-						$any: {
-							$alias: 'rhp',
-							$expr: {
-								rhp: {
-									role: {
-										$any: {
-											$alias: 'r',
-											$expr: {
-												r: {
-													is_of__user: {
-														$any: {
-															$alias: 'uhr',
-															$expr: {
-																uhr: { user: { '@': 'userId' } },
-																$or: [
-																	{
-																		uhr: { expiry_date: null },
-																	},
-																	{
-																		uhr: {
-																			expiry_date: { $gt: { $now: null } },
+						is_of__role: {
+							$any: {
+								$alias: 'rhp',
+								$expr: {
+									rhp: {
+										role: {
+											$any: {
+												$alias: 'r',
+												$expr: {
+													r: {
+														is_of__user: {
+															$any: {
+																$alias: 'uhr',
+																$expr: {
+																	uhr: { user: { '@': 'userId' } },
+																	$or: [
+																		{
+																			uhr: { expiry_date: null },
 																		},
-																	},
-																],
+																		{
+																			uhr: {
+																				expiry_date: { $gt: { $now: null } },
+																			},
+																		},
+																	],
+																},
 															},
 														},
 													},
@@ -1140,14 +1142,27 @@ const getUserPermissionsQuery = _.once(() =>
 						},
 					},
 				},
+				// We orderby to increase the hit rate for the `_checkPermissions` memoisation
+				$orderby: {
+					name: 'asc',
+				},
 			},
-			// We orderby to increase the hit rate for the `_checkPermissions` memoisation
-			$orderby: {
-				name: 'asc',
-			},
+		}),
+	);
+	return env.createCache(
+		'userPermissions',
+		async (userId: number) => {
+			const permissions = (await getUserPermissionsQuery()({
+				userId,
+			})) as Array<{ name: string }>;
+			return permissions.map((permission) => permission.name);
 		},
-	}),
-);
+		{
+			primitive: true,
+			promise: true,
+		},
+	);
+})();
 export const getUserPermissions = async (userId: number): Promise<string[]> => {
 	if (typeof userId === 'string') {
 		userId = parseInt(userId, 10);
@@ -1156,63 +1171,62 @@ export const getUserPermissions = async (userId: number): Promise<string[]> => {
 		throw new Error(`User ID has to be numeric, got: ${typeof userId}`);
 	}
 	try {
-		const permissions = (await getUserPermissionsQuery()({
-			userId,
-		})) as Array<{ name: string }>;
-		return permissions.map((permission) => permission.name);
+		return await $getUserPermissions(userId);
 	} catch (err) {
 		sbvrUtils.api.Auth.logger.error('Error loading user permissions', err);
 		throw err;
 	}
 };
 
-const getApiKeyPermissionsQuery = _.once(() =>
-	sbvrUtils.api.Auth.prepare<{ apiKey: string }>({
-		resource: 'permission',
-		passthrough: {
-			req: rootRead,
-		},
-		options: {
-			$select: 'name',
-			$filter: {
-				$or: {
-					is_of__api_key: {
-						$any: {
-							$alias: 'khp',
-							$expr: {
-								khp: {
-									api_key: {
-										$any: {
-											$alias: 'k',
-											$expr: {
-												k: { key: { '@': 'apiKey' } },
+const $getApiKeyPermissions = (() => {
+	const getApiKeyPermissionsQuery = _.once(() =>
+		sbvrUtils.api.Auth.prepare<{ apiKey: string }>({
+			resource: 'permission',
+			passthrough: {
+				req: rootRead,
+			},
+			options: {
+				$select: 'name',
+				$filter: {
+					$or: {
+						is_of__api_key: {
+							$any: {
+								$alias: 'khp',
+								$expr: {
+									khp: {
+										api_key: {
+											$any: {
+												$alias: 'k',
+												$expr: {
+													k: { key: { '@': 'apiKey' } },
+												},
 											},
 										},
 									},
 								},
 							},
 						},
-					},
-					is_of__role: {
-						$any: {
-							$alias: 'rhp',
-							$expr: {
-								rhp: {
-									role: {
-										$any: {
-											$alias: 'r',
-											$expr: {
-												r: {
-													is_of__api_key: {
-														$any: {
-															$alias: 'khr',
-															$expr: {
-																khr: {
-																	api_key: {
-																		$any: {
-																			$alias: 'k',
-																			$expr: {
-																				k: { key: { '@': 'apiKey' } },
+						is_of__role: {
+							$any: {
+								$alias: 'rhp',
+								$expr: {
+									rhp: {
+										role: {
+											$any: {
+												$alias: 'r',
+												$expr: {
+													r: {
+														is_of__api_key: {
+															$any: {
+																$alias: 'khr',
+																$expr: {
+																	khr: {
+																		api_key: {
+																			$any: {
+																				$alias: 'k',
+																				$expr: {
+																					k: { key: { '@': 'apiKey' } },
+																				},
 																			},
 																		},
 																	},
@@ -1229,14 +1243,27 @@ const getApiKeyPermissionsQuery = _.once(() =>
 						},
 					},
 				},
+				// We orderby to increase the hit rate for the `_checkPermissions` memoisation
+				$orderby: {
+					name: 'asc',
+				},
 			},
-			// We orderby to increase the hit rate for the `_checkPermissions` memoisation
-			$orderby: {
-				name: 'asc',
-			},
+		}),
+	);
+	return env.createCache(
+		'apiKeyPermissions',
+		async (apiKey: string) => {
+			const permissions = (await getApiKeyPermissionsQuery()({
+				apiKey,
+			})) as Array<{ name: string }>;
+			return permissions.map((permission) => permission.name);
 		},
-	}),
-);
+		{
+			primitive: true,
+			promise: true,
+		},
+	);
+})();
 export const getApiKeyPermissions = async (
 	apiKey: string,
 ): Promise<string[]> => {
@@ -1244,10 +1271,7 @@ export const getApiKeyPermissions = async (
 		throw new Error('API key has to be a string, got: ' + typeof apiKey);
 	}
 	try {
-		const permissions = (await getApiKeyPermissionsQuery()({
-			apiKey,
-		})) as Array<{ name: string }>;
-		return permissions.map((permission) => permission.name);
+		return await $getApiKeyPermissions(apiKey);
 	} catch (err) {
 		sbvrUtils.api.Auth.logger.error('Error loading api key permissions', err);
 		throw err;

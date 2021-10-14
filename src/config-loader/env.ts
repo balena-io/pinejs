@@ -29,7 +29,8 @@ export type CacheOpts =
 	| {
 			max?: number;
 	  }
-	| CacheFn;
+	| CacheFn
+	| false;
 
 export const cache = {
 	permissionsLookup: {
@@ -47,6 +48,8 @@ export const cache = {
 	abstractSqlCompiler: {
 		max: 10000,
 	} as CacheOpts,
+	userPermissions: false as CacheOpts,
+	apiKeyPermissions: false as CacheOpts,
 };
 
 import * as memoize from 'memoizee';
@@ -57,6 +60,9 @@ export const createCache = <T extends (...args: any[]) => any>(
 	opts?: CacheFnOpts<T>,
 ) => {
 	const cacheOpts = cache[cacheName];
+	if (cacheOpts === false) {
+		return fn;
+	}
 	if (typeof cacheOpts === 'function') {
 		return cacheOpts(fn, opts);
 	}
