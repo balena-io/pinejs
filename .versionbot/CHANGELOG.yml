@@ -1,4 +1,16 @@
 - commits:
+    - subject: Allow passing a function as the cache params to enable custom caching
+      hash: 3e790d9961a0d7f666021248668241264b453743
+      body: |
+        This allows using a different cache than the default of memoizee
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.32.0
+  date: 2021-10-14T16:13:19.016Z
+- commits:
     - subject: Add the postgres pool error handler even when no PG_SCHEMA is specified
       hash: 6d4a75e69910ab27cb1a8096a30776da4173d6ca
       body: ''
