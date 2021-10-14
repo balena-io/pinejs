@@ -1075,59 +1075,61 @@ export const checkPassword = async (
 	};
 };
 
-const getUserPermissionsQuery = _.once(() =>
-	sbvrUtils.api.Auth.prepare<{ userId: number }>({
-		resource: 'permission',
-		passthrough: {
-			req: rootRead,
-		},
-		options: {
-			$select: 'name',
-			$filter: {
-				$or: {
-					is_of__user: {
-						$any: {
-							$alias: 'uhp',
-							$expr: {
-								uhp: { user: { '@': 'userId' } },
-								$or: [
-									{
-										uhp: { expiry_date: null },
-									},
-									{
-										uhp: {
-											expiry_date: { $gt: { $now: null } },
+const $getUserPermissions = (() => {
+	const getUserPermissionsQuery = _.once(() =>
+		sbvrUtils.api.Auth.prepare<{ userId: number }>({
+			resource: 'permission',
+			passthrough: {
+				req: rootRead,
+			},
+			options: {
+				$select: 'name',
+				$filter: {
+					$or: {
+						is_of__user: {
+							$any: {
+								$alias: 'uhp',
+								$expr: {
+									uhp: { user: { '@': 'userId' } },
+									$or: [
+										{
+											uhp: { expiry_date: null },
 										},
-									},
-								],
+										{
+											uhp: {
+												expiry_date: { $gt: { $now: null } },
+											},
+										},
+									],
+								},
 							},
 						},
-					},
-					is_of__role: {
-						$any: {
-							$alias: 'rhp',
-							$expr: {
-								rhp: {
-									role: {
-										$any: {
-											$alias: 'r',
-											$expr: {
-												r: {
-													is_of__user: {
-														$any: {
-															$alias: 'uhr',
-															$expr: {
-																uhr: { user: { '@': 'userId' } },
-																$or: [
-																	{
-																		uhr: { expiry_date: null },
-																	},
-																	{
-																		uhr: {
-																			expiry_date: { $gt: { $now: null } },
+						is_of__role: {
+							$any: {
+								$alias: 'rhp',
+								$expr: {
+									rhp: {
+										role: {
+											$any: {
+												$alias: 'r',
+												$expr: {
+													r: {
+														is_of__user: {
+															$any: {
+																$alias: 'uhr',
+																$expr: {
+																	uhr: { user: { '@': 'userId' } },
+																	$or: [
+																		{
+																			uhr: { expiry_date: null },
 																		},
-																	},
-																],
+																		{
+																			uhr: {
+																				expiry_date: { $gt: { $now: null } },
+																			},
+																		},
+																	],
+																},
 															},
 														},
 													},
@@ -1140,14 +1142,27 @@ const getUserPermissionsQuery = _.once(() =>
 						},
 					},
 				},
+				// We orderby to increase the hit rate for the `_checkPermissions` memoisation
+				$orderby: {
+					name: 'asc',
+				},
 			},
-			// We orderby to increase the hit rate for the `_checkPermissions` memoisation
-			$orderby: {
-				name: 'asc',
-			},
+		}),
+	);
+	return env.createCache(
+		'userPermissions',
+		async (userId: number) => {
+			const permissions = (await getUserPermissionsQuery()({
+				userId,
+			})) as Array<{ name: string }>;
+			return permissions.map((permission) => permission.name);
 		},
-	}),
-);
+		{
+			primitive: true,
+			promise: true,
+		},
+	);
+})();
 export const getUserPermissions = async (userId: number): Promise<string[]> => {
 	if (typeof userId === 'string') {
 		userId = parseInt(userId, 10);
@@ -1156,10 +1171,7 @@ export const getUserPermissions = async (userId: number): Promise<string[]> => {
 		throw new Error(`User ID has to be numeric, got: ${typeof userId}`);
 	}
 	try {
-		const permissions = (await getUserPermissionsQuery()({
-			userId,
-		})) as Array<{ name: string }>;
-		return permissions.map((permission) => permission.name);
+		return await $getUserPermissions(userId);
 	} catch (err) {
 		sbvrUtils.api.Auth.logger.error('Error loading user permissions', err);
 		throw err;
