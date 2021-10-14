@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add an error handler to each pg client to prevent any unhandled errors
+      hash: f03c3b8c99c53abf5e1ec3e6265d43dd367308f7
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.33.1
+  date: 2021-10-14T17:02:57.745Z
+- commits:
     - subject: Add the ability to enable caching of api key permissions
       hash: a2fe4c9061aa20c2bf53693e27876ea5ab897254
       body: ''
