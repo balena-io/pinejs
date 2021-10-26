@@ -7,7 +7,7 @@ import {
 
 import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
 
-import * as program from 'commander';
+import { program } from 'commander';
 
 const runCompile = (inputFile: string, outputFile?: string) => {
 	const { generateSqlModel } =

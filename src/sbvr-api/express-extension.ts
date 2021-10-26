@@ -2,7 +2,12 @@
 
 // tslint:disable-next-line:no-namespace
 declare namespace Express {
-	export interface Request {
+	type PineUser = import('./sbvr-utils').User;
+
+	// tslint:disable-next-line:no-empty-interface
+	interface User extends PineUser {}
+	interface Request {
+		user?: User;
 		apiKey?: import('./sbvr-utils').ApiKey;
 	}
 }

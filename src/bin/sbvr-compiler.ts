@@ -2,7 +2,7 @@ import { version, writeAll, writeSqlModel } from './utils';
 
 import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
 
-import * as program from 'commander';
+import { program } from 'commander';
 import * as fs from 'fs';
 
 const getSE = (inputFile: string) => fs.readFileSync(inputFile, 'utf8');
