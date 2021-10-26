@@ -1,4 +1,38 @@
 - commits:
+    - subject: Update dependencies
+      hash: 32789bbc9d5acd6da60b7ce401905c7f31a93255
+      body: |
+        Update abstract-sql-compiler from 7.14.0 to 7.14.1
+        Update sbvr-types from 3.4.5 to 3.4.6
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Improve typing for `LikeNode`
+              hash: 39333acad89b25cbd46d9d78e9f440633b6cabc3
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.14.1
+          date: 2021-09-23T15:43:09.822Z
+        - commits:
+            - subject: Avoid creating a new Date object when we already have one
+              hash: 07eb756eca00a506b618dc197b67dcc7a9ea3733
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-3.4.6
+          date: 2021-09-21T14:01:00.590Z
+  version: 14.33.2
+  date: 2021-10-26T15:12:20.161Z
+- commits:
     - subject: Add an error handler to each pg client to prevent any unhandled errors
       hash: f03c3b8c99c53abf5e1ec3e6265d43dd367308f7
       body: ''
