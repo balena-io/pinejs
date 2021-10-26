@@ -2,6 +2,7 @@ import type * as Express from 'express';
 import type * as Passport from 'passport';
 import type * as PassportLocal from 'passport-local';
 import type * as ConfigLoader from '../config-loader/config-loader';
+import type { User } from '../sbvr-api/sbvr-utils';
 
 import * as permissions from '../sbvr-api/permissions';
 
@@ -46,14 +47,14 @@ const setup: ConfigLoader.SetupFunction = async (app: Express.Application) => {
 			done(null, user);
 		});
 
-		passport.deserializeUser((user, done) => {
+		passport.deserializeUser<User>((user, done) => {
 			done(null, user);
 		});
 
 		passport.use(new LocalStrategy(checkPassword));
 
 		login = (fn) => (req, res, next) =>
-			passport.authenticate('local', (err: any, user?: {}) => {
+			passport.authenticate('local', (err, user?) => {
 				if (err || user == null) {
 					fn(err, user, req, res, next);
 					return;

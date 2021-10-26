@@ -4,7 +4,7 @@ import type * as AbstractSql from '../sbvr-api/abstract-sql';
 import type * as UriParser from '../sbvr-api/uri-parser';
 import type { SqlResult } from '@balena/abstract-sql-compiler';
 
-import * as program from 'commander';
+import { program } from 'commander';
 
 const generateAbstractSqlQuery = (modelFile: string, odata: string) => {
 	const { memoizedParseOdata, translateUri } =
