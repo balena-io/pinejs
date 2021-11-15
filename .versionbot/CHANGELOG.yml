@@ -1,4 +1,15 @@
 - commits:
+    - subject: Use the env pool settings as defaults only if not explicitly provided
+      hash: 304a12ea7b5f46469ddd08ba3b8448006eda13a0
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.33.3
+  date: 2021-11-15T18:49:38.211Z
+- commits:
     - subject: Update dependencies
       hash: 32789bbc9d5acd6da60b7ce401905c7f31a93255
       body: |
