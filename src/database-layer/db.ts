@@ -450,46 +450,66 @@ try {
 }
 if (maybePg != null) {
 	const pg = maybePg;
-	engines.postgres = (connectString: string | Pg.PoolConfig): Database => {
+	engines.postgres = (
+		connectString:
+			| string
+			| Pg.PoolConfig
+			| { primary: Pg.PoolConfig; replica?: Pg.PoolConfig },
+	): Database => {
 		const PG_UNIQUE_VIOLATION = '23505';
 		const PG_FOREIGN_KEY_VIOLATION = '23503';
 		const PG_CHECK_CONSTRAINT_VIOLATION = '23514';
 		const PG_EXCLUSION_CONSTRAINT_VIOLATION = '23P01';
 
-		let config: Pg.PoolConfig;
+		const { PG_SCHEMA } = process.env;
+		const initPool = (config: Pg.PoolConfig) => {
+			config.max ??= env.db.poolSize;
+			config.idleTimeoutMillis ??= env.db.idleTimeoutMillis;
+			config.statement_timeout ??= env.db.statementTimeout;
+			config.query_timeout ??= env.db.queryTimeout;
+			config.connectionTimeoutMillis ??= env.db.connectionTimeoutMillis;
+			config.keepAlive ??= env.db.keepAlive;
+			const p = new pg.Pool(config);
+			if (PG_SCHEMA != null) {
+				p.on('connect', (client) => {
+					client.query({ text: `SET search_path TO "${PG_SCHEMA}"` });
+				});
+			}
+			p.on('connect', (client) => {
+				client.on('error', (err) => {
+					try {
+						console.error('Releasing client on error:', err);
+						client.release(err);
+					} catch (e) {
+						console.error('Error releasing client on error:', e);
+					}
+				});
+			});
+			p.on('error', (err) => {
+				console.error('Pool error:', err.message);
+			});
+			return p;
+		};
+
+		let pool: Pg.Pool;
+		let replica: Pg.Pool;
 		if (typeof connectString === 'string') {
 			const pgConnectionString: typeof PgConnectionString = require('pg-connection-string');
 			// We have to cast because of the use of null vs undefined
-			config = pgConnectionString.parse(connectString) as Pg.PoolConfig;
+			const config = pgConnectionString.parse(connectString) as Pg.PoolConfig;
+			pool = initPool(config);
 		} else {
-			config = connectString;
-		}
-		config.max ??= env.db.poolSize;
-		config.idleTimeoutMillis ??= env.db.idleTimeoutMillis;
-		config.statement_timeout ??= env.db.statementTimeout;
-		config.query_timeout ??= env.db.queryTimeout;
-		config.connectionTimeoutMillis ??= env.db.connectionTimeoutMillis;
-		config.keepAlive ??= env.db.keepAlive;
-		const pool = new pg.Pool(config);
-		const { PG_SCHEMA } = process.env;
-		if (PG_SCHEMA != null) {
-			pool.on('connect', (client) => {
-				client.query({ text: `SET search_path TO "${PG_SCHEMA}"` });
-			});
-		}
-		pool.on('connect', (client) => {
-			client.on('error', (err) => {
-				try {
-					console.error('Releasing client on error:', err);
-					client.release(err);
-				} catch (e) {
-					console.error('Error releasing client on error:', e);
+			const config = connectString;
+			if ('primary' in config) {
+				pool = initPool(config.primary);
+				if (config.replica) {
+					replica = initPool(config.replica);
 				}
-			});
-		});
-		pool.on('error', (err) => {
-			console.error('Pool error:', err.message);
-		});
+			} else {
+				pool = initPool(config);
+			}
+		}
+		replica ??= pool;
 
 		const createResult = ({
 			rowCount,
@@ -625,7 +645,7 @@ if (maybePg != null) {
 				return tx;
 			}),
 			readTransaction: createTransaction(async (stackTraceErr) => {
-				const client = await pool.connect();
+				const client = await replica.connect();
 				const tx = new PostgresTx(client, false, stackTraceErr);
 				tx.executeSql('START TRANSACTION READ ONLY;');
 				return tx.asReadOnly();
