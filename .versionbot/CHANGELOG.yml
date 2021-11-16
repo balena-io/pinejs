@@ -1,4 +1,15 @@
 - commits:
+    - subject: Allow specifying a replica to use for read-only postgres requests
+      hash: 511d2be3b77e59231f68785faa7165062627665c
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.34.0
+  date: 2021-11-16T12:14:40.355Z
+- commits:
     - subject: Use the env pool settings as defaults only if not explicitly provided
       hash: 304a12ea7b5f46469ddd08ba3b8448006eda13a0
       body: ''
