@@ -20,7 +20,8 @@
     "webpack-build": "npm run webpack-browser && npm run webpack-module && npm run webpack-server",
     "lint": "balena-lint -e js -e ts src build typings Gruntfile.ts && npx tsc --project tsconfig.dev.json --noEmit",
     "test": "npm run lint && npm run build && npm run webpack-build",
-    "prettify": "balena-lint -e js -e ts --fix src build typings Gruntfile.ts"
+    "prettify": "balena-lint -e js -e ts --fix src build typings Gruntfile.ts",
+    "compile-odata": "node ./bin/abstract-sql-compiler.js generate-odata ../balena-api/.materialized-config.json ./model.odata"
   },
   "dependencies": {
     "@balena/abstract-sql-compiler": "^7.17.1",

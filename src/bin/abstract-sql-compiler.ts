@@ -4,10 +4,12 @@ import {
 	writeAll,
 	writeSqlModel,
 } from './utils';
+import * as fs from 'fs';
 
 import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
 
 import { program } from 'commander';
+const getSE = (inputFile: string) => fs.readFileSync(inputFile, 'utf8');
 
 const runCompile = (inputFile: string, outputFile?: string) => {
 	const { generateSqlModel } =
@@ -25,6 +27,18 @@ const generateTypes = (inputFile: string, outputFile?: string) => {
 	const types = abstractSqlToTypescriptTypes(abstractSql);
 
 	writeAll(types, outputFile);
+};
+
+const generateOData = (inputFile: string, outputFile?: string) => {
+	const { generateModels } =
+		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
+	const materializedConfig = JSON.parse(getSE(inputFile));
+	const models = generateModels(
+		materializedConfig.models[0],
+		program.opts().engine,
+	);
+
+	writeAll(models.odataMetadata, outputFile);
 };
 
 program
@@ -50,6 +64,11 @@ program
 	.command('generate-types <input-file> [output-file]')
 	.description('generate typescript types from the input AbstractSql')
 	.action(generateTypes);
+
+program
+	.command('generate-odata <input-file> [output-file]')
+	.description('generate odata specification from the input AbstractSql')
+	.action(generateOData);
 
 program
 	.command('help')

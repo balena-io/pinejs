@@ -27,6 +27,11 @@ interface ODataEntityContainerEntryType {
 	[key: string]: any;
 }
 
+interface AbstractSqlModelWhitelist {
+	abstractSqlModel: AbstractSqlModel;
+	whitelist: dict;
+}
+
 // tslint:disable-next-line:no-var-requires
 const { version }: { version: string } = require('../../package.json');
 
@@ -37,20 +42,21 @@ const getResourceName = (resourceName: string): string =>
 		.join('__');
 
 const forEachUniqueTable = <T>(
-	model: AbstractSqlModel['tables'],
+	model: AbstractSqlModelWhitelist,
 	callback: (tableName: string, table: AbstractSqlTable) => T,
 ): T[] => {
 	const usedTableNames: { [tableName: string]: true } = {};
 
 	const result = [];
 
-	for (const key in model) {
-		if (model.hasOwnProperty(key)) {
-			const table = model[key];
+	for (const key in model.abstractSqlModel.tables) {
+		if (model.abstractSqlModel.tables.hasOwnProperty(key)) {
+			const table = model.abstractSqlModel.tables[key];
 			if (
 				typeof table !== 'string' &&
 				!table.primitive &&
-				!usedTableNames[table.name]
+				!usedTableNames[table.name] &&
+				model.whitelist.hasOwnProperty(getResourceName(table.name))
 			) {
 				usedTableNames[table.name] = true;
 				result.push(callback(key, table));
@@ -63,6 +69,7 @@ const forEachUniqueTable = <T>(
 export const generateODataMetadata = (
 	vocabulary: string,
 	abstractSqlModel: AbstractSqlModel,
+	whitelist?: { [key: string]: any },
 ) => {
 	const complexTypes: { [fieldType: string]: string } = {};
 	const resolveDataType = (fieldType: string): string => {
@@ -76,8 +83,11 @@ export const generateODataMetadata = (
 		}
 		return sbvrTypes[fieldType].types.odata.name;
 	};
+	const model: AbstractSqlModelWhitelist = {
+		abstractSqlModel,
+		whitelist: whitelist as dict,
+	};
 
-	const model = abstractSqlModel.tables;
 	const associations: Array<{
 		name: string;
 		ends: Array<{
@@ -85,6 +95,7 @@ export const generateODataMetadata = (
 			cardinality: '1' | '0..1' | '*';
 		}>;
 	}> = [];
+
 	forEachUniqueTable(model, (_key, { name: resourceName, fields }) => {
 		resourceName = getResourceName(resourceName);
 		for (const { dataType, required, references } of fields) {

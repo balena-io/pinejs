@@ -36,6 +36,7 @@ export interface Model {
 				setup: SetupFunction;
 		  };
 	logging?: { [key in keyof Console | 'default']?: boolean };
+	whitelist?: { [key: string]: any };
 }
 export interface User {
 	username: string;

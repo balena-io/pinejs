@@ -41,11 +41,8 @@ const runCompile = (inputFile: string, outputFile?: string) => {
 const generateTypes = (inputFile: string, outputFile?: string) => {
 	const { generateModels } =
 		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
-	const seModel = getSE(inputFile);
-	const models = generateModels(
-		{ apiRoot: 'balena', modelText: seModel },
-		program.opts().engine,
-	);
+	const materializedConfig = JSON.parse(getSE(inputFile));
+	const models = generateModels(materializedConfig, program.opts().engine);
 
 	// const { abstractSqlToTypescriptTypes } =
 	// require('@balena/abstract-sql-to-typescript') as typeof import('@balena/abstract-sql-to-typescript');
