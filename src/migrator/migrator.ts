@@ -162,7 +162,7 @@ WHERE "migration"."model name" = ${3}`,
 	);
 
 	if (rowsAffected === 0) {
-		tx.executeSql(
+		await tx.executeSql(
 			binds`
 INSERT INTO "migration" ("model name", "executed migrations")
 VALUES (${1}, ${2})`,
