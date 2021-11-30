@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add missing await
+      hash: f96c5fd117e1bc0f921a8fefd98c38cc404156c9
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.34.2
+  date: 2021-11-30T17:12:03.327Z
+- commits:
     - subject: Fix env var name in warning message
       hash: 684b9e3f2a363b71b2c77f0a9a18d14be8ecb50f
       body: ''
