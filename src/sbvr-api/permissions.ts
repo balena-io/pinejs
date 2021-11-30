@@ -20,6 +20,7 @@ import type { AnyObject } from './common-types';
 
 import {
 	Definition,
+	isBindReference,
 	OData2AbstractSQL,
 	odataNameToSqlName,
 	ResourceFunction,
@@ -526,9 +527,19 @@ const generateConstrainedAbstractSql = (
 	// permissions circles.
 	const canAccessTrace: string[] = [resourceName];
 
-	const canAccessFunction: ResourceFunction = function (property: AnyObject) {
+	const resolveBind = (maybeBind: any, extraBinds: ODataBinds) => {
+		if (isBindReference(maybeBind)) {
+			const { bind } = maybeBind;
+			if (typeof bind === 'string' || bind < odata.binds.length) {
+				return odata.binds[bind];
+			}
+			return extraBinds[bind - odata.binds.length];
+		}
+		return maybeBind;
+	};
+	const canAccessFunction: ResourceFunction = function (property) {
 		// remove method property so that we won't loop back here again at this point
-		delete property.method;
+		const { method, ...resolvedProperty } = property;
 
 		if (!this.defaultResource) {
 			throw new Error(`No resource selected in AST.`);
@@ -536,21 +547,54 @@ const generateConstrainedAbstractSql = (
 
 		const targetResource = this.NavigateResources(
 			this.defaultResource,
-			property.name,
+			resolvedProperty.name,
 		);
+
+		const lambdaId = `${lambdaAlias}+${inc}`;
+		inc = inc + 1;
 
 		const targetResourceName = sqlNameToODataName(targetResource.resource.name);
 
-		if (canAccessTrace.includes(targetResourceName)) {
-			// we don't want to allow permission loops for now, therefore we are
-			// throwing the exception here. If we ever want to allow permission
-			// loops return a false AST statement here (like true eq false), to
-			// not recursivley follow query branches in a deep first search.
-			throw new PermissionError(
-				`Permissions for ${resourceName} form a circle by the following path: ${canAccessTrace.join(
-					' -> ',
-				)} -> ${targetResourceName}`,
-			);
+		const traceIndex = canAccessTrace.findIndex(
+			(rName) => rName === targetResourceName,
+		);
+		if (traceIndex !== -1) {
+			if (canAccessTrace[canAccessTrace.length - 1] !== targetResourceName) {
+				throw new Error(
+					`Indirectly circular 'canAccess()' permissions are not supported, currently permissions for ${resourceName} form an indirect circle by the following path: ${canAccessTrace.join(
+						' -> ',
+					)} -> ${targetResourceName}`,
+				);
+			}
+
+			const { args } = method[1];
+			const depthArg = resolveBind(args[0], this.extraBindVars);
+			if (depthArg == null) {
+				// To enable directly circular dependencies a depth must be specified and it was not
+				throw new Error(
+					`You must specify a depth if you want to enable directly circular 'canAccess()' permissions, currently permissions for ${resourceName} form a direct circle by the following path: ${canAccessTrace.join(
+						' -> ',
+					)} -> ${targetResourceName}`,
+				);
+			}
+			const [type, depth] = depthArg;
+			if (type !== 'Real' || !Number.isInteger(depth) || depth < 1) {
+				throw new Error('The depth for `canAccess` must be an integer >= 1');
+			}
+			if (
+				// Make sure we have enough traces yet to have exceeded the depth before checking if they match
+				canAccessTrace.length > depth &&
+				// We know there cannot be any gaps due to the indirect circle check above so we only need to check
+				// that the final depth entry is the target resource to know they all must be
+				canAccessTrace[canAccessTrace.length - depth] === targetResourceName
+			) {
+				resolvedProperty.lambda = {
+					method: 'any',
+					identifier: lambdaId,
+					expression: ['eq', true, false],
+				};
+				return this.Property(resolvedProperty);
+			}
 		}
 
 		const parentOdata = memoizedParseOdata(`/${targetResourceName}`);
@@ -569,14 +613,12 @@ const generateConstrainedAbstractSql = (
 			throw constrainedPermissionError;
 		}
 
-		const lambdaId = `${lambdaAlias}+${inc}`;
-		inc = inc + 1;
 		rewriteSubPermissionBindings(
 			collapsedParentPermissionFilters,
 			this.bindVarsLength + this.extraBindVars.length,
 		);
 		convertToLambda(collapsedParentPermissionFilters, lambdaId);
-		property.lambda = {
+		resolvedProperty.lambda = {
 			method: 'any',
 			identifier: lambdaId,
 			expression: collapsedParentPermissionFilters,
@@ -586,7 +628,7 @@ const generateConstrainedAbstractSql = (
 
 		canAccessTrace.push(targetResourceName);
 		try {
-			return this.Property(property);
+			return this.Property(resolvedProperty);
 		} finally {
 			canAccessTrace.pop();
 		}
