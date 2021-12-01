@@ -1,4 +1,41 @@
 - commits:
+    - subject: Add support for circular `canAccess` permissions using a depth argument
+      hash: fa0164119e212a0e1c0a3d2a4fe23271c3034032
+      body: |
+        eg using `resource/canAccess(2)` will allow recursing twice before
+        bailing on that branch and considering it falsey
+
+        Update odata-to-abstract-sql from 5.4.4 to 5.4.6
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Improve `ResourceFunction` typings
+              hash: b511221bb08ad74b72020093f618ba49db5be765
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.4.6
+          date: 2021-11-30T16:42:04.591Z
+        - commits:
+            - subject: Fix `isBindReference` check for non-null non-object types
+              hash: a1d356e93d8b6f4e137e70ebf5c1719b88e20ea5
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.4.5
+          date: 2021-11-26T16:03:43.668Z
+  version: 14.35.0
+  date: 2021-12-01T16:30:58.873Z
+- commits:
     - subject: Add missing await
       hash: f96c5fd117e1bc0f921a8fefd98c38cc404156c9
       body: ''
