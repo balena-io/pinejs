@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update from lf-to-abstract-sql to 4.4.0
+      hash: 331515283601b1cb6c2db17f321d9f8b0c383d9f
+      body: |
+        Update from lf-to-abstract-sql 4.3.0 to 4.4.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.35.1
+  date: 2021-12-06T17:10:29.385Z
+- commits:
     - subject: Add support for circular `canAccess` permissions using a depth argument
       hash: fa0164119e212a0e1c0a3d2a4fe23271c3034032
       body: |
