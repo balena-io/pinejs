@@ -1320,36 +1320,45 @@ export const getApiKeyPermissions = async (
 	}
 };
 
-const getApiKeyActorIdQuery = _.once(() =>
-	sbvrUtils.api.Auth.prepare<{ apiKey: string }>({
-		resource: 'api_key',
-		passthrough: {
-			req: rootRead,
+const getApiKeyActorId = (() => {
+	const getApiKeyActorIdQuery = _.once(() =>
+		sbvrUtils.api.Auth.prepare<{ apiKey: string }>({
+			resource: 'api_key',
+			passthrough: {
+				req: rootRead,
+			},
+			id: {
+				key: { '@': 'apiKey' },
+			},
+			options: {
+				$select: 'is_of__actor',
+			},
+		}),
+	);
+	const apiActorPermissionError = new PermissionError();
+	return env.createCache(
+		'apiKeyActorId',
+		async (apiKey: string) => {
+			const apiKeyResult = await getApiKeyActorIdQuery()({
+				apiKey,
+			});
+			if (apiKeyResult == null) {
+				// We reuse a constant permission error here as it will be cached, and
+				// using a single error instance can drastically reduce the memory used
+				throw apiActorPermissionError;
+			}
+			const apiKeyActorID = apiKeyResult.is_of__actor.__id;
+			if (apiKeyActorID == null) {
+				throw new Error('API key is not linked to a actor?!');
+			}
+			return apiKeyActorID as number;
 		},
-		id: {
-			key: { '@': 'apiKey' },
+		{
+			promise: true,
+			primitive: true,
 		},
-		options: {
-			$select: 'is_of__actor',
-		},
-	}),
-);
-const apiActorPermissionError = new PermissionError();
-const getApiKeyActorId = async (apiKey: string) => {
-	const apiKeyResult = await getApiKeyActorIdQuery()({
-		apiKey,
-	});
-	if (apiKeyResult == null) {
-		// We reuse a constant permission error here as it will be cached, and
-		// using a single error instance can drastically reduce the memory used
-		throw apiActorPermissionError;
-	}
-	const apiKeyActorID = apiKeyResult.is_of__actor.__id;
-	if (apiKeyActorID == null) {
-		throw new Error('API key is not linked to a actor?!');
-	}
-	return apiKeyActorID as number;
-};
+	);
+})();
 
 const checkApiKey = async (
 	req: PermissionReq,
