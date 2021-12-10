@@ -50,6 +50,7 @@ export const cache = {
 	} as CacheOpts,
 	userPermissions: false as CacheOpts,
 	apiKeyPermissions: false as CacheOpts,
+	apiKeyActorId: false as CacheOpts,
 };
 
 import * as memoize from 'memoizee';
