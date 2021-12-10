@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add the ability to enable caching of api key actor ids
+      hash: e234f8a1cad8f893fef6974e38f5e3987755b19e
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.36.0
+  date: 2021-12-10T12:55:30.525Z
+- commits:
     - subject: Update from lf-to-abstract-sql to 4.4.0
       hash: 331515283601b1cb6c2db17f321d9f8b0c383d9f
       body: |
