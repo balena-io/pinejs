@@ -1,4 +1,38 @@
 - commits:
+    - subject: Update dependencies
+      hash: e545d00d9a8c0ced7828c732da9b5c25541927dd
+      body: |
+        Update abstract-sql-compiler from 7.14.1 to 7.15.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add support for `HAVING` clauses
+              hash: ce33ddd42751abbbc190074a5b6a1b63dc24f51e
+              body: ''
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.15.0
+          date: 2021-12-13T17:09:58.207Z
+        - commits:
+            - subject: Fix GroupByNode typings
+              hash: 69f473c58785ec51be3ddd7ff441d66c826fc2c1
+              body: ''
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.14.2
+          date: 2021-12-13T15:35:55.323Z
+  version: 14.36.1
+  date: 2021-12-13T18:00:42.915Z
+- commits:
     - subject: Add the ability to enable caching of api key actor ids
       hash: e234f8a1cad8f893fef6974e38f5e3987755b19e
       body: ''
