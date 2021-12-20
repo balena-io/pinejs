@@ -1,0 +1,3739 @@
+{
+  "$Version": "4.0",
+  "$EntityContainer": "resin.ODataApi",
+  "$Reference": {
+    "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.json": {
+      "$Include": [
+        {
+          "$Namespace": "Org.OData.Core.V1",
+          "$Alias": "Core",
+          "@Core.DefaultNamespace": true
+        }
+      ]
+    },
+    "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Measures.V1.json": {
+      "$Include": [
+        {
+          "$Namespace": "Org.OData.Measures.V1",
+          "$Alias": "Measures"
+        }
+      ]
+    },
+    "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Aggregation.V1.json": {
+      "$Include": [
+        {
+          "$Namespace": "Org.OData.Aggregation.V1",
+          "$Alias": "Aggregation"
+        }
+      ]
+    },
+    "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Capabilities.V1.json": {
+      "$Include": [
+        {
+          "$Namespace": "Org.OData.Capabilities.V1",
+          "$Alias": "Capabilities"
+        }
+      ]
+    }
+  },
+  "resin": {
+    "$Alias": "resin",
+    "@Core.DefaultNamespace": true,
+    "actor": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      }
+    },
+    "api_key": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"key\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "key": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "description": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "is_of__actor": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "api_key",
+        "$Nullable": false,
+        "$Type": "resin.actor"
+      }
+    },
+    "application": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "actor": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "should_track_latest_release": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "is_of__class": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "app_name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "slug": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "is_host": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "is_archived": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "uuid": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "is_public": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "is_accessible_by_support_until__date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "is_discoverable": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "is_stored_at__repository_url": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "organization": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "application",
+        "$Nullable": false,
+        "$Type": "resin.organization"
+      },
+      "is_for__device_type": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "application",
+        "$Nullable": false,
+        "$Type": "resin.device_type"
+      },
+      "should_be_running__release": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "application",
+        "$Nullable": true,
+        "$Type": "resin.release"
+      },
+      "depends_on__application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "application",
+        "$Nullable": true,
+        "$Type": "resin.application"
+      },
+      "application_type": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "application",
+        "$Nullable": false,
+        "$Type": "resin.application_type"
+      },
+      "public_organization": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "application",
+        "$Nullable": false,
+        "$Type": "resin.public_organization"
+      }
+    },
+    "application__can_use__application_as_host": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "application__can_use__application_as_host",
+        "$Nullable": false,
+        "$Type": "resin.application"
+      },
+      "can_use__application_as_host": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "application__can_use__application_as_host",
+        "$Nullable": false,
+        "$Type": "resin.application"
+      }
+    },
+    "application_config_variable": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "application_config_variable",
+        "$Nullable": false,
+        "$Type": "resin.application"
+      }
+    },
+    "application_domain_mapping": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "domain": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "application_domain_mapping",
+        "$Nullable": false,
+        "$Type": "resin.application"
+      }
+    },
+    "application_environment_variable": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "application_environment_variable",
+        "$Nullable": false,
+        "$Type": "resin.application"
+      }
+    },
+    "application_membership_role": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      }
+    },
+    "application_tag": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "tag_key": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "application_tag",
+        "$Nullable": false,
+        "$Type": "resin.application"
+      }
+    },
+    "application_type": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "supports_web_url": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "supports_multicontainer": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "supports_gateway_mode": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "needs__os_version_range": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "requires_payment": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "is_legacy": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "slug": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "description": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "maximum_device_count": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      }
+    },
+    "build_environment_variable": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "build_environment_variable",
+        "$Nullable": false,
+        "$Type": "resin.application"
+      }
+    },
+    "delta": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "version": {
+        "$Type": "Edm.Int32",
+        "$Nullable": false
+      },
+      "status": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "error_message": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "is_stored_at__location": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "size": {
+        "$Type": "Edm.Int64",
+        "$Nullable": true
+      },
+      "update_timestamp": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "end_timestamp": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "originates_from__image": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "delta",
+        "$Nullable": true,
+        "$Type": "resin.image"
+      },
+      "produces__image": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "delta",
+        "$Nullable": false,
+        "$Type": "resin.image"
+      }
+    },
+    "device": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "actor": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "api_heartbeat_state": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "uuid": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "local_id": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "device_name": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "note": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "is_online": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "last_connectivity_event": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "is_connected_to_vpn": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "last_vpn_event": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "is_locked_until__date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "logs_channel": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "public_address": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "vpn_address": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "ip_address": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "mac_address": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "memory_usage": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "memory_total": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "storage_block_device": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "storage_usage": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "storage_total": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "cpu_usage": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "cpu_temp": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "is_undervolted": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "cpu_id": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "download_progress": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "status": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "os_version": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "os_variant": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "supervisor_version": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "provisioning_progress": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "provisioning_state": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "api_port": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "api_secret": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "latitude": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "longitude": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "custom_latitude": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "custom_longitude": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "location": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "is_accessible_by_support_until__date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "is_web_accessible": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "is_active": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "overall_status": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "overall_progress": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "is_of__device_type": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device",
+        "$Nullable": false,
+        "$Type": "resin.device_type"
+      },
+      "belongs_to__application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device",
+        "$Nullable": true,
+        "$Type": "resin.application"
+      },
+      "is_running__release": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device",
+        "$Nullable": true,
+        "$Type": "resin.release"
+      },
+      "is_managed_by__service_instance": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device",
+        "$Nullable": true,
+        "$Type": "resin.service_instance"
+      },
+      "should_be_running__release": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device",
+        "$Nullable": true,
+        "$Type": "resin.release"
+      },
+      "should_be_operated_by__release": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device",
+        "$Nullable": true,
+        "$Type": "resin.release"
+      },
+      "is_managed_by__device": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device",
+        "$Nullable": true,
+        "$Type": "resin.device"
+      },
+      "should_be_managed_by__release": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device",
+        "$Nullable": true,
+        "$Type": "resin.release"
+      },
+      "belongs_to__user": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device",
+        "$Nullable": true,
+        "$Type": "resin.user"
+      }
+    },
+    "device_config_variable": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "device": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device_config_variable",
+        "$Nullable": false,
+        "$Type": "resin.device"
+      }
+    },
+    "device_domain_mapping": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "fqdn": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "device": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device_domain_mapping",
+        "$Nullable": false,
+        "$Type": "resin.device"
+      }
+    },
+    "device_environment_variable": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "device": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device_environment_variable",
+        "$Nullable": false,
+        "$Type": "resin.device"
+      }
+    },
+    "device_family": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "slug": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "is_manufactured_by__device_manufacturer": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device_family",
+        "$Nullable": true,
+        "$Type": "resin.device_manufacturer"
+      }
+    },
+    "device_manufacturer": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "slug": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      }
+    },
+    "device_service_environment_variable": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "service_install": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device_service_environment_variable",
+        "$Nullable": false,
+        "$Type": "resin.device__installs__application__has__service_name"
+      }
+    },
+    "device_tag": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "tag_key": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "device": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device_tag",
+        "$Nullable": false,
+        "$Type": "resin.device"
+      }
+    },
+    "device_type": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "slug": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "logo": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "contract": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "is_private": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "is_of__cpu_architecture": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device_type",
+        "$Nullable": false,
+        "$Type": "resin.cpu_architecture"
+      },
+      "belongs_to__device_family": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "device_type",
+        "$Nullable": true,
+        "$Type": "resin.device_family"
+      }
+    },
+    "feature": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "title": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "slug": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "billing_code": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      }
+    },
+    "gateway_download": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "status": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "download_progress": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "image": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "gateway_download",
+        "$Nullable": false,
+        "$Type": "resin.image"
+      },
+      "is_downloaded_by__device": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "gateway_download",
+        "$Nullable": false,
+        "$Type": "resin.device"
+      }
+    },
+    "image": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "start_timestamp": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "end_timestamp": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "dockerfile": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "image_size": {
+        "$Type": "Edm.Int64",
+        "$Nullable": true
+      },
+      "is_stored_at__image_location": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "project_type": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "error_message": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "build_log": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "push_timestamp": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "status": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "content_hash": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "contract": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "is_a_build_of__service": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "image",
+        "$Nullable": false,
+        "$Type": "resin.application__has__service_name"
+      }
+    },
+    "image__is_part_of__release": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "image": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "image__is_part_of__release",
+        "$Nullable": false,
+        "$Type": "resin.image"
+      },
+      "is_part_of__release": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "image__is_part_of__release",
+        "$Nullable": false,
+        "$Type": "resin.release"
+      }
+    },
+    "image_environment_variable": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "release_image": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "image_environment_variable",
+        "$Nullable": false,
+        "$Type": "resin.image__is_part_of__release"
+      }
+    },
+    "image_install": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "install_date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "download_progress": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "status": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "device": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "image_install",
+        "$Nullable": false,
+        "$Type": "resin.device"
+      },
+      "installs__image": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "image_install",
+        "$Nullable": false,
+        "$Type": "resin.image"
+      },
+      "is_provided_by__release": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "image_install",
+        "$Nullable": false,
+        "$Type": "resin.release"
+      }
+    },
+    "image_label": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "label_name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "release_image": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "image_label",
+        "$Nullable": false,
+        "$Type": "resin.image__is_part_of__release"
+      }
+    },
+    "invitee": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "email": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      }
+    },
+    "invitee__is_invited_to__application": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "invitation_token": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "message": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "invitee": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "invitee__is_invited_to__application",
+        "$Nullable": false,
+        "$Type": "resin.invitee"
+      },
+      "is_invited_to__application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "invitee__is_invited_to__application",
+        "$Nullable": false,
+        "$Type": "resin.application"
+      },
+      "application_membership_role": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "invitee__is_invited_to__application",
+        "$Nullable": false,
+        "$Type": "resin.application_membership_role"
+      },
+      "is_created_by__user": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "invitee__is_invited_to__application",
+        "$Nullable": true,
+        "$Type": "resin.user"
+      }
+    },
+    "invitee__is_invited_to__organization": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "invitation_token": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "message": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "invitee": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "invitee__is_invited_to__organization",
+        "$Nullable": false,
+        "$Type": "resin.invitee"
+      },
+      "is_invited_to__organization": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "invitee__is_invited_to__organization",
+        "$Nullable": false,
+        "$Type": "resin.organization"
+      },
+      "organization_membership_role": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "invitee__is_invited_to__organization",
+        "$Nullable": false,
+        "$Type": "resin.organization_membership_role"
+      },
+      "is_created_by__user": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "invitee__is_invited_to__organization",
+        "$Nullable": true,
+        "$Type": "resin.user"
+      }
+    },
+    "oauth_application": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "secret": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "client_id": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "redirect_uri": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "description": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      }
+    },
+    "oauth_application_authorization": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "belongs_to__user": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "oauth_application_authorization",
+        "$Nullable": false,
+        "$Type": "resin.user"
+      },
+      "is_for__oauth_application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "oauth_application_authorization",
+        "$Nullable": false,
+        "$Type": "resin.oauth_application"
+      }
+    },
+    "organization": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "handle": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "is_active": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "company_name": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "internal_company_name": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "internal_note": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "billing_account_code": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "has_past_due_invoice_since__date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "tradegecko_company_id": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "industry": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "website": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      }
+    },
+    "organization__has_private_access_to__device_type": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "organization": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "organization__has_private_access_to__device_type",
+        "$Nullable": false,
+        "$Type": "resin.organization"
+      },
+      "has_private_access_to__device_type": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "organization__has_private_access_to__device_type",
+        "$Nullable": false,
+        "$Type": "resin.device_type"
+      }
+    },
+    "organization_membership": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "effective_seat_role": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "user": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "organization_membership",
+        "$Nullable": false,
+        "$Type": "resin.user"
+      },
+      "is_member_of__organization": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "organization_membership",
+        "$Nullable": false,
+        "$Type": "resin.organization"
+      },
+      "organization_membership_role": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "organization_membership",
+        "$Nullable": false,
+        "$Type": "resin.organization_membership_role"
+      }
+    },
+    "organization_membership_role": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      }
+    },
+    "organization_membership_tag": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "tag_key": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "organization_membership": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "organization_membership_tag",
+        "$Nullable": false,
+        "$Type": "resin.user__is_member_of__organization"
+      }
+    },
+    "plan": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "title": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "billing_code": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "generation": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "monthly_price": {
+        "$Type": "Edm.Int32",
+        "$Nullable": false
+      },
+      "annual_price": {
+        "$Type": "Edm.Int32",
+        "$Nullable": false
+      },
+      "can_self_serve": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "is_legacy": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      }
+    },
+    "plan__has__discount_code": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "discount_code": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "plan": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "plan__has__discount_code",
+        "$Nullable": false,
+        "$Type": "resin.plan"
+      }
+    },
+    "plan_addon": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "base_price": {
+        "$Type": "Edm.Int32",
+        "$Nullable": false
+      },
+      "can_self_serve": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "bills_dynamically": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "plan": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "plan_addon",
+        "$Nullable": false,
+        "$Type": "resin.plan"
+      },
+      "offers__feature": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "plan_addon",
+        "$Nullable": false,
+        "$Type": "resin.feature"
+      }
+    },
+    "plan_feature": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "quantity": {
+        "$Type": "Edm.Int32",
+        "$Nullable": false
+      },
+      "plan": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "plan_feature",
+        "$Nullable": false,
+        "$Type": "resin.plan"
+      },
+      "provides__feature": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "plan_feature",
+        "$Nullable": false,
+        "$Type": "resin.feature"
+      }
+    },
+    "public_organization": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "handle": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      }
+    },
+    "recovery_two_factor": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "recovery_code": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "used_timestamp": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "belongs_to__user": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "recovery_two_factor",
+        "$Nullable": false,
+        "$Type": "resin.user"
+      }
+    },
+    "release": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "commit": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "composition": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "status": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "source": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "build_log": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "is_invalidated": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "start_timestamp": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "end_timestamp": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "update_timestamp": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "release_version": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "contract": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "is_passing_tests": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "is_finalized_at__date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "semver_major": {
+        "$Type": "Edm.Int32",
+        "$Nullable": false
+      },
+      "semver_minor": {
+        "$Type": "Edm.Int32",
+        "$Nullable": false
+      },
+      "semver_patch": {
+        "$Type": "Edm.Int32",
+        "$Nullable": false
+      },
+      "revision": {
+        "$Type": "Edm.Int32",
+        "$Nullable": true
+      },
+      "known_issue_list": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "note": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "invalidation_reason": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "statistics_set": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "is_final": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "semver": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "raw_version": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "version": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "belongs_to__application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "release",
+        "$Nullable": false,
+        "$Type": "resin.application"
+      },
+      "is_created_by__user": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "release",
+        "$Nullable": true,
+        "$Type": "resin.user"
+      }
+    },
+    "release_tag": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "tag_key": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "release": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "release_tag",
+        "$Nullable": false,
+        "$Type": "resin.release"
+      }
+    },
+    "service": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "service_name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "service",
+        "$Nullable": false,
+        "$Type": "resin.application"
+      }
+    },
+    "service_environment_variable": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "service": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "service_environment_variable",
+        "$Nullable": false,
+        "$Type": "resin.application__has__service_name"
+      }
+    },
+    "service_install": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "device": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "service_install",
+        "$Nullable": false,
+        "$Type": "resin.device"
+      },
+      "installs__service": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "service_install",
+        "$Nullable": false,
+        "$Type": "resin.application__has__service_name"
+      }
+    },
+    "service_instance": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "service_type": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "ip_address": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "last_heartbeat": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      }
+    },
+    "service_label": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "label_name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "value": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "service": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "service_label",
+        "$Nullable": false,
+        "$Type": "resin.application__has__service_name"
+      }
+    },
+    "subscription": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "billing_cycle": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "starts_on__date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "ends_on__date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "discount_percentage": {
+        "$Type": "Edm.Double",
+        "$Nullable": false
+      },
+      "origin": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "bills_base_with__recurly_id": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "bills_addons_with__recurly_id": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "is_agreed_upon_on__date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "is_terminated_on__date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "is_terminated_with__reason": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "expects_first_payment_on__date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "internal_note": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "is_active": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "is_for__plan": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "subscription",
+        "$Nullable": false,
+        "$Type": "resin.plan"
+      },
+      "is_for__organization": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "subscription",
+        "$Nullable": false,
+        "$Type": "resin.organization"
+      }
+    },
+    "subscription_prepaid_addon": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "discount_percentage": {
+        "$Type": "Edm.Double",
+        "$Nullable": false
+      },
+      "quantity": {
+        "$Type": "Edm.Int32",
+        "$Nullable": false
+      },
+      "starts_on__date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "expires_on__date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "is_for__subscription": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "subscription_prepaid_addon",
+        "$Nullable": false,
+        "$Type": "resin.subscription"
+      },
+      "is_for__plan_addon": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "subscription_prepaid_addon",
+        "$Nullable": false,
+        "$Type": "resin.plan__offers__feature"
+      }
+    },
+    "support_feature": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "feature": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "support_tier": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "support_feature",
+        "$Nullable": false,
+        "$Type": "resin.support_tier"
+      }
+    },
+    "support_tier": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "title": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "slug": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "includes_private_support": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "includes__SLA": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      }
+    },
+    "team": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"id\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "name": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "description": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "belongs_to__organization": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "team",
+        "$Nullable": false,
+        "$Type": "resin.organization"
+      }
+    },
+    "team_application_access": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "team": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "team_application_access",
+        "$Nullable": false,
+        "$Type": "resin.team"
+      },
+      "grants_access_to__application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "team_application_access",
+        "$Nullable": false,
+        "$Type": "resin.application"
+      },
+      "application_membership_role": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "team_application_access",
+        "$Nullable": false,
+        "$Type": "resin.application_membership_role"
+      }
+    },
+    "team_membership": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "user": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "team_membership",
+        "$Nullable": false,
+        "$Type": "resin.user"
+      },
+      "is_member_of__team": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "team_membership",
+        "$Nullable": false,
+        "$Type": "resin.team"
+      }
+    },
+    "user": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"username\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "actor": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "username": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "password": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "jwt_secret": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "email": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "internal_note": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "two_factor_key": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "is_two_factor_protected": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "has_disabled_newsletter": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "has_been_sent_verification_email": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "is_verified": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "must_be_verified": {
+        "$Type": "Edm.Boolean",
+        "$Nullable": false
+      },
+      "unverified_email": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "email_verification_code": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "can_use_email_verification_code_until__expiry_date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "password_reset_code": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "can_reset_password_until__expiry_date": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": true
+      },
+      "first_name": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "last_name": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "account_type": {
+        "$Type": "Edm.String",
+        "$Nullable": true
+      },
+      "has_legacy_link_to__organization": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "user",
+        "$Nullable": false,
+        "$Type": "resin.organization"
+      }
+    },
+    "user__has__public_key": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "public_key": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "title": {
+        "$Type": "Edm.String",
+        "$Nullable": false
+      },
+      "user": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "user__has__public_key",
+        "$Nullable": false,
+        "$Type": "resin.user"
+      }
+    },
+    "user__has_direct_access_to__application": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "user": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "user__has_direct_access_to__application",
+        "$Nullable": false,
+        "$Type": "resin.user"
+      },
+      "has_direct_access_to__application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "user__has_direct_access_to__application",
+        "$Nullable": false,
+        "$Type": "resin.application"
+      }
+    },
+    "user__is_member_of__application": {
+      "$Kind": "EntityType",
+      "$Key": [
+        "id"
+      ],
+      "@Core.LongDescription": "{\"x-ref-scheme\": [\"undefined\"]}",
+      "created_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "modified_at": {
+        "$Type": "Edm.DateTime",
+        "$Nullable": false
+      },
+      "id": {
+        "$Type": "Edm.Int64",
+        "$Nullable": false
+      },
+      "user": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "user__is_member_of__application",
+        "$Nullable": false,
+        "$Type": "resin.user"
+      },
+      "is_member_of__application": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "user__is_member_of__application",
+        "$Nullable": false,
+        "$Type": "resin.application"
+      },
+      "application_membership_role": {
+        "$Kind": "NavigationProperty",
+        "$Partner": "user__is_member_of__application",
+        "$Nullable": false,
+        "$Type": "resin.application_membership_role"
+      }
+    },
+    "ODataApi": {
+      "$Kind": "EntityContainer",
+      "@Capabilities.BatchSupported": false,
+      "actor": {
+        "$Collection": true,
+        "$Type": "resin.actor",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "api_key": {
+        "$Collection": true,
+        "$Type": "resin.api_key",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "application": {
+        "$Collection": true,
+        "$Type": "resin.application",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "application__can_use__application_as_host": {
+        "$Collection": true,
+        "$Type": "resin.application__can_use__application_as_host",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "application_config_variable": {
+        "$Collection": true,
+        "$Type": "resin.application_config_variable",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "application_domain_mapping": {
+        "$Collection": true,
+        "$Type": "resin.application_domain_mapping",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "application_environment_variable": {
+        "$Collection": true,
+        "$Type": "resin.application_environment_variable",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "application_membership_role": {
+        "$Collection": true,
+        "$Type": "resin.application_membership_role",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "application_tag": {
+        "$Collection": true,
+        "$Type": "resin.application_tag",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "application_type": {
+        "$Collection": true,
+        "$Type": "resin.application_type",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "build_environment_variable": {
+        "$Collection": true,
+        "$Type": "resin.build_environment_variable",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "delta": {
+        "$Collection": true,
+        "$Type": "resin.delta",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "device": {
+        "$Collection": true,
+        "$Type": "resin.device",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "device_config_variable": {
+        "$Collection": true,
+        "$Type": "resin.device_config_variable",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "device_domain_mapping": {
+        "$Collection": true,
+        "$Type": "resin.device_domain_mapping",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "device_environment_variable": {
+        "$Collection": true,
+        "$Type": "resin.device_environment_variable",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "device_family": {
+        "$Collection": true,
+        "$Type": "resin.device_family",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "device_manufacturer": {
+        "$Collection": true,
+        "$Type": "resin.device_manufacturer",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "device_service_environment_variable": {
+        "$Collection": true,
+        "$Type": "resin.device_service_environment_variable",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "device_tag": {
+        "$Collection": true,
+        "$Type": "resin.device_tag",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "device_type": {
+        "$Collection": true,
+        "$Type": "resin.device_type",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "feature": {
+        "$Collection": true,
+        "$Type": "resin.feature",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "gateway_download": {
+        "$Collection": true,
+        "$Type": "resin.gateway_download",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "image": {
+        "$Collection": true,
+        "$Type": "resin.image",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "image__is_part_of__release": {
+        "$Collection": true,
+        "$Type": "resin.image__is_part_of__release",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "image_environment_variable": {
+        "$Collection": true,
+        "$Type": "resin.image_environment_variable",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "image_install": {
+        "$Collection": true,
+        "$Type": "resin.image_install",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "image_label": {
+        "$Collection": true,
+        "$Type": "resin.image_label",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "invitee": {
+        "$Collection": true,
+        "$Type": "resin.invitee",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "invitee__is_invited_to__application": {
+        "$Collection": true,
+        "$Type": "resin.invitee__is_invited_to__application",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "invitee__is_invited_to__organization": {
+        "$Collection": true,
+        "$Type": "resin.invitee__is_invited_to__organization",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "oauth_application": {
+        "$Collection": true,
+        "$Type": "resin.oauth_application",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "oauth_application_authorization": {
+        "$Collection": true,
+        "$Type": "resin.oauth_application_authorization",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "organization": {
+        "$Collection": true,
+        "$Type": "resin.organization",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "organization__has_private_access_to__device_type": {
+        "$Collection": true,
+        "$Type": "resin.organization__has_private_access_to__device_type",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "organization_membership": {
+        "$Collection": true,
+        "$Type": "resin.organization_membership",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "organization_membership_role": {
+        "$Collection": true,
+        "$Type": "resin.organization_membership_role",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "organization_membership_tag": {
+        "$Collection": true,
+        "$Type": "resin.organization_membership_tag",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "plan": {
+        "$Collection": true,
+        "$Type": "resin.plan",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "plan__has__discount_code": {
+        "$Collection": true,
+        "$Type": "resin.plan__has__discount_code",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "plan_addon": {
+        "$Collection": true,
+        "$Type": "resin.plan_addon",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "plan_feature": {
+        "$Collection": true,
+        "$Type": "resin.plan_feature",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "public_organization": {
+        "$Collection": true,
+        "$Type": "resin.public_organization",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "recovery_two_factor": {
+        "$Collection": true,
+        "$Type": "resin.recovery_two_factor",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "release": {
+        "$Collection": true,
+        "$Type": "resin.release",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "release_tag": {
+        "$Collection": true,
+        "$Type": "resin.release_tag",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "service": {
+        "$Collection": true,
+        "$Type": "resin.service",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "service_environment_variable": {
+        "$Collection": true,
+        "$Type": "resin.service_environment_variable",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "service_install": {
+        "$Collection": true,
+        "$Type": "resin.service_install",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "service_instance": {
+        "$Collection": true,
+        "$Type": "resin.service_instance",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "service_label": {
+        "$Collection": true,
+        "$Type": "resin.service_label",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "subscription": {
+        "$Collection": true,
+        "$Type": "resin.subscription",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "subscription_prepaid_addon": {
+        "$Collection": true,
+        "$Type": "resin.subscription_prepaid_addon",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "support_feature": {
+        "$Collection": true,
+        "$Type": "resin.support_feature",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "support_tier": {
+        "$Collection": true,
+        "$Type": "resin.support_tier",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "team": {
+        "$Collection": true,
+        "$Type": "resin.team",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "team_application_access": {
+        "$Collection": true,
+        "$Type": "resin.team_application_access",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "team_membership": {
+        "$Collection": true,
+        "$Type": "resin.team_membership",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "user": {
+        "$Collection": true,
+        "$Type": "resin.user",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "user__has__public_key": {
+        "$Collection": true,
+        "$Type": "resin.user__has__public_key",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "user__has_direct_access_to__application": {
+        "$Collection": true,
+        "$Type": "resin.user__has_direct_access_to__application",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": false
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": false
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": false
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      },
+      "user__is_member_of__application": {
+        "$Collection": true,
+        "$Type": "resin.user__is_member_of__application",
+        "@Capabilities.UpdateRestrictions": {
+          "Updatable": true
+        },
+        "@Capabilities.DeleteRestrictions": {
+          "Deletable": true
+        },
+        "@Capabilities.InsertRestrictions": {
+          "Insertable": true
+        },
+        "@Capabilities.ReadRestrictions": {
+          "Readable": true
+        }
+      }
+    }
+  }
+}

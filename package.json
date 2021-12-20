@@ -21,7 +21,7 @@
     "lint": "balena-lint -e js -e ts src build typings Gruntfile.ts && npx tsc --project tsconfig.dev.json --noEmit",
     "test": "npm run lint && npm run build && npm run webpack-build",
     "prettify": "balena-lint -e js -e ts --fix src build typings Gruntfile.ts",
-    "compile-odata": "ts-node ./src/bin/abstract-sql-compiler.ts generate-odata .materialized-config.json ./oDataModelV4.json"
+    "compile-odata": "ts-node ./src/bin/abstract-sql-compiler.ts generate-odata .materialized-config.json ./model.v4odata.json"
   },
   "dependencies": {
     "@balena/abstract-sql-compiler": "^7.17.1",
