@@ -98,7 +98,7 @@ const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVer
 
 export type ExecutableModel =
 	| RequiredField<Model, 'apiRoot' | 'modelText'>
-	| RequiredField<Model, 'apiRoot' | 'abstractSql' | 'whitelist'>;
+	| RequiredField<Model, 'apiRoot' | 'abstractSql'>;
 
 interface CompiledModel {
 	vocab: string;
@@ -394,7 +394,6 @@ export const generateModels = (
 ): CompiledModel => {
 	const { apiRoot: vocab, modelText: se } = model;
 	let { abstractSql: maybeAbstractSql } = model;
-	const { whitelist: whitelist } = model;
 
 	let lf: ReturnType<typeof generateLfModel> | undefined;
 	if (se) {
@@ -414,13 +413,12 @@ export const generateModels = (
 	}
 	const abstractSql = maybeAbstractSql!;
 
-	// const odataMetadata = cachedCompile(
-	// 	'metadata',
-	// 	generateODataMetadata.version,
-	// 	{ vocab, abstractSqlModel: abstractSql },
-	// 	() => generateODataMetadata(vocab, abstractSql, whitelist),
-	// );
-	const odataMetadata = generateODataMetadata(vocab, abstractSql, whitelist);
+	const odataMetadata = cachedCompile(
+		'metadata',
+		generateODataMetadata.version,
+		{ vocab, abstractSqlModel: abstractSql },
+		() => generateODataMetadata(vocab, abstractSql),
+	);
 
 	let sql: ReturnType<AbstractSQLCompiler.EngineInstance['compileSchema']>;
 	try {

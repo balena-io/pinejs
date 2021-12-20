@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
 
 import { program } from 'commander';
+import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
 const getSE = (inputFile: string) => fs.readFileSync(inputFile, 'utf8');
 
 const runCompile = (inputFile: string, outputFile?: string) => {
@@ -30,15 +31,16 @@ const generateTypes = (inputFile: string, outputFile?: string) => {
 };
 
 const generateOData = (inputFile: string, outputFile?: string) => {
-	const { generateModels } =
-		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
 	const materializedConfig = JSON.parse(getSE(inputFile));
-	const models = generateModels(
-		materializedConfig.models[0],
-		program.opts().engine,
+	// TODO: better way to destructure the materialisedConfig object
+	const oDataSpec = generateODataMetadata(
+		materializedConfig.models[0].apiRoot,
+		materializedConfig.models[0].abstractSql,
+		materializedConfig.whitelist,
+		materializedConfig.authRoles,
 	);
 
-	writeAll(models.odataMetadata, outputFile);
+	writeAll(oDataSpec, outputFile);
 };
 
 program
@@ -67,7 +69,9 @@ program
 
 program
 	.command('generate-odata <input-file> [output-file]')
-	.description('generate odata specification from the input AbstractSql')
+	.description(
+		'generate odata specification from the input pinejs manifest file',
+	)
 	.action(generateOData);
 
 program

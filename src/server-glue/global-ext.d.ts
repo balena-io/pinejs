@@ -1,10 +1,10 @@
-declare var nodeRequire: NodeRequire;
+declare var require: require;
 /* tslint:disable-next-line:no-namespace */
 declare namespace NodeJS {
 	export interface Process {
 		browser: boolean;
 	}
 	export interface Global {
-		nodeRequire: NodeRequire;
+		require: require;
 	}
 }

@@ -179,7 +179,7 @@ export const setup = (app: Express.Application) => {
 						let customCode: SetupFunction;
 						if (typeof model.customServerCode === 'string') {
 							try {
-								customCode = nodeRequire(model.customServerCode).setup;
+								customCode = require(model.customServerCode).setup;
 							} catch (e) {
 								e.message = `Error loading custom server code: '${e.message}'`;
 								throw e;
@@ -258,7 +258,7 @@ export const setup = (app: Express.Application) => {
 									case '.coffee':
 									case '.ts':
 									case '.js':
-										migrations[migrationKey] = nodeRequire(filePath);
+										migrations[migrationKey] = require(filePath);
 										break;
 									case '.sql':
 										migrations[migrationKey] = await fs.promises.readFile(

@@ -117,7 +117,7 @@ export = (grunt: typeof Grunt) => {
 				overwrite: true,
 				replacements: [
 					{
-						from: /nodeRequire/g,
+						from: /require/g,
 						to: 'require',
 					},
 				],
