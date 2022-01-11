@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update dependencies
+      hash: c130dd27d772acac8d18f75668c18abcea89d6de
+      body: |
+        Update @balena/odata-to-abstract-sql from 5.4.6 to 5.4.7
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.37.1
+  date: 2022-01-11T17:58:01.295Z
+- commits:
     - subject: Update dependencies for improved sbvr negation
       hash: 60b369be6cb84993f6039aab97416402afaa33e0
       body: |
