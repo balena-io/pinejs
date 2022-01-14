@@ -469,6 +469,8 @@ if (maybePg != null) {
 			config.query_timeout ??= env.db.queryTimeout;
 			config.connectionTimeoutMillis ??= env.db.connectionTimeoutMillis;
 			config.keepAlive ??= env.db.keepAlive;
+			// @ts-expect-error maxUses is valid for PgPool but isn't currently in the typings
+			config.maxUses ??= env.db.maxUses;
 			const p = new pg.Pool(config);
 			if (PG_SCHEMA != null) {
 				p.on('connect', (client) => {
