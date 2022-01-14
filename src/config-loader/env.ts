@@ -100,6 +100,7 @@ export const db = {
 	keepAlive: true as boolean | undefined,
 	rollbackTimeout: 30000,
 	timeoutMS,
+	maxUses: Infinity,
 };
 
 export const migrator = {
