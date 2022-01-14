@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add the ability to set the maxUses for the postgres pool
+      hash: b5abd1e6f8f458564f0bd7c5b6621ab673f1027f
+      body: ''
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.38.0
+  date: 2022-01-14T14:30:17.819Z
+- commits:
     - subject: Update @balena/odata-to-abstract-sql to 5.4.8
       hash: 44d91739fadd17983b5d9c469682b12dc4154d80
       body: |
