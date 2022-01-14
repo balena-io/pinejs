@@ -19,10 +19,7 @@ export * as hooks from '../sbvr-api/hooks';
 export type { configLoader as ConfigLoader };
 export type { migrator as Migrator };
 
-let envDatabaseOptions: {
-	engine: string;
-	params: string;
-};
+let envDatabaseOptions: dbModule.DatabaseOptions<string>;
 if (dbModule.engines.websql != null) {
 	envDatabaseOptions = {
 		engine: 'websql',
@@ -45,10 +42,12 @@ if (dbModule.engines.websql != null) {
 	};
 }
 
-export const init = async (
+export const init = async <T extends string>(
 	app: Express.Application,
 	config?: string | configLoader.Config,
-	databaseOptions = envDatabaseOptions,
+	databaseOptions:
+		| dbModule.DatabaseOptions<T>
+		| typeof envDatabaseOptions = envDatabaseOptions,
 ): Promise<ReturnType<typeof configLoader.setup>> => {
 	try {
 		const db = dbModule.connect(databaseOptions);

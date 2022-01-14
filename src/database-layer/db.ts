@@ -100,9 +100,10 @@ export interface Database extends BaseDatabase {
 	readTransaction: TransactionFn;
 }
 
-export const engines: {
-	[engine: string]: (connectString: string | object) => Database;
-} = {};
+interface EngineParams {
+	[engine: string]: (options: unknown) => Database;
+}
+export const engines = {} as EngineParams;
 
 const types = {
 	integer: {
@@ -448,14 +449,17 @@ try {
 } catch (e) {
 	// Ignore errors
 }
-if (maybePg != null) {
-	const pg = maybePg;
-	engines.postgres = (
-		connectString:
+interface EngineParams {
+	postgres: (
+		options:
 			| string
 			| Pg.PoolConfig
 			| { primary: Pg.PoolConfig; replica?: Pg.PoolConfig },
-	): Database => {
+	) => Database;
+}
+if (maybePg != null) {
+	const pg = maybePg;
+	engines.postgres = (connectString) => {
 		const PG_UNIQUE_VIOLATION = '23505';
 		const PG_FOREIGN_KEY_VIOLATION = '23503';
 		const PG_CHECK_CONSTRAINT_VIOLATION = '23514';
@@ -664,9 +668,12 @@ try {
 } catch (e) {
 	// Ignore errors
 }
+interface EngineParams {
+	mysql: (options: Mysql.PoolConfig) => Database;
+}
 if (maybeMysql != null) {
 	const mysql = maybeMysql;
-	engines.mysql = (options: Mysql.PoolConfig): Database => {
+	engines.mysql = (options) => {
 		const MYSQL_UNIQUE_VIOLATION = 'ER_DUP_ENTRY';
 		const MYSQL_FOREIGN_KEY_VIOLATION = 'ER_ROW_IS_REFERENCED';
 		const MYSQL_CHECK_CONSTRAINT_VIOLATION = 'ER_CHECK_CONSTRAINT_VIOLATED';
@@ -777,6 +784,9 @@ if (maybeMysql != null) {
 	};
 }
 
+interface EngineParams {
+	websql: (databaseName: string) => Database;
+}
 if (typeof window !== 'undefined' && window.openDatabase != null) {
 	interface WebSqlResult {
 		insertId?: number;
@@ -792,7 +802,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 		SQLStatementCallback,
 		SQLStatementErrorCallback,
 	];
-	engines.websql = (databaseName: string): Database => {
+	engines.websql = (databaseName) => {
 		const WEBSQL_CONSTRAINT_ERR = 6;
 
 		const db = window.openDatabase(
@@ -963,7 +973,13 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 	};
 }
 
-export const connect = (databaseOptions: { engine: string; params: {} }) => {
+export type DatabaseOptions<T extends keyof EngineParams> = {
+	engine: T;
+	params: Parameters<EngineParams[T]>[0];
+};
+export const connect = <T extends keyof EngineParams>(
+	databaseOptions: DatabaseOptions<T>,
+) => {
 	if (engines[databaseOptions.engine] == null) {
 		throw new Error('Unsupported database engine: ' + databaseOptions.engine);
 	}
