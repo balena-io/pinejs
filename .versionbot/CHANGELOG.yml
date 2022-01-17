@@ -1,4 +1,15 @@
 - commits:
+    - subject: Improve typings of databaseOptions parameter
+      hash: 1e366e65a317f6bffde36297e14fc7e9fdeb82d1
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.38.1
+  date: 2022-01-14T16:34:59.841Z
+- commits:
     - subject: Add the ability to set the maxUses for the postgres pool
       hash: b5abd1e6f8f458564f0bd7c5b6621ab673f1027f
       body: ''
