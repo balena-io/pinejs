@@ -474,7 +474,7 @@ const buildODataPermission = (
 	}
 	if (conditionalPerms === true) {
 		// If we have full access then no need to provide a constrained definition
-		return false;
+		return;
 	}
 
 	const permissionFilters = nestedCheck(conditionalPerms, (permissionCheck) => {
@@ -517,6 +517,12 @@ const generateConstrainedAbstractSql = (
 		resourceName,
 		odata,
 	);
+
+	if (collapsePermissionFilters == null) {
+		// If we have full access then there's no need to provide a constrained
+		// definition, just use the table directly.
+		return;
+	}
 
 	_.set(odata, ['tree', 'options', '$filter'], collapsedPermissionFilters);
 
@@ -607,10 +613,9 @@ const generateConstrainedAbstractSql = (
 			parentOdata,
 		);
 
-		if (collapsedParentPermissionFilters === false) {
-			// We reuse a constant permission error here as it will be cached, and
-			// using a single error instance can drastically reduce the memory used
-			throw constrainedPermissionError;
+		if (collapsedParentPermissionFilters == null) {
+			// full access
+			return ['Equals', ['Boolean', true], ['Boolean', true]];
 		}
 
 		rewriteSubPermissionBindings(
@@ -806,6 +811,12 @@ const rewriteRelationship = memoizeWeak(
 							targetResourceEscaped,
 							odata,
 						);
+
+						if (collapsedPermissionFilters == null) {
+							// If we have full access already then there's no need to
+							// check for/rewrite based on `canAccess`
+							return;
+						}
 
 						_.set(
 							odata,
