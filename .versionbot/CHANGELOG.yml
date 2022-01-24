@@ -1,4 +1,17 @@
 - commits:
+    - subject: >-
+        Fix permissions using `canAccess` that would fail if target resource
+        specified no filter
+      hash: bf09090fdfb374d9a182f8441e6138dce285bda1
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Akis Kesoglou
+      nested: []
+  version: 14.38.2
+  date: 2022-01-24T16:01:46.930Z
+- commits:
     - subject: Improve typings of databaseOptions parameter
       hash: 1e366e65a317f6bffde36297e14fc7e9fdeb82d1
       body: ''
