@@ -71,3 +71,16 @@ export const getMappingFn = (headers?: {
 
 export const delay = (ms: number) =>
 	new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+export const fromCallback = <T>(
+	resolver: (callback: (err: any, result?: T) => void) => void,
+): Promise<T> =>
+	new Promise<T>((resolve, reject) => {
+		resolver((err, result?: T) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(result as T);
+			}
+		});
+	});
