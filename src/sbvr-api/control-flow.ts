@@ -7,22 +7,26 @@ export type MappingFunction = <T, U>(
 	fn: (v: T) => Resolvable<U>,
 ) => Promise<Array<U | Error>>;
 
+export const mapSeries = async <T, U>(a: T[], fn: (v: T) => Resolvable<U>) => {
+	const results: U[] = [];
+	for (const p of a) {
+		results.push(await fn(p));
+	}
+	return results;
+};
+
 // The settle version of `Promise.mapSeries`
 export const settleMapSeries: MappingFunction = async <T, U>(
 	a: T[],
 	fn: (v: T) => Resolvable<U>,
-) => {
-	const results: Array<U | Error> = [];
-	for (const p of a) {
+) =>
+	await mapSeries(a, async (p) => {
 		try {
-			const result = await fn(p);
-			results.push(result);
+			return await fn(p);
 		} catch (err) {
-			results.push(ensureError(err));
+			return ensureError(err);
 		}
-	}
-	return results;
-};
+	});
 
 // This is used to guarantee that we convert a `.catch` result into an error, so that later code checking `_.isError` will work as expected
 const ensureError = (err: any): Error => {
