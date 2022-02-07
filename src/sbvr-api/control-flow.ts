@@ -1,6 +1,7 @@
 import type { Resolvable } from './common-types';
 
 import * as _ from 'lodash';
+import { TypedError } from 'typed-error';
 
 export type MappingFunction = <T, U>(
 	a: T[],
@@ -84,3 +85,16 @@ export const fromCallback = <T>(
 			}
 		});
 	});
+
+export class TimeoutError extends TypedError {}
+export const timeout = async <T>(
+	promise: Promise<T>,
+	ms: number,
+	msg = 'operation timed out',
+): Promise<T> =>
+	await Promise.race([
+		promise,
+		delay(ms).then(() => {
+			throw new TimeoutError(msg);
+		}),
+	]);

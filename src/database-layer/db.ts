@@ -9,7 +9,7 @@ import * as EventEmitter from 'eventemitter3';
 import * as _ from 'lodash';
 import { TypedError } from 'typed-error';
 import * as env from '../config-loader/env';
-import { delay, fromCallback } from '../sbvr-api/control-flow';
+import { fromCallback, timeout } from '../sbvr-api/control-flow';
 
 export const metrics = new EventEmitter();
 
@@ -593,7 +593,8 @@ if (maybePg != null) {
 						});
 						queryQueue.length = 0;
 					}
-					await Bluebird.resolve(this.$executeSql('ROLLBACK;')).timeout(
+					await timeout(
+						this.$executeSql('ROLLBACK;'),
 						env.db.rollbackTimeout,
 						'Rolling back transaction timed out',
 					);
