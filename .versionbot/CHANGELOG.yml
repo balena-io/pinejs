@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add the ability to set the maxLifetimeSeconds for the postgres pool
+      hash: 460bc36df6fd9349d2e5c5d8f502ee53037db172
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.39.0
+  title: "'Add the ability to set the maxLifetimeSeconds for the postgres pool'"
+  date: 2022-02-07T17:51:38.126Z
+- commits:
     - subject: Update dependencies
       hash: 88c9d877e6a0a4edd337f4d33971a5d57789d933
       body: |
