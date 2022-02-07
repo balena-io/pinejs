@@ -8,6 +8,7 @@ import * as _ from 'lodash';
 import { TypedError } from 'typed-error';
 import { migrator as migratorEnv } from '../config-loader/env';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+import { delay } from '../sbvr-api/control-flow';
 
 // tslint:disable-next-line:no-var-requires
 const modelText: string = require('./migrations.sbvr');
@@ -199,7 +200,7 @@ VALUES (${1})`,
 				[modelName],
 			);
 		} catch (err) {
-			await Bluebird.delay(migratorEnv.lockFailDelay);
+			await delay(migratorEnv.lockFailDelay);
 			throw err;
 		}
 	}).disposer(async () => {
