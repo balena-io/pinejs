@@ -101,6 +101,7 @@ export const db = {
 	rollbackTimeout: 30000,
 	timeoutMS,
 	maxUses: Infinity,
+	maxLifetimeSeconds: 0,
 };
 
 export const migrator = {
