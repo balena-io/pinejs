@@ -1,4 +1,56 @@
 - commits:
+    - subject: Use native version of Bluebird.using
+      hash: e6b8afc15a6c9cecf93798acee84d2b853db95f4
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Use native version of Bluebird.try
+      hash: e2c3f0a20ec1a65070cb414beba3bd3d4ce2a87b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Use native version of Bluebird.timeout
+      hash: 9543900125b94033ed4f620a32a02f9d548df34e
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Use native version of Bluebird.fromCallback
+      hash: fbacfd634fe90b9d00e716ef686dd7bff95e6c85
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Use native version of Bluebird.delay
+      hash: be3349af3fdf027a64da71c5783503cb8d11e1de
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Use native version of Bluebird.mapSeries
+      hash: 0d74ecb2229d99a77e4e59e4b1e7947adedb7c67
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.39.1
+  title: "'Remove bluebird'"
+  date: 2022-02-08T13:06:59.206Z
+- commits:
     - subject: Add the ability to set the maxLifetimeSeconds for the postgres pool
       hash: 460bc36df6fd9349d2e5c5d8f502ee53037db172
       body: ""
