@@ -3,11 +3,11 @@ import type { Resolvable } from '../sbvr-api/common-types';
 import type { Config, Model } from '../config-loader/config-loader';
 
 import { Engines } from '@balena/abstract-sql-compiler';
-import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import { TypedError } from 'typed-error';
 import { migrator as migratorEnv } from '../config-loader/env';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+import { delay } from '../sbvr-api/control-flow';
 
 // tslint:disable-next-line:no-var-requires
 const modelText: string = require('./migrations.sbvr');
@@ -55,7 +55,7 @@ export const postRun = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 		(sbvrUtils.api.migrations?.logger.info ?? console.info)(
 			'First time executing, running init script',
 		);
-		await Bluebird.using(lockMigrations(tx, modelName), async () => {
+		await lockMigrations(tx, modelName, async () => {
 			await tx.executeSql(initSql);
 		});
 	}
@@ -79,7 +79,7 @@ export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 
 		return await setExecutedMigrations(tx, modelName, Object.keys(migrations));
 	}
-	await Bluebird.using(lockMigrations(tx, modelName), async () => {
+	await lockMigrations(tx, modelName, async () => {
 		const executedMigrations = await getExecutedMigrations(tx, modelName);
 		const pendingMigrations = filterAndSortPendingMigrations(
 			migrations,
@@ -182,27 +182,32 @@ const filterAndSortPendingMigrations = (
 		.sortBy(([migrationKey]) => migrationKey)
 		.value();
 
-const lockMigrations = (tx: Tx, modelName: string): Bluebird.Disposer<void> =>
-	Bluebird.try(async () => {
-		try {
-			await tx.executeSql(
-				binds`
+const lockMigrations = async <T>(
+	tx: Tx,
+	modelName: string,
+	fn: () => Promise<T>,
+): Promise<T> => {
+	try {
+		await tx.executeSql(
+			binds`
 DELETE FROM "migration lock"
 WHERE "model name" = ${1}
 AND "created at" < ${2}`,
-				[modelName, new Date(Date.now() - migratorEnv.lockTimeout)],
-			);
-			await tx.executeSql(
-				binds`
+			[modelName, new Date(Date.now() - migratorEnv.lockTimeout)],
+		);
+		await tx.executeSql(
+			binds`
 INSERT INTO "migration lock" ("model name")
 VALUES (${1})`,
-				[modelName],
-			);
-		} catch (err) {
-			await Bluebird.delay(migratorEnv.lockFailDelay);
-			throw err;
-		}
-	}).disposer(async () => {
+			[modelName],
+		);
+	} catch (err) {
+		await delay(migratorEnv.lockFailDelay);
+		throw err;
+	}
+	try {
+		return await fn();
+	} finally {
 		try {
 			await tx.executeSql(
 				binds`
@@ -215,7 +220,8 @@ WHERE "model name" = ${1}`,
 			// rolling back the transaction, and if we rethrow here we'll overwrite the real error
 			// making it much harder for users to see what went wrong and fix it
 		}
-	});
+	}
+};
 
 const executeMigrations = async (
 	tx: Tx,

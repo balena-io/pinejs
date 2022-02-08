@@ -5,11 +5,11 @@ import type * as PgConnectionString from 'pg-connection-string';
 import type { Dictionary, Resolvable } from '../sbvr-api/common-types';
 
 import { Engines } from '@balena/abstract-sql-compiler';
-import * as Bluebird from 'bluebird';
 import * as EventEmitter from 'eventemitter3';
 import * as _ from 'lodash';
 import { TypedError } from 'typed-error';
 import * as env from '../config-loader/env';
+import { fromCallback, timeout } from '../sbvr-api/control-flow';
 
 export const metrics = new EventEmitter();
 
@@ -593,7 +593,8 @@ if (maybePg != null) {
 						});
 						queryQueue.length = 0;
 					}
-					await Bluebird.resolve(this.$executeSql('ROLLBACK;')).timeout(
+					await timeout(
+						this.$executeSql('ROLLBACK;'),
 						env.db.rollbackTimeout,
 						'Rolling back transaction timed out',
 					);
@@ -683,9 +684,10 @@ if (maybeMysql != null) {
 		pool.on('connection', (db) => {
 			db.query("SET sql_mode='ANSI_QUOTES';");
 		});
-		const getConnectionAsync = Bluebird.promisify(pool.getConnection, {
-			context: pool,
-		});
+		const getConnectionAsync = () =>
+			fromCallback<Mysql.PoolConnection>((callback) => {
+				pool.getConnection(callback);
+			});
 
 		interface MysqlRowArray extends Array<Row> {
 			affectedRows: number;
@@ -715,7 +717,7 @@ if (maybeMysql != null) {
 			protected async _executeSql(sql: Sql, bindings: Bindings) {
 				let result;
 				try {
-					result = await Bluebird.fromCallback<MysqlRowArray>((callback) => {
+					result = await fromCallback<MysqlRowArray>((callback) => {
 						this.db.query(sql, bindings, callback);
 					});
 				} catch (err) {

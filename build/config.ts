@@ -18,7 +18,6 @@ export = {
 	externals: {
 		bcrypt: true,
 		bcryptjs: true,
-		bluebird: true,
 		'body-parser': true,
 		child_process: true,
 		compression: true,

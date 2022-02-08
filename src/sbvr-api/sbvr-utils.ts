@@ -12,7 +12,6 @@ declare global {
 	}
 }
 
-import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 
 import { TypedError } from 'typed-error';
@@ -1003,7 +1002,7 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 		req.tx.on('rollback', tryCancelRequest);
 	}
 
-	const mapSeries = controlFlow.getMappingFn(req.headers);
+	const mappingFn = controlFlow.getMappingFn(req.headers);
 
 	return {
 		tryCancelRequest,
@@ -1039,11 +1038,11 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 			};
 
 			// Parse the OData requests
-			const results = await mapSeries(requests, async (requestPart) => {
+			const results = await mappingFn(requests, async (requestPart) => {
 				let request = await uriParser.parseOData(requestPart);
 
 				if (Array.isArray(request)) {
-					request = await Bluebird.mapSeries(request, prepareRequest);
+					request = await controlFlow.mapSeries(request, prepareRequest);
 				} else {
 					request = await prepareRequest(request);
 				}

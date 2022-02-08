@@ -1,28 +1,33 @@
 import type { Resolvable } from './common-types';
 
 import * as _ from 'lodash';
+import { TypedError } from 'typed-error';
 
 export type MappingFunction = <T, U>(
 	a: T[],
 	fn: (v: T) => Resolvable<U>,
 ) => Promise<Array<U | Error>>;
 
+export const mapSeries = async <T, U>(a: T[], fn: (v: T) => Resolvable<U>) => {
+	const results: U[] = [];
+	for (const p of a) {
+		results.push(await fn(p));
+	}
+	return results;
+};
+
 // The settle version of `Promise.mapSeries`
 export const settleMapSeries: MappingFunction = async <T, U>(
 	a: T[],
 	fn: (v: T) => Resolvable<U>,
-) => {
-	const results: Array<U | Error> = [];
-	for (const p of a) {
+) =>
+	await mapSeries(a, async (p) => {
 		try {
-			const result = await fn(p);
-			results.push(result);
+			return await fn(p);
 		} catch (err) {
-			results.push(ensureError(err));
+			return ensureError(err);
 		}
-	}
-	return results;
-};
+	});
 
 // This is used to guarantee that we convert a `.catch` result into an error, so that later code checking `_.isError` will work as expected
 const ensureError = (err: any): Error => {
@@ -64,3 +69,32 @@ export const getMappingFn = (headers?: {
 		return mapTill;
 	}
 };
+
+export const delay = (ms: number) =>
+	new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+export const fromCallback = <T>(
+	resolver: (callback: (err: any, result?: T) => void) => void,
+): Promise<T> =>
+	new Promise<T>((resolve, reject) => {
+		resolver((err, result?: T) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(result as T);
+			}
+		});
+	});
+
+export class TimeoutError extends TypedError {}
+export const timeout = async <T>(
+	promise: Promise<T>,
+	ms: number,
+	msg = 'operation timed out',
+): Promise<T> =>
+	await Promise.race([
+		promise,
+		delay(ms).then(() => {
+			throw new TimeoutError(msg);
+		}),
+	]);

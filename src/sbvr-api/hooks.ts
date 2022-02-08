@@ -5,7 +5,6 @@ import type { AnyObject } from 'pinejs-client-core';
 import type { TypedError } from 'typed-error';
 import type { SupportedMethod } from '@balena/odata-to-abstract-sql';
 
-import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import { settleMapSeries } from './control-flow';
 import * as memoize from 'memoizee';
@@ -97,7 +96,13 @@ class SideEffectHook<T extends HookFn> extends Hook<T> {
 
 	public registerRollback(fn: RollbackAction): void {
 		if (this.rolledBack) {
-			Bluebird.try(fn);
+			(async () => {
+				try {
+					await fn();
+				} catch {
+					// Ignore any errors in the rollback callback
+				}
+			})();
 		} else {
 			this.rollbackFns.push(fn);
 		}
