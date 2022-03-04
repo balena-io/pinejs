@@ -1,4 +1,16 @@
 - commits:
+    - subject: Remove circle.yml
+      hash: 038e7efa021a92c5585784493c3024446d25933e
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.39.2
+  title: "'Remove circle.yml'"
+  date: 2022-03-04T13:19:00.877Z
+- commits:
     - subject: Use native version of Bluebird.using
       hash: e6b8afc15a6c9cecf93798acee84d2b853db95f4
       body: ""
