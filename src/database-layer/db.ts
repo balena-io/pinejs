@@ -475,7 +475,6 @@ if (maybePg != null) {
 			config.keepAlive ??= env.db.keepAlive;
 			// @ts-expect-error maxLifetimeSeconds is valid for PgPool but isn't currently in the typings
 			config.maxLifetimeSeconds ??= env.db.maxLifetimeSeconds;
-			// @ts-expect-error maxUses is valid for PgPool but isn't currently in the typings
 			config.maxUses ??= env.db.maxUses;
 			const p = new pg.Pool(config);
 			if (PG_SCHEMA != null) {
