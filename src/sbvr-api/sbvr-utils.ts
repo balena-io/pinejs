@@ -673,7 +673,7 @@ export const runRule = (() => {
 		}
 		const ruleBody = ruleAbs.find((node) => node[0] === 'Body') as [
 			'Body',
-			...any[]
+			...any[],
 		];
 		if (
 			ruleBody[1][0] === 'Not' &&
