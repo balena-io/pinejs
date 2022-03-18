@@ -1,4 +1,21 @@
 - commits:
+    - subject: Fixed unneccessary @ts-expect-error + lint
+      hash: dad9192dfd9b783b134317b6a5f9aad16417f60b
+      body: |
+        PG Types have added maxUses as key and ts except is not needed any more.
+
+        Fixed a linting change
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 14.40.1
+  title: "'Fixed unneccessary @ts-expect-error'"
+  date: 2022-03-18T20:14:06.711Z
+- commits:
     - subject: Update dependencies for referenceType
       hash: fa5ec8302014fc4f54a0b933e1e34b99a353a0b8
       body: |
