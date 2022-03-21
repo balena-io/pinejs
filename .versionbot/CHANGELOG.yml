@@ -1,4 +1,18 @@
 - commits:
+    - subject: Add logo and header to README
+      hash: 4960c03fb07ccf3b2fe98da153de8d567a4270d8
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Lucian Buzzo <lucian.buzzo@gmail.com>
+        signed-off-by: Lucian Buzzo <lucian.buzzo@gmail.com>
+      author: Lucian Buzzo
+      nested: []
+  version: 14.40.2
+  title: "'Add logo and header to README'"
+  date: 2022-03-18T20:29:44.605Z
+- commits:
     - subject: Fixed unneccessary @ts-expect-error + lint
       hash: dad9192dfd9b783b134317b6a5f9aad16417f60b
       body: |
