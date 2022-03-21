@@ -1,4 +1,9 @@
-# Pine.js
+<div align="center">
+  <img width="400" height="auto" src="https://raw.githubusercontent.com/balena-io/pinejs/master/pinejs.png">
+  <br>
+  <br>
+</div>
+
 Pine.js is a sophisticated rules-driven API engine that enables you to define rules in a structured subset of English. Those rules are used in order for Pine.js to generate a database schema and the associated [OData](http://www.odata.org/) API. This makes it very easy to rapidly create, update and maintain a backend while keeping the logic in an easily understood form, as well as providing the ability to update and maintain this logic going forward.
 
 Rules are described in *SBVR* format, which stands for "Semantics of Business Vocabulary and Business Rules". SBVR provides a way to capture specifications in natural language and represent them in formal logic, so they can be machine processed. 
