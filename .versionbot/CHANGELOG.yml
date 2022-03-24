@@ -1,4 +1,41 @@
 - commits:
+    - subject: Update dependencies
+      hash: 037251e064e52c3b16b33362d2e88d52d577db73
+      body: |
+        Update @balena/abstract-sql-compiler from 7.18.0 to 7.19.0
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Remove .circleci/config.yml
+              hash: 017b5e4c10ed4e13b344086888f6bc64cacb9c0c
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+              author: Thodoris Greasidis
+              nested: []
+            - subject: Add support for `ConcatenateWithSeparator` nodes
+              hash: 34bae3f19224ba38cf6806653ef8884a07f41357
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-7.19.0
+          title: "'Add support for  nodes'"
+          date: 2022-03-24T14:48:17.742Z
+  version: 14.41.0
+  title: "'Update dependencies'"
+  date: 2022-03-24T15:22:09.436Z
+- commits:
     - subject: Add logo and header to README
       hash: 4960c03fb07ccf3b2fe98da153de8d567a4270d8
       body: ""
