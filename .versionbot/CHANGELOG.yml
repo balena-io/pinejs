@@ -1,5 +1,32 @@
 - commits:
     - subject: Update dependencies
+      hash: f3f119caddf949b9493f35c271613520121a629c
+      body: |
+        Update pinejs-client-core from 6.10.0 to 6.10.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Do not await the _request() result to allow enhanced promises
+                downstream
+              hash: a209138f928809869d68e05cdcea4c2bf0d1fac1
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+              author: Thodoris Greasidis
+          version: pinejs-client-js-6.10.1
+          title: "'Avoid modifying the resulting promise when retries are not used'"
+          date: 2022-02-08T23:33:07.778Z
+  version: 14.41.1
+  title: "'Update dependencies'"
+  date: 2022-04-01T14:58:06.990Z
+- commits:
+    - subject: Update dependencies
       hash: 037251e064e52c3b16b33362d2e88d52d577db73
       body: |
         Update @balena/abstract-sql-compiler from 7.18.0 to 7.19.0
