@@ -1,4 +1,18 @@
 - commits:
+    - subject: Add link and npm package version badge
+      hash: 9218483726ccc03e187087c7b89b05d6ef89586d
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 14.41.2
+  title: "'Add link and npm package version badge'"
+  date: 2022-04-07T14:10:15.339Z
+- commits:
     - subject: Update dependencies
       hash: f3f119caddf949b9493f35c271613520121a629c
       body: |
