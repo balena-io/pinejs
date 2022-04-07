@@ -1,8 +1,12 @@
+
 <div align="center">
   <img width="400" height="auto" src="https://raw.githubusercontent.com/balena-io/pinejs/master/pinejs.png">
   <br>
   <br>
 </div>
+
+[![npm version](https://badge.fury.io/js/@balena%2Fpinejs.svg)](https://badge.fury.io/js/@balena%2Fpinejs)
+
 
 Pine.js is a sophisticated rules-driven API engine that enables you to define rules in a structured subset of English. Those rules are used in order for Pine.js to generate a database schema and the associated [OData](http://www.odata.org/) API. This makes it very easy to rapidly create, update and maintain a backend while keeping the logic in an easily understood form, as well as providing the ability to update and maintain this logic going forward.
 
