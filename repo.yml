@@ -1,4 +1,4 @@
-type: 'node'
+type: 'docker-compose'
 upstream:
   - repo: '@balena/abstract-sql-compiler'
     url: 'https://github.com/balena-io-modules/abstract-sql-compiler'
