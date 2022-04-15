@@ -1252,6 +1252,16 @@ const $getApiKeyPermissions = (() => {
 												$alias: 'k',
 												$expr: {
 													k: { key: { '@': 'apiKey' } },
+													$or: [
+														{
+															k: { expiry_date: null },
+														},
+														{
+															k: {
+																expiry_date: { $gt: { $now: null } },
+															},
+														},
+													],
 												},
 											},
 										},
@@ -1279,6 +1289,18 @@ const $getApiKeyPermissions = (() => {
 																				$alias: 'k',
 																				$expr: {
 																					k: { key: { '@': 'apiKey' } },
+																					$or: [
+																						{
+																							k: { expiry_date: null },
+																						},
+																						{
+																							k: {
+																								expiry_date: {
+																									$gt: { $now: null },
+																								},
+																							},
+																						},
+																					],
 																				},
 																			},
 																		},
@@ -1343,6 +1365,12 @@ const getApiKeyActorId = (() => {
 			},
 			options: {
 				$select: 'is_of__actor',
+				$filter: {
+					$or: [
+						{ expiry_date: null },
+						{ expiry_date: { $gt: { $now: null } } },
+					],
+				},
 			},
 		}),
 	);
@@ -1669,6 +1697,10 @@ export const config = {
 				'11.0.1-modified-at': `
 					ALTER TABLE "role-has-permission"
 					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				`,
+				'14.42.0-api-key-expiry-date': `
+					ALTER TABLE "api key"
+					ADD COLUMN IF NOT EXISTS "expiry date" TIMESTAMP NULL;
 				`,
 			},
 		},
