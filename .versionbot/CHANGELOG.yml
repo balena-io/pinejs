@@ -1,4 +1,18 @@
 - commits:
+    - subject: Add an expiry date to 'api key'
+      hash: 153f05c6eb7828a239872a4346f2d0392ffe2f93
+      body: ""
+      footer:
+        Change-Type: minor
+        change-type: minor
+        Signed-off-by: Nitish Agarwal <1592163+nitishagar@users.noreply.github.com>
+        signed-off-by: Nitish Agarwal <1592163+nitishagar@users.noreply.github.com>
+      author: Nitish Agarwal
+      nested: []
+  version: 14.42.0
+  title: "'Add an expiry date to 'api key''"
+  date: 2022-04-13T17:13:03.727Z
+- commits:
     - subject: Add link and npm package version badge
       hash: 9218483726ccc03e187087c7b89b05d6ef89586d
       body: ""
