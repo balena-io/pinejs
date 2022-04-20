@@ -926,41 +926,41 @@ const $getAffectedIds = async ({
 	}
 	// We reparse to make sure we get a clean odataQuery, without permissions already added
 	// And we use the request's url rather than the req for things like batch where the req url is ../$batch
-	request = await uriParser.parseOData({
+	let affectedRequest = await uriParser.parseOData({
 		method: request.method,
 		url: `/${request.vocabulary}${request.url}`,
 	});
 
-	request.engine = db.engine;
-	const abstractSqlModel = getAbstractSqlModel(request);
-	const resourceName = resolveSynonym(request);
+	affectedRequest.engine = request.engine;
+	const abstractSqlModel = getAbstractSqlModel(affectedRequest);
+	const resourceName = resolveSynonym(affectedRequest);
 	const resourceTable = abstractSqlModel.tables[resourceName];
 	if (resourceTable == null) {
-		throw new Error('Unknown resource: ' + request.resourceName);
+		throw new Error('Unknown resource: ' + affectedRequest.resourceName);
 	}
 	const { idField } = resourceTable;
 
-	request.odataQuery.options ??= {};
-	request.odataQuery.options.$select = {
+	affectedRequest.odataQuery.options ??= {};
+	affectedRequest.odataQuery.options.$select = {
 		properties: [{ name: idField }],
 	};
 
 	// Delete any $expand that might exist as they're ignored on non-GETs but we're converting this request to a GET
-	delete request.odataQuery.options.$expand;
+	delete affectedRequest.odataQuery.options.$expand;
 
-	await permissions.addPermissions(req, request);
+	await permissions.addPermissions(req, affectedRequest);
 
-	request.method = 'GET';
+	affectedRequest.method = 'GET';
 
-	request = uriParser.translateUri(request);
-	request = compileRequest(request);
+	affectedRequest = uriParser.translateUri(affectedRequest);
+	affectedRequest = compileRequest(affectedRequest);
 
 	let result;
 	if (tx != null) {
-		result = await runQuery(tx, request);
+		result = await runQuery(tx, affectedRequest);
 	} else {
-		result = await runTransaction(req, request, (newTx) =>
-			runQuery(newTx, request),
+		result = await runTransaction(req, affectedRequest, (newTx) =>
+			runQuery(newTx, affectedRequest),
 		);
 	}
 	return result.rows.map((row) => row[idField]);
