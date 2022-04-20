@@ -1,4 +1,19 @@
 - commits:
+    - subject: Use the db engine from the existing request when getting affected ids
+      hash: 2e95c62654ad5a4f4c92d941c7e433337790b032
+      body: |
+        In practice the module level `db.engine` will always match the
+        `request.engine` but this future proofs things and makes it clear where
+        this value actually comes from
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.42.2
+  title: "'Use the db engine from the existing request when getting affected ids'"
+  date: 2022-04-20T17:24:16.328Z
+- commits:
     - subject: Update dependencies
       hash: 5009aecb7b6ae68dbe4ed53d95ec0cab45e19564
       body: |
