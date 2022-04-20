@@ -140,7 +140,7 @@ const $parsePermissions = env.createCache(
 	},
 );
 
-const rewriteBinds = (
+const rewriteODataBinds = (
 	{ tree, extraBinds }: { tree: ODataQuery; extraBinds: ODataBinds },
 	odataBinds: ODataBinds,
 ): ODataQuery => {
@@ -163,7 +163,7 @@ const parsePermissions = (
 	odataBinds: ODataBinds,
 ): ODataQuery => {
 	const odata = $parsePermissions(filter);
-	return rewriteBinds(odata, odataBinds);
+	return rewriteODataBinds(odata, odataBinds);
 };
 
 // Traverses all values in `check`, actions for the following data types:
@@ -1050,6 +1050,7 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 									sqlNameToODataName(permissionsTable.name),
 								),
 							);
+
 							return permissionsTable;
 						},
 					},
@@ -1678,7 +1679,8 @@ export const addPermissions = async (
 	req: PermissionReq,
 	request: ODataRequest & { permissionType?: PermissionCheck },
 ): Promise<void> => {
-	const { vocabulary, resourceName, odataQuery, odataBinds } = request;
+	const { resourceName, odataQuery, odataBinds } = request;
+	const vocabulary = _.last(request.translateVersions)!;
 	let abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 
 	let { permissionType } = request;
@@ -1798,6 +1800,10 @@ export const setup = () => {
 
 				const abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 				request.resourceName = request.resourceName.slice(
+					0,
+					-'#canAccess'.length,
+				);
+				request.originalResourceName = request.originalResourceName.slice(
 					0,
 					-'#canAccess'.length,
 				);

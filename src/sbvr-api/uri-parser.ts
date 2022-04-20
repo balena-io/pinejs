@@ -42,6 +42,7 @@ export interface ParsedODataRequest {
 	url: string;
 	vocabulary: string;
 	resourceName: string;
+	originalResourceName: string;
 	values: AnyObject;
 	odataQuery: ODataQuery;
 	odataBinds: OdataBinds;
@@ -50,7 +51,9 @@ export interface ParsedODataRequest {
 	_defer?: boolean;
 }
 export interface ODataRequest extends ParsedODataRequest {
+	translateVersions: string[];
 	abstractSqlModel?: AbstractSQLCompiler.AbstractSqlModel;
+	finalAbstractSqlModel?: AbstractSQLCompiler.AbstractSqlModel;
 	abstractSqlQuery?: AbstractSQLCompiler.AbstractSqlQuery;
 	sqlQuery?: AbstractSQLCompiler.SqlResult | AbstractSQLCompiler.SqlResult[];
 	tx?: Tx;
@@ -59,7 +62,7 @@ export interface ODataRequest extends ParsedODataRequest {
 	>;
 	affectedIds?: number[];
 	pendingAffectedIds?: Promise<number[]>;
-	hooks?: InstantiatedHooks;
+	hooks?: Array<[string, InstantiatedHooks]>;
 	engine: AbstractSQLCompiler.Engines;
 }
 
@@ -291,6 +294,7 @@ export async function parseOData(
 				url,
 				vocabulary: apiRoot,
 				resourceName: odata.tree.resource,
+				originalResourceName: odata.tree.resource,
 				values: b.data ?? {},
 				odataQuery: odata.tree,
 				odataBinds: odata.binds,
@@ -353,6 +357,7 @@ const parseODataChangeset = (
 		url,
 		vocabulary: apiRoot,
 		resourceName: odata.tree.resource,
+		originalResourceName: odata.tree.resource,
 		odataBinds: odata.binds,
 		odataQuery: odata.tree,
 		values: b.data ?? {},

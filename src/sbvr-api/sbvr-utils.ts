@@ -63,6 +63,7 @@ import {
 	rollbackRequestHooks,
 	getHooks,
 	runHooks,
+	InstantiatedHooks,
 } from './hooks';
 export {
 	HookReq,
@@ -92,6 +93,7 @@ import {
 export { resolveOdataBind } from './abstract-sql';
 import * as odataResponse from './odata-response';
 import { env } from '../server-glue/module';
+import { translateAbstractSqlModel } from './translations';
 
 const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
 const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVersion}`;
@@ -102,14 +104,18 @@ export type ExecutableModel =
 
 interface CompiledModel {
 	vocab: string;
+	translateTo?: string;
+	resourceRenames?: ReturnType<typeof translateAbstractSqlModel>;
 	se?: string | undefined;
 	lf?: LFModel | undefined;
 	abstractSql: AbstractSQLCompiler.AbstractSqlModel;
-	sql: AbstractSQLCompiler.SqlModel;
+	sql?: AbstractSQLCompiler.SqlModel;
 	odataMetadata: ReturnType<typeof generateODataMetadata>;
 }
 const models: {
-	[vocabulary: string]: CompiledModel;
+	[vocabulary: string]: CompiledModel & {
+		versions: string[];
+	};
 } = {};
 
 export interface Actor {
@@ -234,7 +240,7 @@ const prettifyConstraintError = (
 					break;
 				case 'postgres':
 					const resourceName = resolveSynonym(request);
-					const abstractSqlModel = getAbstractSqlModel(request);
+					const abstractSqlModel = getFinalAbstractSqlModel(request);
 					matches = new RegExp(
 						'"' + abstractSqlModel.tables[resourceName].name + '_(.*?)_key"',
 					).exec(err.message);
@@ -267,7 +273,7 @@ const prettifyConstraintError = (
 					break;
 				case 'postgres':
 					const resourceName = resolveSynonym(request);
-					const abstractSqlModel = getAbstractSqlModel(request);
+					const abstractSqlModel = getFinalAbstractSqlModel(request);
 					const tableName = abstractSqlModel.tables[resourceName].name;
 					matches = new RegExp(
 						'"' +
@@ -299,7 +305,7 @@ const prettifyConstraintError = (
 
 		if (err instanceof db.CheckConstraintError) {
 			const resourceName = resolveSynonym(request);
-			const abstractSqlModel = getAbstractSqlModel(request);
+			const abstractSqlModel = getFinalAbstractSqlModel(request);
 			const table = abstractSqlModel.tables[resourceName];
 			if (table.checks) {
 				switch (db.engine) {
@@ -374,8 +380,12 @@ export const validateModel = async (
 		'abstractSqlQuery' | 'modifiedFields' | 'method' | 'vocabulary'
 	>,
 ): Promise<void> => {
+	const { sql } = models[modelName];
+	if (!sql) {
+		throw new Error(`Tried to validate a virtual model: '${modelName}'`);
+	}
 	await Promise.all(
-		models[modelName].sql.rules.map(async (rule) => {
+		sql.rules.map(async (rule) => {
 			if (!isRuleAffected(rule, request)) {
 				// If none of the fields intersect we don't need to run the rule! :D
 				return;
@@ -426,11 +436,19 @@ export const generateSqlModel = (
 		() => AbstractSQLCompiler[targetDatabaseEngine].compileSchema(abstractSql),
 	);
 
-export const generateModels = (
+export function generateModels(
+	model: ExecutableModel & { translateTo?: undefined },
+	targetDatabaseEngine: AbstractSQLCompiler.Engines,
+): RequiredField<CompiledModel, 'sql'>;
+export function generateModels(
 	model: ExecutableModel,
 	targetDatabaseEngine: AbstractSQLCompiler.Engines,
-): CompiledModel => {
-	const { apiRoot: vocab, modelText: se } = model;
+): CompiledModel;
+export function generateModels(
+	model: ExecutableModel,
+	targetDatabaseEngine: AbstractSQLCompiler.Engines,
+): CompiledModel {
+	const { apiRoot: vocab, modelText: se, translateTo, translations } = model;
 	let { abstractSql: maybeAbstractSql } = model;
 
 	let lf: ReturnType<typeof generateLfModel> | undefined;
@@ -458,16 +476,41 @@ export const generateModels = (
 		() => generateODataMetadata(vocab, abstractSql),
 	);
 
-	let sql: ReturnType<AbstractSQLCompiler.EngineInstance['compileSchema']>;
-	try {
-		sql = generateSqlModel(abstractSql, targetDatabaseEngine);
-	} catch (e) {
-		console.error(`Error compiling model '${vocab}':`, e);
-		throw new Error(`Error compiling model '${vocab}': ` + e);
+	let sql: AbstractSQLCompiler.SqlModel | undefined;
+	let resourceRenames: ReturnType<typeof translateAbstractSqlModel> | undefined;
+
+	if (translateTo != null) {
+		resourceRenames = translateAbstractSqlModel(
+			abstractSql,
+			models[translateTo].abstractSql,
+			model.apiRoot,
+			translateTo,
+			translations,
+		);
+	} else {
+		for (const [key, table] of Object.entries(abstractSql.tables)) {
+			// Alias the current version so it can be explicitly referenced
+			abstractSql.tables[`${key}$${model.apiRoot}`] = { ...table };
+		}
+		try {
+			sql = generateSqlModel(abstractSql, targetDatabaseEngine);
+		} catch (e) {
+			console.error(`Error compiling model '${vocab}':`, e);
+			throw new Error(`Error compiling model '${vocab}': ` + e);
+		}
 	}
 
-	return { vocab, se, lf, abstractSql, sql, odataMetadata };
-};
+	return {
+		vocab,
+		translateTo,
+		resourceRenames,
+		se,
+		lf,
+		abstractSql,
+		sql,
+		odataMetadata,
+	};
+}
 
 export const executeModel = (
 	tx: Db.Tx,
@@ -486,30 +529,42 @@ export const executeModels = async (
 				await syncMigrator.run(tx, model);
 				const compiledModel = generateModels(model, db.engine);
 
-				// Create tables related to terms and fact types
-				// Run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
-				for (const createStatement of compiledModel.sql.createSchema) {
-					const promise = tx.executeSql(createStatement);
-					if (db.engine === 'websql') {
-						promise.catch((err) => {
-							console.warn(
-								"Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS",
-								err,
-							);
-						});
+				if (compiledModel.sql) {
+					// Create tables related to terms and fact types
+					// Run statements sequentially, as the order of the CREATE TABLE statements matters (eg. for foreign keys).
+					for (const createStatement of compiledModel.sql.createSchema) {
+						const promise = tx.executeSql(createStatement);
+						if (db.engine === 'websql') {
+							promise.catch((err) => {
+								console.warn(
+									"Ignoring errors in the create table statements for websql as it doesn't support CREATE IF NOT EXISTS",
+									err,
+								);
+							});
+						}
+						await promise;
 					}
-					await promise;
 				}
 				await syncMigrator.postRun(tx, model);
 
 				odataResponse.prepareModel(compiledModel.abstractSql);
 				deepFreeze(compiledModel.abstractSql);
-				models[apiRoot] = compiledModel;
+
+				const versions = [apiRoot];
+				if (compiledModel.translateTo != null) {
+					versions.push(...models[compiledModel.translateTo].versions);
+				}
+				models[apiRoot] = {
+					...compiledModel,
+					versions,
+				};
 
 				// Validate the [empty] model according to the rules.
 				// This may eventually lead to entering obligatory data.
 				// For the moment it blocks such models from execution.
-				await validateModel(tx, apiRoot);
+				if (compiledModel.sql) {
+					await validateModel(tx, apiRoot);
+				}
 
 				// TODO: Can we do this without the cast?
 				api[apiRoot] = new PinejsClient('/' + apiRoot + '/') as LoggingClient;
@@ -611,27 +666,30 @@ const cleanupModel = (vocab: string) => {
 };
 
 export const deleteModel = async (vocabulary: string) => {
-	await db.transaction(async (tx) => {
-		const dropStatements: Array<Promise<any>> = models[
-			vocabulary
-		].sql.dropSchema.map((dropStatement) => tx.executeSql(dropStatement));
-		await Promise.all(
-			dropStatements.concat([
-				api.dev.delete({
-					resource: 'model',
-					passthrough: {
-						tx,
-						req: permissions.root,
-					},
-					options: {
-						$filter: {
-							is_of__vocabulary: vocabulary,
+	const { sql } = models[vocabulary];
+	if (sql) {
+		await db.transaction(async (tx) => {
+			const dropStatements: Array<Promise<any>> = sql.dropSchema.map(
+				(dropStatement) => tx.executeSql(dropStatement),
+			);
+			await Promise.all(
+				dropStatements.concat([
+					api.dev.delete({
+						resource: 'model',
+						passthrough: {
+							tx,
+							req: permissions.root,
 						},
-					},
-				}),
-			]),
-		);
-	});
+						options: {
+							$filter: {
+								is_of__vocabulary: vocabulary,
+							},
+						},
+					}),
+				]),
+			);
+		});
+	}
 	await cleanupModel(vocabulary);
 };
 
@@ -924,12 +982,28 @@ export const getAbstractSqlModel = (
 	return (request.abstractSqlModel ??= models[request.vocabulary].abstractSql);
 };
 
+const getFinalAbstractSqlModel = (
+	request: Pick<
+		uriParser.ODataRequest,
+		'translateVersions' | 'finalAbstractSqlModel'
+	>,
+): AbstractSQLCompiler.AbstractSqlModel => {
+	const finalModel = _.last(request.translateVersions)!;
+	return (request.finalAbstractSqlModel ??= models[finalModel].abstractSql);
+};
+
 const getIdField = (
 	request: Pick<
 		uriParser.ODataRequest,
-		'vocabulary' | 'abstractSqlModel' | 'resourceName'
+		| 'translateVersions'
+		| 'finalAbstractSqlModel'
+		| 'abstractSqlModel'
+		| 'resourceName'
+		| 'vocabulary'
 	>,
-) => getAbstractSqlModel(request).tables[resolveSynonym(request)].idField;
+) =>
+	// TODO: Should resolveSynonym also be using the finalAbstractSqlModel?
+	getFinalAbstractSqlModel(request).tables[resolveSynonym(request)].idField;
 
 export const getAffectedIds = async (
 	args: HookArgs & {
@@ -972,17 +1046,18 @@ const $getAffectedIds = async ({
 	// We reparse to make sure we get a clean odataQuery, without permissions already added
 	// And we use the request's url rather than the req for things like batch where the req url is ../$batch
 	const parsedRequest: uriParser.ParsedODataRequest &
-		Partial<Pick<uriParser.ODataRequest, 'engine'>> =
+		Partial<Pick<uriParser.ODataRequest, 'engine' | 'translateVersions'>> =
 		await uriParser.parseOData({
 			method: request.method,
 			url: `/${request.vocabulary}${request.url}`,
 		});
 
 	parsedRequest.engine = request.engine;
+	parsedRequest.translateVersions = request.translateVersions;
 	// Mark that the engine is required now that we've set it
 	let affectedRequest: uriParser.ODataRequest = parsedRequest as RequiredField<
 		typeof parsedRequest,
-		'engine'
+		'engine' | 'translateVersions'
 	>;
 	const abstractSqlModel = getAbstractSqlModel(affectedRequest);
 	const resourceName = resolveSynonym(affectedRequest);
@@ -1025,10 +1100,18 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 
 	// Get the hooks for the current method/vocabulary as we know it,
 	// in order to run PREPARSE hooks, before parsing gets us more info
-	const reqHooks = getHooks({
-		method: req.method as SupportedMethod,
-		vocabulary,
-	});
+	const { versions } = models[vocabulary];
+	const reqHooks = versions.map((version): [string, InstantiatedHooks] => [
+		version,
+		getHooks(
+			{
+				method: req.method as SupportedMethod,
+				vocabulary: version,
+			},
+			// Only include the `all` vocab for the first model version
+			version === versions[0],
+		),
+	]);
 
 	const transactions: Db.Tx[] = [];
 	const tryCancelRequest = () => {
@@ -1071,23 +1154,49 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 
 			const prepareRequest = async (
 				parsedRequest: uriParser.ParsedODataRequest &
-					Partial<Pick<uriParser.ODataRequest, 'engine'>>,
+					Partial<Pick<uriParser.ODataRequest, 'engine' | 'translateVersions'>>,
 			): Promise<uriParser.ODataRequest> => {
 				parsedRequest.engine = db.engine;
-				// Mark that the engine is required now that we've set it
+				parsedRequest.translateVersions = [...versions];
+				// Mark that the engine/translateVersions is required now that we've set it
 				const $request: uriParser.ODataRequest = parsedRequest as RequiredField<
 					typeof parsedRequest,
-					'engine'
+					'engine' | 'translateVersions'
 				>;
-				// Get the full hooks list now that we can.
-				$request.hooks = getHooks($request);
 				// Add/check the relevant permissions
 				try {
-					await runHooks('POSTPARSE', $request.hooks, {
-						req,
-						request: $request,
-						tx: req.tx,
-					});
+					$request.hooks = [];
+					for (const version of versions) {
+						// We get the hooks list between each `runHooks` so that any resource renames will be used
+						// when getting hooks for later versions
+						const hooks: [string, InstantiatedHooks] = [
+							version,
+							getHooks(
+								{
+									resourceName: $request.resourceName,
+									vocabulary: version,
+									method: $request.method,
+								},
+								// Only include the `all` vocab for the first model version
+								version === versions[0],
+							),
+						];
+						$request.hooks.push(hooks);
+						await runHooks('POSTPARSE', [hooks], {
+							req,
+							request: $request,
+							tx: req.tx,
+						});
+						const { resourceRenames } = models[version];
+						if (resourceRenames) {
+							const resourceName = resolveSynonym($request);
+							if (resourceRenames[resourceName]) {
+								$request.resourceName = sqlNameToODataName(
+									resourceRenames[resourceName],
+								);
+							}
+						}
+					}
 					const translatedRequest = await uriParser.translateUri($request);
 					return await compileRequest(translatedRequest);
 				} catch (err: any) {
@@ -1422,9 +1531,12 @@ const checkReadOnlyRequests = (request: uriParser.ODataRequest) => {
 		return true;
 	}
 	// If there are hooks then check that they're all read-only
-	return Object.values(hooks).every(
-		(hookTypeHooks) =>
-			hookTypeHooks == null || hookTypeHooks.every((hook) => hook.readOnlyTx),
+	return hooks.every(([, versionedHooks]) =>
+		Object.values(versionedHooks).every((hookTypeHooks) => {
+			return (
+				hookTypeHooks == null || hookTypeHooks.every((hook) => hook.readOnlyTx)
+			);
+		}),
 	);
 };
 
@@ -1519,7 +1631,7 @@ const respondGet = async (
 		const d = await odataResponse.process(
 			vocab,
 			getAbstractSqlModel(request),
-			request.resourceName,
+			request.originalResourceName,
 			result.rows,
 			{ includeMetadata: metadata === 'full' },
 		);
@@ -1568,7 +1680,7 @@ const runPost = async (
 	if (rowsAffected === 0) {
 		throw new PermissionError();
 	}
-	await validateModel(tx, request.vocabulary, request);
+	await validateModel(tx, _.last(request.translateVersions)!, request);
 
 	return insertId;
 };
@@ -1580,7 +1692,11 @@ const respondPost = async (
 	tx: Db.Tx,
 ): Promise<Response> => {
 	const vocab = request.vocabulary;
-	const location = odataResponse.resourceURI(vocab, request.resourceName, id);
+	const location = odataResponse.resourceURI(
+		vocab,
+		request.originalResourceName,
+		id,
+	);
 	if (env.DEBUG) {
 		api[vocab].logger.log('Insert ID: ', request.resourceName, id);
 	}
@@ -1638,7 +1754,7 @@ const runPut = async (
 		({ rowsAffected } = await runQuery(tx, request, undefined, idField));
 	}
 	if (rowsAffected > 0) {
-		await validateModel(tx, request.vocabulary, request);
+		await validateModel(tx, _.last(request.translateVersions)!, request);
 	}
 	return undefined;
 };
@@ -1676,7 +1792,7 @@ const runDelete = async (
 		getIdField(request),
 	);
 	if (rowsAffected > 0) {
-		await validateModel(tx, request.vocabulary, request);
+		await validateModel(tx, _.last(request.translateVersions)!, request);
 	}
 
 	return undefined;
