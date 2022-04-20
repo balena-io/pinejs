@@ -926,44 +926,79 @@ const $getAffectedIds = async ({
 	}
 	// We reparse to make sure we get a clean odataQuery, without permissions already added
 	// And we use the request's url rather than the req for things like batch where the req url is ../$batch
-	request = await uriParser.parseOData({
+	let idsRequest = await uriParser.parseOData({
 		method: request.method,
 		url: `/${request.vocabulary}${request.url}`,
 	});
 
-	request.engine = db.engine;
-	const abstractSqlModel = getAbstractSqlModel(request);
-	const resourceName = resolveSynonym(request);
+	idsRequest.engine = db.engine;
+	const abstractSqlModel = getAbstractSqlModel(idsRequest);
+	const resourceName = resolveSynonym(idsRequest);
 	const resourceTable = abstractSqlModel.tables[resourceName];
 	if (resourceTable == null) {
-		throw new Error('Unknown resource: ' + request.resourceName);
+		throw new Error('Unknown resource: ' + idsRequest.resourceName);
 	}
 	const { idField } = resourceTable;
 
-	request.odataQuery.options ??= {};
-	request.odataQuery.options.$select = {
+	idsRequest.odataQuery.options ??= {};
+	idsRequest.odataQuery.options.$select = {
 		properties: [{ name: idField }],
 	};
 
 	// Delete any $expand that might exist as they're ignored on non-GETs but we're converting this request to a GET
-	delete request.odataQuery.options.$expand;
+	delete idsRequest.odataQuery.options.$expand;
 
-	await permissions.addPermissions(req, request);
+	await permissions.addPermissions(req, idsRequest);
 
-	request.method = 'GET';
+	idsRequest.method = 'GET';
 
-	request = uriParser.translateUri(request);
-	request = compileRequest(request);
+	idsRequest = uriParser.translateUri(idsRequest);
+	idsRequest = compileRequest(idsRequest);
 
 	let result;
 	if (tx != null) {
-		result = await runQuery(tx, request);
+		result = await runQuery(tx, idsRequest);
 	} else {
-		result = await runTransaction(req, request, (newTx) =>
-			runQuery(newTx, request),
+		result = await runTransaction(req, idsRequest, (newTx) =>
+			runQuery(newTx, idsRequest),
 		);
 	}
-	return result.rows.map((row) => row[idField]);
+	const ids = result.rows.map((row) => row[idField]);
+
+	const actorId = request.odataBinds['@__ACTOR_ID'];
+	request.odataQuery.options ??= {};
+	// And replace the $filter with the `id in ...` filter
+	if (ids.length === 0) {
+		request.odataQuery.options.$filter = ['eq', { bind: 0 }, { bind: 1 }];
+		request.odataBinds = [
+			['Boolean', true],
+			['Boolean', false],
+		];
+	} else {
+		// Remove any key based filter, but only do it when we have matches to avoid breaking the
+		// improved status codes when a key is specified but matches nothing
+		delete request.odataQuery.key;
+		request.odataQuery.options.$filter = [
+			'in',
+			{ name: idField },
+			ids.map((_id, i) => ({ bind: i })),
+		];
+		request.odataBinds = ids.map((id) => ['Real', id]);
+	}
+	if (actorId) {
+		request.odataBinds['@__ACTOR_ID'] = actorId;
+	}
+	if (request.abstractSqlQuery) {
+		delete request.abstractSqlQuery;
+		const translatedReplacementRequest = uriParser.translateUri(request);
+		request.abstractSqlQuery = translatedReplacementRequest.abstractSqlQuery;
+	}
+	if (request.sqlQuery) {
+		delete request.sqlQuery;
+		compileRequest(request);
+	}
+
+	return ids;
 };
 
 const runODataRequest = (req: Express.Request, vocabulary: string) => {
