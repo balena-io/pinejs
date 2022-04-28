@@ -19,7 +19,14 @@
     "webpack-server": "grunt server",
     "webpack-build": "npm run webpack-browser && npm run webpack-module && npm run webpack-server",
     "lint": "balena-lint -e js -e ts src build typings Gruntfile.ts && npx tsc --project tsconfig.dev.json --noEmit",
-    "test": "npm run lint && npm run build && npm run webpack-build",
+    "test": "npm run lint & npm run build && npm run webpack-build",
+    "test:compose": "npm run compose:build && npm run compose:postgres && docker-compose -f docker-compose.test.yml run sut npm run mocha",
+    "test:fast": " npm run compose:postgres && npm run mocha:local",
+    "mocha": "TS_NODE_FILES=true mocha",
+    "mocha:local": "DATABASE_URL=postgres://docker:docker@localhost:5431/postgres npm run mocha",
+    "compose:postgres": "docker-compose -f docker-compose.test.yml up -d postgres",
+    "compose:build": "docker-compose -f docker-compose.test.yml build",
+    "compose:down": "docker-compose -f docker-compose.test.yml down",
     "prettify": "balena-lint -e js -e ts --fix src build typings Gruntfile.ts"
   },
   "dependencies": {
@@ -60,9 +67,14 @@
   },
   "devDependencies": {
     "@balena/lint": "^6.2.0",
+    "@types/chai": "^4.3.0",
+    "@types/chai-as-promised": "^7.1.5",
     "@types/grunt": "^0.4.27",
+    "@types/mocha": "^9.1.0",
+    "@types/supertest": "^2.0.12",
     "@types/terser-webpack-plugin": "^4.2.2",
     "@types/webpack": "^4.41.32",
+    "chai": "^4.3.6",
     "grunt": "^1.5.2",
     "grunt-check-dependencies": "^1.0.0",
     "grunt-cli": "^1.4.3",
@@ -77,8 +89,10 @@
     "husky": "^4.3.8",
     "lint-staged": "^12.3.8",
     "load-grunt-tasks": "^5.1.0",
+    "mocha": "^9.2.2",
     "raw-loader": "^4.0.2",
     "require-npm4-to-publish": "^1.0.0",
+    "supertest": "^6.2.2",
     "terser-webpack-plugin": "^4.2.3",
     "ts-loader": "^8.3.0",
     "ts-node": "^10.7.0",
@@ -117,6 +131,17 @@
     "*.ts": [
       "balena-lint --fix"
     ]
+  },
+  "mocha": {
+    "extension": [
+      ".test.ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "exit": true,
+    "timeout": 60000,
+    "recursive": true
   },
   "versionist": {
     "publishedAt": "2022-04-20T17:24:16.862Z"

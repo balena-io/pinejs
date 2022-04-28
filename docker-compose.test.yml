@@ -1,0 +1,29 @@
+version: "2.1"
+services:
+  postgres:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: postgres
+    ports:
+      - "5431:5432"
+    networks:
+      - internal
+  sut:
+    image: balena/pinejs-sut
+    command: npm run mocha
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: sut
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://docker:docker@postgres:5432/postgres 
+    networks:
+      - internal
+
+networks:
+  internal:
