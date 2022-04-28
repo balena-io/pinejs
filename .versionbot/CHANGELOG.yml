@@ -1,4 +1,20 @@
 - commits:
+    - subject: inital test framework for pinejs
+      hash: b55af22181531f7068f3137b40374a42e5ecaa10
+      body: |
+        Addind mocha, ts-node and chai to  pinejs.
+        Utilising docker-compose to handle test requirements like db
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 14.43.0
+  title: "'inital test framework for pinejs'"
+  date: 2022-04-28T13:31:32.039Z
+- commits:
     - subject: Use the db engine from the existing request when getting affected ids
       hash: 2e95c62654ad5a4f4c92d941c7e433337790b032
       body: |
