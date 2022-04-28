@@ -1,0 +1,4 @@
+node_modules
+out
+#ignore .env in docker container as they are executed with docker compose environments
+.env

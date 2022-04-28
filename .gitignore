@@ -45,3 +45,5 @@ out
 
 .baseDir.ts
 /.tscache
+
+.pine*

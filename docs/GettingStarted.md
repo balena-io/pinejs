@@ -167,6 +167,31 @@ $ tree -L 3
     └── example.sbvr
 ```
 
+### Initialise a typescript project
+
+``` typescript
+const app = express();
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+app.use('/ping', (_req, res) => {
+	res.sendStatus(200);
+});
+
+try {
+	await pine.init(app);
+	await new Promise((resolve) => {
+		app.listen(1337', () => {
+			resolve('server started');
+		});
+	});
+	return app;
+} catch (e) {
+	console.log(`pineInit ${e}`);
+	exit(1);
+}
+```
+
 ### Start the server
 
 Assuming postgreSQL is running, execute the following command, replacing `[your_password]` with the password you set for the user `exampler`.
