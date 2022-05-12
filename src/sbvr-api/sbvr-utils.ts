@@ -62,7 +62,6 @@ import {
 	rollbackRequestHooks,
 	getHooks,
 	runHooks,
-	InstantiatedHooks,
 } from './hooks';
 export {
 	HookReq,
@@ -1363,12 +1362,10 @@ const checkReadOnlyRequests = (request: uriParser.ODataRequest) => {
 		return true;
 	}
 	// If there are hooks then check that they're all read-only
-	return Object.keys(hooks).every((hookType: keyof InstantiatedHooks) => {
-		const hookTypeHooks = hooks[hookType];
-		return (
-			hookTypeHooks == null || hookTypeHooks.every((hook) => hook.readOnlyTx)
-		);
-	});
+	return Object.values(hooks).every(
+		(hookTypeHooks) =>
+			hookTypeHooks == null || hookTypeHooks.every((hook) => hook.readOnlyTx),
+	);
 };
 
 // This is a helper method to handle using a passed in req.tx when available, or otherwise creating a new tx and cleaning up after we're done.
