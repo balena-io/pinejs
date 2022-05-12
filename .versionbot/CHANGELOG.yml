@@ -1,4 +1,16 @@
 - commits:
+    - subject: Simplify check for read-only hooks
+      hash: 6c62635fe12ba0f4a1acae2dcbebad5efb03e120
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.43.1
+  title: "'Simplify check for read-only hooks'"
+  date: 2022-05-12T14:12:16.520Z
+- commits:
     - subject: inital test framework for pinejs
       hash: b55af22181531f7068f3137b40374a42e5ecaa10
       body: |
