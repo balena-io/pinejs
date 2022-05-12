@@ -16,11 +16,21 @@ Term: matrix number
 	Concept Type: Integer (Type)
 
 
+Term: office name
+	Concept Type: Short Text (Type)
+
+Term: registration
+Fact Type: registration has matrix number
+	Necessity: each registration has exactly one matrix number
+	Necessity: each matrix number is of exactly one registration
+Fact Type: registration has office name
+	Necessity: each registration has exactly one office name
+
 Term: student
 
-Fact Type: student has matrix number
-	Necessity: each student has exactly one matrix number
-	Necessity: each matrix number is of exactly one student
+Fact Type: student has registration
+	Necessity: each student has exactly one registration
+	Necessity: each registration is of exactly one student
 
 Fact Type: student has name
 	Necessity: each student has exactly one name
@@ -34,3 +44,11 @@ Fact Type: student has birthday
 Fact Type: student has semester credits
 	Necessity: each student has at most one semester credits
 	Necessity: each student that has a semester credits, has a semester credits that is greater than or equal to 4 and is less than or equal to 16.
+
+Term: faculty
+Term: faculty name
+	Concept Type: Short Text (Type)
+
+Fact Type: faculty has faculty name
+	Necessity: each faculty has exactly one faculty name
+Fact Type: faculty has student

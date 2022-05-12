@@ -20,6 +20,8 @@ describe('01 basic constrain tests', function () {
 	});
 
 	describe('university vocabular', () => {
+		const studentIds: number[] = [];
+
 		it('check /university/student is served by pinejs', async () => {
 			const res = await supertest(testLocalServer)
 				.get('/university/student')
@@ -31,36 +33,116 @@ describe('01 basic constrain tests', function () {
 		});
 
 		it('create a student', async () => {
-			await supertest(testLocalServer)
-				.post('/university/student')
+			const registration = await supertest(testLocalServer)
+				.post('/university/registration')
 				.send({
 					matrix_number: 1,
+					office_name: 'main',
+				})
+				.expect(201);
+
+			const student = await supertest(testLocalServer)
+				.post('/university/student')
+				.send({
+					registration: registration.body.id,
 					name: 'John',
 					lastname: 'Doe',
 					birthday: new Date(),
 					semester_credits: 10,
 				})
 				.expect(201);
+			studentIds.push(student.body.id);
 		});
 
-		it('should fail to create a student with same matrix number ', async () => {
+		it('create a second student', async () => {
+			const registration = await supertest(testLocalServer)
+				.post('/university/registration')
+				.send({
+					matrix_number: 2,
+					office_name: 'main',
+				})
+				.expect(201);
+
+			const student = await supertest(testLocalServer)
+				.post('/university/student')
+				.send({
+					registration: registration.body.id,
+					name: 'Jane',
+					lastname: 'Doe',
+					birthday: new Date(),
+					semester_credits: 11,
+				})
+				.expect(201);
+			studentIds.push(student.body.id);
+		});
+
+		it('create faculty', async () => {
+			await supertest(testLocalServer)
+				.post('/university/faculty')
+				.send({
+					faculty_name: 'leet-faculty',
+				})
+				.expect(201);
+		});
+
+		it('link students to faculty', async () => {
+			await Promise.all(
+				studentIds.map((sId) =>
+					supertest(testLocalServer)
+						.post('/university/faculty__has__student')
+						.send({
+							faculty: 1,
+							student: sId,
+						})
+						.expect(201),
+				),
+			);
+		});
+
+		it('get faculty', async () => {
+			const res = await supertest(testLocalServer)
+				.get('/university/faculty?$expand=faculty__has__student')
+				.expect(200);
+			expect(res.body.d[0].faculty__has__student)
+				.to.be.an('array')
+				.to.have.lengthOf(2);
+		});
+
+		it('should fail to create a registration with same matrix number ', async () => {
+			await supertest(testLocalServer)
+				.post('/university/registration')
+				.send({
+					matrix_number: 2,
+					office_name: 'main',
+				})
+				.expect(409);
+		});
+
+		it('should fail to create a student with same registration', async () => {
 			await supertest(testLocalServer)
 				.post('/university/student')
 				.send({
-					matrix_number: 1,
-					name: 'John',
+					registration: 1,
+					name: 'Jane',
 					lastname: 'Doe',
 					birthday: new Date(),
-					semester_credits: 10,
+					semester_credits: 11,
 				})
 				.expect(409);
 		});
 
 		it('should fail to create a student with too few semester credits ', async () => {
+			const registration = await supertest(testLocalServer)
+				.post('/university/registration')
+				.send({
+					matrix_number: 3,
+					office_name: 'main',
+				})
+				.expect(201);
 			const res = await supertest(testLocalServer)
 				.post('/university/student')
 				.send({
-					matrix_number: 2,
+					registration: registration.body.id,
 					name: 'Jenny',
 					lastname: 'Dea',
 					birthday: new Date(),
@@ -72,6 +154,21 @@ describe('01 basic constrain tests', function () {
 				.that.equals(
 					'It is necessary that each student that has a semester credits, has a semester credits that is greater than or equal to 4 and is less than or equal to 16.',
 				);
+		});
+
+		it('get all students with expanded registration details', async () => {
+			const res = await supertest(testLocalServer)
+				.get('/university/student?$expand=registration')
+				.expect(200);
+			expect(res.body)
+				.to.be.an('object')
+				.that.has.ownProperty('d')
+				.to.be.an('array')
+				.to.have.lengthOf(2);
+			res.body.d.map((entry: any) => {
+				expect(entry).have.ownPropertyDescriptor('registration');
+				expect(entry.registration).to.be.an('array').to.have.lengthOf(1);
+			});
 		});
 	});
 });
