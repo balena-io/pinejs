@@ -17,16 +17,13 @@ _.forEach(serverConfigs, (config) => {
 	config.optimization = {
 		minimizer: [
 			new TerserPlugin({
-				cache: true,
 				parallel: true,
-				sourceMap: true,
 				terserOptions: {
 					output: {
 						beautify: true,
 						ascii_only: true,
 					},
 					compress: {
-						warnings: true,
 						sequences: false,
 						unused: false, // We need this off for OMeta
 					},
