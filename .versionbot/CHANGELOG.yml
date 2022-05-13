@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update to webpack 5
+      hash: c81e3df13232f9a7730c005288fa0f4123066e3c
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.43.2
+  title: "'Update to webpack 5'"
+  date: 2022-05-12T14:40:46.324Z
+- commits:
     - subject: Simplify check for read-only hooks
       hash: 6c62635fe12ba0f4a1acae2dcbebad5efb03e120
       body: ""
