@@ -2,11 +2,13 @@ import type {
 	AbstractSqlModel,
 	AbstractSqlType,
 	AliasNode,
+	Definition,
 	Relationship,
 	RelationshipInternalNode,
 	RelationshipLeafNode,
 	RelationshipMapping,
 	SelectNode,
+	SelectQueryNode,
 } from '@balena/abstract-sql-compiler';
 import './express-extension';
 import type * as Express from 'express';
@@ -19,7 +21,6 @@ import type { ApiKey, User } from '../sbvr-api/sbvr-utils';
 import type { AnyObject } from './common-types';
 
 import {
-	Definition,
 	isBindReference,
 	OData2AbstractSQL,
 	odataNameToSqlName,
@@ -504,7 +505,7 @@ const generateConstrainedAbstractSql = (
 	actionList: PermissionCheck,
 	vocabulary: string,
 	resourceName: string,
-) => {
+): Definition | undefined => {
 	const abstractSQLModel = sbvrUtils.getAbstractSqlModel({
 		vocabulary,
 	});
@@ -648,7 +649,7 @@ const generateConstrainedAbstractSql = (
 	odata.binds.push(...extraBindVars);
 	const odataBinds = odata.binds;
 
-	const abstractSqlQuery = [...tree];
+	const abstractSqlQuery = [...tree] as SelectQueryNode;
 	// Remove aliases from the top level select
 	const selectIndex = abstractSqlQuery.findIndex((v) => v[0] === 'Select');
 	const select = (abstractSqlQuery[selectIndex] = [
@@ -673,11 +674,15 @@ const generateConstrainedAbstractSql = (
 		return selectField;
 	});
 
-	return { extraBinds: odataBinds, abstractSqlQuery };
+	return { binds: odataBinds, abstractSql: abstractSqlQuery };
 };
 
 // Call the function once and either return the same result or throw the same error on subsequent calls
-const onceGetter = (obj: AnyObject, propName: string, fn: () => any) => {
+const onceGetter = <T, U extends keyof T>(
+	obj: T,
+	propName: U,
+	fn: () => T[U],
+) => {
 	// We have `nullableFn` to keep fn required but still allow us to clear the fn reference
 	// after we have called fn
 	let nullableFn: undefined | typeof fn = fn;
