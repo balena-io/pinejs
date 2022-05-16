@@ -1,4 +1,16 @@
 - commits:
+    - subject: Use the modern definition format for permission constrained definitions
+      hash: 187eec84dd2e1b097a4ef2d62bb8bfd917536342
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.43.3
+  title: "'Use the modern definition format for permission constrained definitions'"
+  date: 2022-05-16T16:04:51.770Z
+- commits:
     - subject: Update to webpack 5
       hash: c81e3df13232f9a7730c005288fa0f4123066e3c
       body: ""
