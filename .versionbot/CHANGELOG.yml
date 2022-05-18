@@ -1,4 +1,16 @@
 - commits:
+    - subject: Only remove constrained aliases when they match the field name
+      hash: 35a0647d3a21e45afa1f9982c5d77c14a47a0d35
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.43.4
+  title: "'Leave aliases intact'"
+  date: 2022-05-18T16:37:28.536Z
+- commits:
     - subject: Use the modern definition format for permission constrained definitions
       hash: 187eec84dd2e1b097a4ef2d62bb8bfd917536342
       body: ""
