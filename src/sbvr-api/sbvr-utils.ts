@@ -33,7 +33,7 @@ import { PinejsClientCore, PromiseResultTypes } from 'pinejs-client-core';
 
 import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
 
-import * as migrator from '../migrator/migrator';
+import * as syncMigrator from '../migrator/sync';
 import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
 
 // tslint:disable-next-line:no-var-requires
@@ -444,7 +444,7 @@ export const executeModels = async (
 			execModels.map(async (model) => {
 				const { apiRoot } = model;
 
-				await migrator.run(tx, model);
+				await syncMigrator.run(tx, model);
 				const compiledModel = generateModels(model, db.engine);
 
 				// Create tables related to terms and fact types
@@ -461,7 +461,7 @@ export const executeModels = async (
 					}
 					await promise;
 				}
-				await migrator.postRun(tx, model);
+				await syncMigrator.postRun(tx, model);
 
 				odataResponse.prepareModel(compiledModel.abstractSql);
 				deepFreeze(compiledModel.abstractSql);

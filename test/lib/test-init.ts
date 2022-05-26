@@ -1,5 +1,4 @@
 import { ChildProcess, fork } from 'child_process';
-import { exit } from 'process';
 export const testListenPort = 1337;
 export const testLocalServer = `http://localhost:${testListenPort}`;
 
@@ -28,14 +27,12 @@ export async function testInit(
 				}
 			});
 			testServer.on('error', () => reject('error'));
-			testServer.on('close', () => reject('close'));
-			testServer.on('disconnect', () => reject('disconnect'));
 			testServer.on('exit', () => reject('exit'));
 		});
 		return testServer;
-	} catch (e) {
-		console.error(`TestServer wasn't created properly: ${e}`);
-		exit(1);
+	} catch (err) {
+		console.error(`TestServer wasn't created properly: ${err}`);
+		throw err;
 	}
 }
 
