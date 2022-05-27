@@ -1,4 +1,18 @@
 - commits:
+    - subject: Update typescript to 4.7
+      hash: 6c25444730ccbb0120468a6ce063be7a7f4610be
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested: []
+  version: 14.43.6
+  title: "'Update typescript to 4.7'"
+  date: 2022-05-27T20:31:53.052Z
+- commits:
     - subject: Update dependencies
       hash: b765b0941de329230e4d38bbe2c994491413c3ce
       body: |
