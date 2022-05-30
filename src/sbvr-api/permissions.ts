@@ -20,6 +20,7 @@ import type {
 	ODataQuery,
 	SupportedMethod,
 } from '@balena/odata-parser';
+import type { Tx } from '../database-layer/db';
 import type { ApiKey, User } from '../sbvr-api/sbvr-utils';
 import type { AnyObject } from './common-types';
 
@@ -345,7 +346,6 @@ const getPermissionsLookup = env.createCache(
 		return permissionsLookup;
 	},
 	{
-		weak: undefined,
 		normalizer: ([permissions, guestPermissions]) =>
 			// When guestPermissions is present it should always be the same, so we can key by presence not content
 			`${permissions}${guestPermissions == null}`,
@@ -1213,19 +1213,27 @@ const $getUserPermissions = (() => {
 	);
 	return env.createCache(
 		'userPermissions',
-		async (userId: number) => {
-			const permissions = (await getUserPermissionsQuery()({
-				userId,
-			})) as Array<{ name: string }>;
+		async (userId: number, tx?: Tx) => {
+			const permissions = (await getUserPermissionsQuery()(
+				{
+					userId,
+				},
+				undefined,
+				{ tx },
+			)) as Array<{ name: string }>;
 			return permissions.map((permission) => permission.name);
 		},
 		{
 			primitive: true,
 			promise: true,
+			normalizer: ([userId]) => `${userId}`,
 		},
 	);
 })();
-export const getUserPermissions = async (userId: number): Promise<string[]> => {
+export const getUserPermissions = async (
+	userId: number,
+	tx?: Tx,
+): Promise<string[]> => {
 	if (typeof userId === 'string') {
 		userId = parseInt(userId, 10);
 	}
@@ -1233,7 +1241,7 @@ export const getUserPermissions = async (userId: number): Promise<string[]> => {
 		throw new Error(`User ID has to be numeric, got: ${typeof userId}`);
 	}
 	try {
-		return await $getUserPermissions(userId);
+		return await $getUserPermissions(userId, tx);
 	} catch (err) {
 		sbvrUtils.api.Auth.logger.error('Error loading user permissions', err);
 		throw err;
@@ -1336,26 +1344,32 @@ const $getApiKeyPermissions = (() => {
 	);
 	return env.createCache(
 		'apiKeyPermissions',
-		async (apiKey: string) => {
-			const permissions = (await getApiKeyPermissionsQuery()({
-				apiKey,
-			})) as Array<{ name: string }>;
+		async (apiKey: string, tx?: Tx) => {
+			const permissions = (await getApiKeyPermissionsQuery()(
+				{
+					apiKey,
+				},
+				undefined,
+				{ tx },
+			)) as Array<{ name: string }>;
 			return permissions.map((permission) => permission.name);
 		},
 		{
 			primitive: true,
 			promise: true,
+			normalizer: ([apiKey]) => apiKey,
 		},
 	);
 })();
 export const getApiKeyPermissions = async (
 	apiKey: string,
+	tx?: Tx,
 ): Promise<string[]> => {
 	if (typeof apiKey !== 'string') {
 		throw new Error('API key has to be a string, got: ' + typeof apiKey);
 	}
 	try {
-		return await $getApiKeyPermissions(apiKey);
+		return await $getApiKeyPermissions(apiKey, tx);
 	} catch (err) {
 		sbvrUtils.api.Auth.logger.error('Error loading api key permissions', err);
 		throw err;
@@ -1386,10 +1400,14 @@ const getApiKeyActorId = (() => {
 	const apiActorPermissionError = new PermissionError();
 	return env.createCache(
 		'apiKeyActorId',
-		async (apiKey: string) => {
-			const apiKeyResult = await getApiKeyActorIdQuery()({
-				apiKey,
-			});
+		async (apiKey: string, tx?: Tx) => {
+			const apiKeyResult = await getApiKeyActorIdQuery()(
+				{
+					apiKey,
+				},
+				undefined,
+				{ tx },
+			);
 			if (apiKeyResult == null) {
 				// We reuse a constant permission error here as it will be cached, and
 				// using a single error instance can drastically reduce the memory used
@@ -1404,6 +1422,7 @@ const getApiKeyActorId = (() => {
 		{
 			promise: true,
 			primitive: true,
+			normalizer: ([apiKey]) => apiKey,
 		},
 	);
 })();
@@ -1411,13 +1430,14 @@ const getApiKeyActorId = (() => {
 const checkApiKey = async (
 	req: PermissionReq,
 	apiKey: string,
+	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
 	if (apiKey == null || req.apiKey != null) {
 		return;
 	}
 	let permissions: string[];
 	try {
-		permissions = await getApiKeyPermissions(apiKey);
+		permissions = await getApiKeyPermissions(apiKey, tx);
 	} catch (err) {
 		console.warn('Error with API key:', err);
 		// Ignore errors getting the api key and just use an empty permissions object.
@@ -1425,7 +1445,7 @@ const checkApiKey = async (
 	}
 	let actor;
 	if (permissions.length > 0) {
-		actor = await getApiKeyActorId(apiKey);
+		actor = await getApiKeyActorId(apiKey, tx);
 	}
 	const resolvedApiKey: PermissionReq['apiKey'] = {
 		key: apiKey,
@@ -1440,6 +1460,8 @@ const checkApiKey = async (
 export const resolveAuthHeader = async (
 	req: Express.Request,
 	expectedScheme = 'Bearer',
+	// TODO: Consider making tx the second argument in the next major
+	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
 	const auth = req.header('Authorization');
 	if (!auth) {
@@ -1456,7 +1478,7 @@ export const resolveAuthHeader = async (
 		return;
 	}
 
-	return await checkApiKey(req, apiKey);
+	return await checkApiKey(req, apiKey, tx);
 };
 
 export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
@@ -1483,10 +1505,12 @@ export const authorizationMiddleware = customAuthorizationMiddleware();
 export const resolveApiKey = async (
 	req: HookReq | Express.Request,
 	paramName = 'apikey',
+	// TODO: Consider making tx the second argument in the next major
+	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
 	const apiKey =
 		req.params[paramName] ?? req.body[paramName] ?? req.query[paramName];
-	return await checkApiKey(req, apiKey);
+	return await checkApiKey(req, apiKey, tx);
 };
 
 export const customApiKeyMiddleware = (paramName = 'apikey') => {
