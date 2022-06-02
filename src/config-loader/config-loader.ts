@@ -132,15 +132,32 @@ export const setup = (app: Express.Application) => {
 								},
 							);
 							if (user.permissions != null) {
-								await Promise.all(
+								const permissionIds = await Promise.all(
 									user.permissions.map(async (permissionName) => {
 										const permissionID = await permissionsCache[permissionName];
 										await getOrCreate(authApiTx, 'user__has__permission', {
 											user: userID,
 											permission: permissionID,
 										});
+										return permissionID;
 									}),
 								);
+
+								await authApiTx.delete({
+									resource: 'user__has__permission',
+									options: {
+										$filter: {
+											user: userID,
+											...(permissionIds.length > 0 && {
+												$not: {
+													permission: {
+														$in: permissionIds,
+													},
+												},
+											}),
+										},
+									},
+								});
 							}
 						} catch (e) {
 							e.message = `Could not create or find user "${user.username}": ${e.message}`;
