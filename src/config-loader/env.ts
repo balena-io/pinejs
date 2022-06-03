@@ -58,7 +58,9 @@ import memoizeWeak = require('memoizee/weak');
 export const createCache = <T extends (...args: any[]) => any>(
 	cacheName: keyof typeof cache,
 	fn: T,
-	opts?: CacheFnOpts<T>,
+	// TODO: Mark this as optional once TS is able to infer the `normalizer` types
+	// when the `weak` differentiating property is not provided.
+	opts: CacheFnOpts<T>,
 ) => {
 	const cacheOpts = cache[cacheName];
 	if (cacheOpts === false) {
