@@ -1,4 +1,18 @@
 - commits:
+    - subject: "permissions: Add optional transaction param to user & api key methods"
+      hash: 42253a2928a8cb7c4356bec3960bb4555321f859
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested: []
+  version: 14.44.0
+  title: "'permissions: Add optional transaction param to user & api key methods'"
+  date: 2022-05-30T09:23:42.149Z
+- commits:
     - subject: Update typescript to 4.7
       hash: 6c25444730ccbb0120468a6ce063be7a7f4610be
       body: ""
