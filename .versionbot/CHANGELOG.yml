@@ -1,4 +1,20 @@
 - commits:
+    - subject: Generalisation and decouple migrator functions. Prepare for migration
+        categories.
+      hash: 0184e6119088170f6990996a3afcfbd78a2497fc
+      body: |
+        Add basic test for sync migrator
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 14.45.0
+  title: "'Generalisation of migrator'"
+  date: 2022-06-03T17:08:40.433Z
+- commits:
     - subject: "permissions: Add optional transaction param to user & api key methods"
       hash: 42253a2928a8cb7c4356bec3960bb4555321f859
       body: ""
