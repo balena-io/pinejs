@@ -1,8 +1,14 @@
 import type * as Express from 'express';
 import type { AbstractSqlModel } from '@balena/abstract-sql-compiler';
 import type { Database } from '../database-layer/db';
-import type { Migration } from '../migrator/migrator';
 import type { AnyObject, Resolvable } from '../sbvr-api/common-types';
+
+import {
+	Migration,
+	Migrations,
+	defaultMigrationCategory,
+	MigrationCategories,
+} from '../migrator/utils';
 
 import * as fs from 'fs';
 import * as _ from 'lodash';
@@ -25,9 +31,7 @@ export interface Model {
 	modelText?: string;
 	abstractSql?: AbstractSqlModel;
 	migrationsPath?: string;
-	migrations?: {
-		[index: string]: Migration;
-	};
+	migrations?: Migrations;
 	initSqlPath?: string;
 	initSql?: string;
 	customServerCode?:
@@ -251,18 +255,59 @@ export const setup = (app: Express.Application) => {
 						await Promise.all(
 							fileNames.map(async (filename) => {
 								const filePath = path.join(migrationsPath, filename);
+								const fileNameParts = filename.split('.', 3);
+								const fileExtension = path.extname(filename);
 								const [migrationKey] = filename.split('-', 1);
+								let migrationCategory = defaultMigrationCategory;
 
-								switch (path.extname(filename)) {
+								if (fileNameParts.length === 3) {
+									if (fileNameParts[1] in MigrationCategories) {
+										migrationCategory = fileNameParts[1] as MigrationCategories;
+									} else {
+										console.error(
+											`Unrecognised migration file category ${
+												fileNameParts[1]
+											}, skipping: ${path.extname(filename)}`,
+										);
+										return;
+									}
+								}
+
+								/**
+								 *  helper to assign migrations with category level to model
+								 *  example migration file names:
+								 *
+								 *  key0-name.ts  				==> defaults startup migration
+								 *  key1-name1.sql 				==> defaults startup migration
+								 *  key2-name2.sync.sql 		==> explicit synchrony migration
+								 *
+								 */
+								const assignMigrationWithCategory = (
+									newMigrationKey: string,
+									newMigration: Migration,
+								) => {
+									const catMigrations = migrations[migrationCategory] || {};
+									if (typeof catMigrations === 'object') {
+										migrations[migrationCategory] = {
+											[newMigrationKey]: newMigration,
+											...catMigrations,
+										};
+									}
+								};
+
+								switch (fileExtension) {
 									case '.coffee':
 									case '.ts':
 									case '.js':
-										migrations[migrationKey] = nodeRequire(filePath);
+										assignMigrationWithCategory(
+											migrationKey,
+											nodeRequire(filePath),
+										);
 										break;
 									case '.sql':
-										migrations[migrationKey] = await fs.promises.readFile(
-											filePath,
-											'utf8',
+										assignMigrationWithCategory(
+											migrationKey,
+											await fs.promises.readFile(filePath, 'utf8'),
 										);
 										break;
 									default:
