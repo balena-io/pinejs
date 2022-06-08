@@ -1,4 +1,41 @@
 - commits:
+    - subject: Update dependencies
+      hash: fb47772d628789b77288e7e0e90f3740f6cd27d8
+      body: |
+        Update @balena/odata-parser from 2.2.9 to 2.3.0
+        Update @balena/odata-to-abstract-sql from 5.4.11 to 5.4.12
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add source map
+              hash: a6bb5e67fac1cdcc69491800ad042f003fa13556
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: odata-parser-2.3.0
+          title: "'Add source map'"
+          date: 2022-06-06T15:59:20.389Z
+        - commits:
+            - subject: Use nullish coalescing when sensible
+              hash: c69dff4d46792c4c858f869646adca9272210364
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.4.12
+          title: "'Use nullish coalescing when sensible'"
+          date: 2022-06-03T15:45:18.251Z
+  version: 14.45.1
+  title: "'Update dependencies'"
+  date: 2022-06-08T08:16:26.230Z
+- commits:
     - subject: Generalisation and decouple migrator functions. Prepare for migration
         categories.
       hash: 0184e6119088170f6990996a3afcfbd78a2497fc
