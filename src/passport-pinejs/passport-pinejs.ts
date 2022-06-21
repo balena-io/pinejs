@@ -65,8 +65,9 @@ const setup: ConfigLoader.SetupFunction = async (app: Express.Application) => {
 			})(req, res, next);
 
 		logout = (req, _res, next) => {
-			req.logout();
-			next();
+			req.logout((error) => {
+				error ? next(error) : next();
+			});
 		};
 	} else {
 		let loggedIn = false;
