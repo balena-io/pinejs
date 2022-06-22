@@ -1,4 +1,20 @@
 - commits:
+    - subject: Fix for passport.js update 0.6.0
+      hash: c26d33dd13e4139b970e5bd594982786a1c56cea
+      body: |
+        passport.js 0.6.0 introduces a mandatory callback done function.
+        Updated logout argument which should remain backwards compatible
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 14.46.0
+  title: "'Fix for passport.js update 0.6.0'"
+  date: 2022-06-21T23:27:28.468Z
+- commits:
     - subject: Update dependencies
       hash: fb47772d628789b77288e7e0e90f3740f6cd27d8
       body: |
