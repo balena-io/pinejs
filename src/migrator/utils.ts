@@ -88,26 +88,6 @@ WHERE "model name" = ${1}`,
 	}
 };
 
-export const checkModelAlreadyExists = async (
-	tx: Tx,
-	modelName: string,
-): Promise<boolean> => {
-	const result = await tx.tableList("name = 'migration'");
-	if (result.rows.length === 0) {
-		return false;
-	}
-	const { rows } = await tx.executeSql(
-		binds`
-SELECT 1
-FROM "model"
-WHERE "model"."is of-vocabulary" = ${1}
-LIMIT 1`,
-		[modelName],
-	);
-
-	return rows.length > 0;
-};
-
 export const setExecutedMigrations = async (
 	tx: Tx,
 	modelName: string,

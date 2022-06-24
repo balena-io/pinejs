@@ -330,6 +330,32 @@ const prettifyConstraintError = (
 	}
 };
 
+const cachedIsModelNew: { hasRun: boolean; models: Set<string> | undefined } = {
+	hasRun: false,
+	models: undefined,
+};
+
+export const isModelNew = async (
+	tx: Db.Tx,
+	modelName: string,
+): Promise<boolean> => {
+	const result = await tx.tableList("name = 'model'");
+	if (result.rows.length === 0) {
+		return false;
+	}
+	if (!cachedIsModelNew.hasRun) {
+		const { rows } = await tx.executeSql(
+			`SELECT "is of-vocabulary" FROM "model";`,
+		);
+		cachedIsModelNew.models = new Set<string>(
+			rows.map((row) => row['is of-vocabulary']),
+		);
+		cachedIsModelNew.hasRun = true;
+	}
+
+	return cachedIsModelNew.models?.has(modelName) ?? false;
+};
+
 export const validateModel = async (
 	tx: Db.Tx,
 	modelName: string,
