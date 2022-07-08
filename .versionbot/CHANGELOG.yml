@@ -1,4 +1,31 @@
 - commits:
+    - subject: Update @balena/odata-to-abstract-sql to 5.4.12
+      hash: 2e7f668d79b8d0120d9b63c49521bdf3afd83a2f
+      body: |
+        Update @balena/odata-to-abstract-sql from 5.4.11 to 5.4.12
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Use nullish coalescing when sensible
+              hash: c69dff4d46792c4c858f869646adca9272210364
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.4.12
+          title: "'Use nullish coalescing when sensible'"
+          date: 2022-06-03T15:45:18.251Z
+  version: 14.46.1
+  title: "'Update @balena/odata-to-abstract-sql to 5.4.12'"
+  date: 2022-07-08T15:16:38.671Z
+- commits:
     - subject: Fix for passport.js update 0.6.0
       hash: c26d33dd13e4139b970e5bd594982786a1c56cea
       body: |
