@@ -1799,8 +1799,13 @@ export const setup = () => {
 			}
 			await addPermissions(req, request);
 		},
-		PRERESPOND: ({ request, data }) => {
-			if (request.custom.isAction === 'canAccess' && _.isEmpty(data)) {
+		PRERESPOND: ({ request, response }) => {
+			if (
+				request.custom.isAction === 'canAccess' &&
+				(response.body == null ||
+					typeof response.body === 'string' ||
+					_.isEmpty(response.body?.d))
+			) {
 				// If the caller does not have any permissions to access the
 				// resource pine will throw a PermissionError. To have the
 				// same behavior for the case that the user has permissions

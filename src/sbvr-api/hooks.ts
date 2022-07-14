@@ -15,6 +15,7 @@ import {
 	resolveSynonym,
 	getAbstractSqlModel,
 	api,
+	Response,
 } from './sbvr-utils';
 
 export interface HookReq {
@@ -46,6 +47,9 @@ export interface Hooks {
 		options: HookArgs & {
 			tx: Tx;
 			result: any;
+			/** This can be mutated to modify the response sent to the client */
+			response: Response;
+			/** @deprecated Use the response object instead */
 			data?: any;
 		},
 	) => HookResponse;
