@@ -1,6 +1,6 @@
 {
   "name": "@balena/pinejs",
-  "version": "14.46.1",
+  "version": "14.47.0",
   "main": "out/server-glue/module",
   "repository": "git@github.com:balena-io/pinejs.git",
   "license": "Apache-2.0",
@@ -144,6 +144,6 @@
     "recursive": true
   },
   "versionist": {
-    "publishedAt": "2022-07-08T15:16:39.718Z"
+    "publishedAt": "2022-07-14T16:01:22.095Z"
   }
 }

@@ -1,4 +1,16 @@
 - commits:
+    - subject: Allow PRERESPOND hooks to modify the response
+      hash: 5281c05f32f80133dc2016eb8f7903b76bbba272
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.47.0
+  title: "'Allow PRERESPOND hooks to modify the response'"
+  date: 2022-07-14T16:01:21.648Z
+- commits:
     - subject: Update @balena/odata-to-abstract-sql to 5.4.12
       hash: 2e7f668d79b8d0120d9b63c49521bdf3afd83a2f
       body: |
