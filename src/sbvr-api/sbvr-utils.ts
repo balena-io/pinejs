@@ -125,8 +125,8 @@ export interface ApiKey extends Actor {
 	actor?: number;
 }
 
-interface Response {
-	status?: number;
+export interface Response {
+	statusCode: number;
 	headers?:
 		| {
 				[headerName: string]: any;
@@ -858,15 +858,15 @@ export const runURI = async (
 		throw response;
 	}
 
-	const { body: responseBody, status, headers } = response as Response;
+	const { body: responseBody, statusCode, headers } = response as Response;
 
-	if (status != null && status >= 400) {
+	if (statusCode != null && statusCode >= 400) {
 		const ErrorClass =
-			statusCodeToError[status as keyof typeof statusCodeToError];
+			statusCodeToError[statusCode as keyof typeof statusCodeToError];
 		if (ErrorClass != null) {
 			throw new ErrorClass(undefined, responseBody, headers);
 		}
-		throw new HttpError(status, undefined, responseBody, headers);
+		throw new HttpError(statusCode, undefined, responseBody, headers);
 	}
 
 	return responseBody as AnyObject | undefined;
@@ -1083,7 +1083,7 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 						if (
 							!Array.isArray(result) &&
 							result.body == null &&
-							result.status == null
+							result.statusCode == null
 						) {
 							console.error('No status or body set', req.url, responses);
 							return new InternalRequestError();
@@ -1163,11 +1163,9 @@ export const handleHttpErrors = (
 	return false;
 };
 const handleResponse = (res: Express.Response, response: Response): void => {
-	const { body, headers, status } = response as Response;
+	const { body, headers, statusCode } = response as Response;
 	res.set(headers);
-	if (status != null) {
-		res.status(status);
-	}
+	res.status(statusCode);
 	if (!body) {
 		res.end();
 	} else {
@@ -1177,9 +1175,9 @@ const handleResponse = (res: Express.Response, response: Response): void => {
 
 const httpErrorToResponse = (
 	err: HttpError,
-): RequiredField<Response, 'status'> => {
+): RequiredField<Response, 'statusCode'> => {
 	return {
-		status: err.status,
+		statusCode: err.status,
 		body: err.getResponseBody(),
 		headers: err.headers,
 	};
@@ -1294,7 +1292,7 @@ const runChangeSet =
 			throw new Error('No request id');
 		}
 		result.headers ??= {};
-		result.headers['Content-Id'] = request.id;
+		result.headers['content-id'] = request.id;
 		changeSetResults.set(request.id, result);
 	};
 
@@ -1464,24 +1462,31 @@ const respondGet = async (
 			{ includeMetadata: metadata === 'full' },
 		);
 
+		const response = {
+			statusCode: 200,
+			body: { d },
+			headers: { 'content-type': 'application/json' },
+		};
 		await runHooks('PRERESPOND', request.hooks, {
 			req,
 			request,
 			result,
+			response,
 			data: d,
 			tx,
 		});
-		return { body: { d }, headers: { contentType: 'application/json' } };
+		return response;
 	} else {
 		if (request.resourceName === '$metadata') {
 			return {
+				statusCode: 200,
 				body: models[vocab].odataMetadata,
-				headers: { contentType: 'xml' },
+				headers: { 'content-type': 'xml' },
 			};
 		} else {
 			// TODO: request.resourceName can be '$serviceroot' or a resource and we should return an odata xml document based on that
 			return {
-				status: 404,
+				statusCode: 404,
 			};
 		}
 	}
@@ -1532,21 +1537,23 @@ const respondPost = async (
 		}
 	}
 
+	const response = {
+		statusCode: 201,
+		body: result.d[0],
+		headers: {
+			'content-type': 'application/json',
+			location,
+		},
+	};
 	await runHooks('PRERESPOND', request.hooks, {
 		req,
 		request,
 		result,
+		response,
 		tx,
 	});
 
-	return {
-		status: 201,
-		body: result.d[0],
-		headers: {
-			contentType: 'application/json',
-			Location: location,
-		},
-	};
+	return response;
 };
 
 const runPut = async (
@@ -1580,16 +1587,17 @@ const respondPut = async (
 	result: any,
 	tx: Db.Tx,
 ): Promise<Response> => {
+	const response = {
+		statusCode: 200,
+	};
 	await runHooks('PRERESPOND', request.hooks, {
 		req,
 		request,
 		result,
+		response,
 		tx,
 	});
-	return {
-		status: 200,
-		headers: {},
-	};
+	return response;
 };
 const respondDelete = respondPut;
 const respondOptions = respondPut;
