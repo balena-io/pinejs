@@ -1578,6 +1578,7 @@ export const checkPermissionsMiddleware =
 		}
 	};
 
+let guestPermissionsInitialized = false;
 const getGuestPermissions = memoize(
 	async () => {
 		// Get guest user
@@ -1601,6 +1602,7 @@ const getGuestPermissions = memoize(
 		if (guestPermissions.some((p) => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
 			throw new Error('Guest permissions cannot reference actors');
 		}
+		guestPermissionsInitialized = true;
 		return guestPermissions;
 	},
 	{ promise: true },
@@ -1611,7 +1613,18 @@ const getReqPermissions = async (
 	odataBinds: ODataBinds = [],
 ) => {
 	const [guestPermissions] = await Promise.all([
-		getGuestPermissions(),
+		(async () => {
+			if (
+				guestPermissionsInitialized === false &&
+				(req.user === root.user || req.user === rootRead.user)
+			) {
+				// In the case that guest permissions are not initialized yet and the query is being made with root permissions
+				// then we need to bypass `getGuestPermissions` as it will cause an infinite loop back to here.
+				// Therefore to break that loop we just ignore guest permissions.
+				return [];
+			}
+			return await getGuestPermissions();
+		})(),
 		(async () => {
 			// TODO: Remove this extra actor ID lookup making actor non-optional and updating open-balena-api.
 			if (
@@ -1666,20 +1679,6 @@ export const addPermissions = async (
 		}
 	}
 
-	// This bypasses in the root cases, needed for fetching guest permissions to work, it can almost certainly be done better though
-	let permissions = req.user?.permissions ?? [];
-	permissions = permissions.concat(req.apiKey?.permissions ?? []);
-	if (
-		permissions.length > 0 &&
-		$checkPermissions(
-			getPermissionsLookup(permissions),
-			permissionType,
-			vocabulary,
-		) === true
-	) {
-		// We have unconditional permission to access the vocab so there's no need to intercept anything
-		return;
-	}
 	const permissionsLookup = await getReqPermissions(req, odataBinds);
 	// Update the request's abstract sql model to use the constrained version
 	request.abstractSqlModel = abstractSqlModel = memoizedGetConstrainedModel(
