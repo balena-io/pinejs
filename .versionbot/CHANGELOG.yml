@@ -1,4 +1,16 @@
 - commits:
+    - subject: Increase strictness of typings
+      hash: b375427a135f9194cc1fbe93afe9e1b627173a52
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.47.1
+  title: "'Increase strictness of typings'"
+  date: 2022-07-21T13:24:04.688Z
+- commits:
     - subject: Allow PRERESPOND hooks to modify the response
       hash: 5281c05f32f80133dc2016eb8f7903b76bbba272
       body: ""
