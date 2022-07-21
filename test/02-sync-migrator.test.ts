@@ -73,7 +73,7 @@ describe('02 Sync Migrations', async function () {
 					false,
 					1338,
 				);
-			} catch (err) {
+			} catch (err: any) {
 				expect(err).to.equal('exit');
 			}
 		});

@@ -36,7 +36,7 @@ const isSqlError = (value: any): value is SQLError => {
 };
 
 export class DatabaseError extends TypedError {
-	public code: number | string;
+	public code?: number | string;
 	constructor(message?: string | CodedError | SQLError) {
 		if (isSqlError(message)) {
 			// If this is a SQLError we have to handle it specially (since it's not actually an instance of Error)
@@ -309,7 +309,7 @@ export abstract class Tx {
 		const t0 = Date.now();
 		try {
 			return await this._executeSql(sql, bindings, ...args);
-		} catch (err) {
+		} catch (err: any) {
 			throw wrapDatabaseError(err);
 		} finally {
 			this.automaticClose.decrementPending();
@@ -420,7 +420,7 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 		let tx;
 		try {
 			tx = await createFunc(stackTraceErr);
-		} catch (err) {
+		} catch (err: any) {
 			throw wrapDatabaseError(err);
 		}
 		if (fn) {
@@ -428,7 +428,7 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 				const result = await fn(tx);
 				await tx.end();
 				return result;
-			} catch (err) {
+			} catch (err: any) {
 				try {
 					await tx.rollback();
 				} catch {
@@ -559,7 +559,7 @@ if (maybePg != null) {
 						text: sql,
 						values: bindings,
 					});
-				} catch (err) {
+				} catch (err: any) {
 					if (err.code === PG_UNIQUE_VIOLATION) {
 						throw new UniqueConstraintError(err);
 					}
@@ -598,7 +598,7 @@ if (maybePg != null) {
 						'Rolling back transaction timed out',
 					);
 					this.db.release();
-				} catch (err) {
+				} catch (err: any) {
 					err = wrapDatabaseError(err);
 					this.db.release(err);
 					throw err;
@@ -609,7 +609,7 @@ if (maybePg != null) {
 				try {
 					await this.$executeSql('COMMIT;');
 					this.db.release();
-				} catch (err) {
+				} catch (err: any) {
 					this.db.release(err);
 					throw err;
 				}
@@ -719,7 +719,7 @@ if (maybeMysql != null) {
 					result = await fromCallback<MysqlRowArray>((callback) => {
 						this.db.query(sql, bindings, callback);
 					});
-				} catch (err) {
+				} catch (err: any) {
 					if (err.code === MYSQL_UNIQUE_VIOLATION) {
 						// We know that the type is an IError for mysql, but typescript doesn't like the catch obj sugar
 						throw new UniqueConstraintError(err as Mysql.MysqlError);
@@ -852,7 +852,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 				let result;
 				try {
 					result = await this.tx.executeSql(sql, bindings);
-				} catch (err) {
+				} catch (err: any) {
 					if (err.code === WEBSQL_CONSTRAINT_ERR) {
 						throw new ConstraintError('Constraint failed.');
 					}

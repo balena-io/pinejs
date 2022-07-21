@@ -81,7 +81,7 @@ const getOrCreatePermission = async (
 ) => {
 	try {
 		return await getOrCreate(authApiTx, 'permission', { name: permissionName });
-	} catch (e) {
+	} catch (e: any) {
 		e.message = `Could not create or find permission "${permissionName}": ${e.message}`;
 		throw e;
 	}
@@ -142,7 +142,7 @@ export const setup = (app: Express.Application) => {
 									}),
 								);
 							}
-						} catch (e) {
+						} catch (e: any) {
 							e.message = `Could not create or find user "${user.username}": ${e.message}`;
 							throw e;
 						}
@@ -169,7 +169,7 @@ export const setup = (app: Express.Application) => {
 							console.info(
 								'Successfully executed ' + model.modelName + ' model.',
 							);
-						} catch (err) {
+						} catch (err: any) {
 							const message = `Failed to execute ${model.modelName} model from ${model.modelFile}`;
 							if (_.isError(err)) {
 								err.message = message;
@@ -183,7 +183,7 @@ export const setup = (app: Express.Application) => {
 						if (typeof model.customServerCode === 'string') {
 							try {
 								customCode = nodeRequire(model.customServerCode).setup;
-							} catch (e) {
+							} catch (e: any) {
 								e.message = `Error loading custom server code: '${e.message}'`;
 								throw e;
 							}
@@ -327,7 +327,7 @@ export const setup = (app: Express.Application) => {
 				}),
 			);
 			await loadConfig(configObj);
-		} catch (err) {
+		} catch (err: any) {
 			console.error('Error loading application config', err, err.stack);
 			process.exit(1);
 		}

@@ -66,7 +66,7 @@ INSERT INTO "migration lock" ("model name")
 VALUES (${1})`,
 			[modelName],
 		);
-	} catch (err) {
+	} catch (err: any) {
 		await delay(migratorEnv.lockFailDelay);
 		throw err;
 	}

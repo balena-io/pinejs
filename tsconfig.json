@@ -3,8 +3,6 @@
 		"module": "commonjs",
 		"strict": true,
 		"strictFunctionTypes": false,
-		"strictPropertyInitialization": false,
-		"useUnknownInCatchVariables": false,
 		"noImplicitThis": false,
 		"noUnusedParameters": true,
 		"noUnusedLocals": true,

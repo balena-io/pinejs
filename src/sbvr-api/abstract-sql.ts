@@ -47,7 +47,7 @@ export const compileRequest = (request: ODataRequest) => {
 			);
 			request.sqlQuery = sqlQuery;
 			request.modifiedFields = modifiedFields;
-		} catch (err) {
+		} catch (err: any) {
 			sbvrUtils.api[request.vocabulary].logger.error(
 				'Failed to compile abstract sql: ',
 				request.abstractSqlQuery,
@@ -139,7 +139,7 @@ export const getAndCheckBindValues = async (
 
 			try {
 				return await AbstractSQLCompiler[engine].dataTypeValidate(value, field);
-			} catch (err) {
+			} catch (err: any) {
 				throw new BadRequestError(`"${fieldName}" ${err.message}`);
 			}
 		}),

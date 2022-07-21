@@ -73,7 +73,7 @@ export const init = async <T extends string>(
 		await Promise.all(promises);
 
 		return cfgLoader;
-	} catch (err) {
+	} catch (err: any) {
 		console.error('Error initialising server', err, err.stack);
 		process.exit(1);
 	}
