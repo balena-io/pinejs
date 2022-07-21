@@ -1,4 +1,21 @@
 - commits:
+    - subject: Narrow the scope of the permissions bypass for root permissions
+      hash: 5b25906b444af997d0cae532d60866479b077c0d
+      body: |
+        This changes the bypass to only occur before guest permissions are
+        initialized, only when specifically using `root` or `rootRead`
+        permissions, and also now constrains the model to the specific
+        permissions passed in rather than bypassing permissions altogether
+        for the root cases
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.47.2
+  title: "'Narrow the scope of the permissions bypass for root permissions'"
+  date: 2022-07-21T14:18:44.358Z
+- commits:
     - subject: Increase strictness of typings
       hash: b375427a135f9194cc1fbe93afe9e1b627173a52
       body: ""
