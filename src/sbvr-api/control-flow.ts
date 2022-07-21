@@ -24,7 +24,7 @@ export const settleMapSeries: MappingFunction = async <T, U>(
 	await mapSeries(a, async (p) => {
 		try {
 			return await fn(p);
-		} catch (err) {
+		} catch (err: any) {
 			return ensureError(err);
 		}
 	});
@@ -49,7 +49,7 @@ const mapTill: MappingFunction = async <T, U>(
 		try {
 			const result = await fn(p);
 			results.push(result);
-		} catch (err) {
+		} catch (err: any) {
 			results.push(ensureError(err));
 			break;
 		}

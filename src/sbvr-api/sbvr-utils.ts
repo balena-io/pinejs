@@ -550,7 +550,7 @@ export const executeModels = async (
 				);
 			}),
 		);
-	} catch (err) {
+	} catch (err: any) {
 		await Promise.all(
 			execModels.map(async ({ apiRoot }) => {
 				await cleanupModel(apiRoot);
@@ -772,6 +772,7 @@ export type Passthrough = AnyObject & {
 };
 
 export class PinejsClient extends PinejsClientCore<PinejsClient> {
+	// @ts-expect-error This is actually assigned by `super` so it is always declared but that isn't detected here
 	public passthrough: Passthrough;
 	public async _request({
 		method,
@@ -1029,7 +1030,7 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 					});
 					const translatedRequest = await uriParser.translateUri($request);
 					return await compileRequest(translatedRequest);
-				} catch (err) {
+				} catch (err: any) {
 					rollbackRequestHooks(reqHooks);
 					rollbackRequestHooks($request.hooks);
 					throw err;
@@ -1131,7 +1132,7 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 				}),
 			);
 		}
-	} catch (e) {
+	} catch (e: any) {
 		if (handleHttpErrors(req, res, e)) {
 			return;
 		}
@@ -1244,7 +1245,7 @@ const runRequest = async (
 					result = await runDelete(req, request, tx);
 					break;
 			}
-		} catch (err) {
+		} catch (err: any) {
 			if (err instanceof db.DatabaseError) {
 				prettifyConstraintError(err, request);
 				logger.error(err);
@@ -1268,7 +1269,7 @@ const runRequest = async (
 		}
 
 		await runHooks('POSTRUN', request.hooks, { req, request, result, tx });
-	} catch (err) {
+	} catch (err: any) {
 		await runHooks('POSTRUN-ERROR', request.hooks, {
 			req,
 			request,
@@ -1638,7 +1639,7 @@ export const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
 		});
 		await executeModels(tx, permissions.config.models);
 		console.info('Successfully executed standard models.');
-	} catch (err) {
+	} catch (err: any) {
 		console.error('Failed to execute standard models.', err);
 		throw err;
 	}
@@ -1654,7 +1655,7 @@ export const setup = async (
 			await executeStandardModels(tx);
 			await permissions.setup();
 		});
-	} catch (err) {
+	} catch (err: any) {
 		console.error('Could not execute standard models', err);
 		process.exit(1);
 	}

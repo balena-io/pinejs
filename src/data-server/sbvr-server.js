@@ -228,7 +228,7 @@ export async function setup(app, sbvrUtils, db) {
 					await setupModels(tx);
 				});
 				res.status(200).end();
-			} catch (err) {
+			} catch (/** @type any */ err) {
 				console.error('Error clearing db', err, err.stack);
 				res.status(503).end();
 			}
@@ -255,7 +255,7 @@ export async function setup(app, sbvrUtils, db) {
 					}
 				});
 				res.status(200).end();
-			} catch (err) {
+			} catch (/** @type any */ err) {
 				console.error('Error importing db', err, err.stack);
 				res.status(404).end();
 			}
@@ -299,7 +299,7 @@ export async function setup(app, sbvrUtils, db) {
 					);
 				});
 				res.json(exported);
-			} catch (err) {
+			} catch (/** @type any */ err) {
 				console.error('Error exporting db', err, err.stack);
 				res.status(503).end();
 			}
@@ -329,7 +329,7 @@ export async function setup(app, sbvrUtils, db) {
 					);
 				});
 				res.status(200).end();
-			} catch (err) {
+			} catch (/** @type any */ err) {
 				console.error('Error backing up db', err, err.stack);
 				res.status(404).end();
 			}
@@ -358,7 +358,7 @@ export async function setup(app, sbvrUtils, db) {
 					);
 				});
 				res.status(200).end();
-			} catch (err) {
+			} catch (/** @type any */ err) {
 				console.error('Error restoring db', err, err.stack);
 				res.status(404).end();
 			}

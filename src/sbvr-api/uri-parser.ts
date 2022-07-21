@@ -294,7 +294,7 @@ export async function parseOData(
 				_defer: false,
 			};
 		}
-	} catch (err) {
+	} catch (err: any) {
 		if (err instanceof ODataParser.SyntaxError) {
 			throw new BadRequestError(`Malformed url: '${b.url}'`);
 		}

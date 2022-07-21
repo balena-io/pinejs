@@ -34,7 +34,7 @@ export const postRun = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 		await lockMigrations(tx, modelName, async () => {
 			try {
 				await tx.executeSql(initSql);
-			} catch (err) {
+			} catch (err: any) {
 				(sbvrUtils.api.migrations?.logger.error ?? console.error)(
 					`initSql execution error ${err} `,
 				);
@@ -96,7 +96,7 @@ const $run = async (
 				...executedMigrations,
 				...newlyExecutedMigrations,
 			]);
-		} catch (err) {
+		} catch (err: any) {
 			(sbvrUtils.api.migrations?.logger.error ?? console.error)(
 				`Failed to executed synchronous migrations from api root model ${err}`,
 			);
@@ -124,7 +124,7 @@ const executeMigrations = async (
 		for (const migration of migrations) {
 			await executeMigration(tx, migration);
 		}
-	} catch (err) {
+	} catch (err: any) {
 		(sbvrUtils.api.migrations?.logger.error ?? console.error)(
 			'Error while executing migrations, rolled back',
 		);

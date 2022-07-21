@@ -54,7 +54,7 @@ SELECT NOT EXISTS(
 ) AS result;`,
 						[request.resourceName, id],
 					);
-				} catch (err) {
+				} catch (/** @type any */ err) {
 					logger.error('Unable to check resource locks', err, err.stack);
 					throw new Error('Unable to check resource locks');
 				}
@@ -255,7 +255,7 @@ WHERE "conditional resource"."transaction" = ?;\
 					await endTransaction(id);
 
 					res.status(200).end();
-				} catch (err) {
+				} catch (/** @type any */ err) {
 					console.error('Error ending transaction', err, err.stack);
 					res.status(404).json(err);
 				}

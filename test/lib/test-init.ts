@@ -30,7 +30,7 @@ export async function testInit(
 			testServer.on('exit', () => reject('exit'));
 		});
 		return testServer;
-	} catch (err) {
+	} catch (err: any) {
 		console.error(`TestServer wasn't created properly: ${err}`);
 		throw err;
 	}

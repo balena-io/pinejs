@@ -487,7 +487,7 @@ const buildODataPermission = (
 			return {
 				filter: parsePermissions(permissionCheck, odata.binds),
 			};
-		} catch (e) {
+		} catch (e: any) {
 			console.warn(
 				'Failed to parse conditional permissions: ',
 				permissionCheck,
@@ -704,7 +704,7 @@ const onceGetter = <T, U extends keyof T>(
 				// and the delete removes that restriction
 				delete this[propName];
 				return (this[propName] = result);
-			} catch (e) {
+			} catch (e: any) {
 				thrownErr = e;
 				throw thrownErr;
 			} finally {
@@ -880,7 +880,7 @@ const rewriteRelationship = memoizeWeak(
 									canAccess: canAccessFunction,
 								},
 							);
-						} catch (e) {
+						} catch (e: any) {
 							throw new ODataParser.SyntaxError(e);
 						}
 						if (foundCanAccessLink) {
@@ -1242,7 +1242,7 @@ export const getUserPermissions = async (
 	}
 	try {
 		return await $getUserPermissions(userId, tx);
-	} catch (err) {
+	} catch (err: any) {
 		sbvrUtils.api.Auth.logger.error('Error loading user permissions', err);
 		throw err;
 	}
@@ -1370,7 +1370,7 @@ export const getApiKeyPermissions = async (
 	}
 	try {
 		return await $getApiKeyPermissions(apiKey, tx);
-	} catch (err) {
+	} catch (err: any) {
 		sbvrUtils.api.Auth.logger.error('Error loading api key permissions', err);
 		throw err;
 	}
@@ -1438,7 +1438,7 @@ const checkApiKey = async (
 	let permissions: string[];
 	try {
 		permissions = await getApiKeyPermissions(apiKey, tx);
-	} catch (err) {
+	} catch (err: any) {
 		console.warn('Error with API key:', err);
 		// Ignore errors getting the api key and just use an empty permissions object.
 		permissions = [];
@@ -1568,7 +1568,7 @@ export const checkPermissionsMiddleware =
 						'checkPermissionsMiddleware returned a conditional permission',
 					);
 			}
-		} catch (err) {
+		} catch (err: any) {
 			sbvrUtils.api.Auth.logger.error(
 				'Error checking permissions',
 				err,
