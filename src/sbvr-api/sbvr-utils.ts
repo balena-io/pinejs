@@ -817,7 +817,7 @@ export const runURI = async (
 	let user: User | undefined;
 	let apiKey: ApiKey | undefined;
 
-	if (req != null && _.isObject(req)) {
+	if (req != null && typeof req === 'object') {
 		user = req.user;
 		apiKey = req.apiKey;
 	} else {

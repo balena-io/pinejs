@@ -22,7 +22,7 @@ import type {
 } from '@balena/odata-parser';
 import type { Tx } from '../database-layer/db';
 import type { ApiKey, User } from '../sbvr-api/sbvr-utils';
-import type { AnyObject } from './common-types';
+import type { AnyObject, Dictionary } from './common-types';
 
 import {
 	isBindReference,
@@ -172,7 +172,7 @@ const parsePermissions = (
 // array: Treated as an AND of all elements
 // object: Must have only one key of either `AND` or `OR`, with an array value that will be treated according to the key.
 const isAnd = <T>(x: any): x is NestedCheckAnd<T> =>
-	_.isObject(x) && 'and' in x;
+	typeof x === 'object' && 'and' in x;
 const isOr = <T>(x: any): x is NestedCheckOr<T> =>
 	typeof x === 'object' && 'or' in x;
 export function nestedCheck<I, O>(
@@ -312,7 +312,7 @@ const namespaceRelationships = (
 	});
 };
 
-type PermissionLookup = _.Dictionary<true | string[]>;
+type PermissionLookup = Dictionary<true | string[]>;
 
 const getPermissionsLookup = env.createCache(
 	'permissionsLookup',
@@ -445,7 +445,7 @@ const rewriteSubPermissionBindings = (filter: AnyObject, counter: number) => {
 			object.bind = counter + object.bind;
 		}
 
-		if (Array.isArray(object) || _.isObject(object)) {
+		if (Array.isArray(object) || typeof object === 'object') {
 			_.forEach(object, (v) => {
 				rewrite(v);
 			});
@@ -908,7 +908,7 @@ const rewriteRelationship = memoizeWeak(
 				}
 			}
 
-			if (Array.isArray(object) || _.isObject(object)) {
+			if (Array.isArray(object) || typeof object === 'object') {
 				_.forEach(object, (v) => {
 					// we want to recurse into the relationship path, but
 					// in case we hit a plain string, we don't need to bother

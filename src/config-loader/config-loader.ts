@@ -187,7 +187,7 @@ export const setup = (app: Express.Application) => {
 								e.message = `Error loading custom server code: '${e.message}'`;
 								throw e;
 							}
-						} else if (_.isObject(model.customServerCode)) {
+						} else if (typeof model.customServerCode === 'object') {
 							customCode = model.customServerCode.setup;
 						} else {
 							throw new Error(
@@ -221,7 +221,7 @@ export const setup = (app: Express.Application) => {
 			} else if (typeof config === 'string') {
 				root = path.dirname(config);
 				configObj = await loadConfigFile(config);
-			} else if (_.isObject(config)) {
+			} else if (typeof config === 'object') {
 				root = process.cwd();
 				configObj = config;
 			} else {
