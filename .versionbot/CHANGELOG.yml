@@ -1,4 +1,16 @@
 - commits:
+    - subject: Convert lodash `isObject` usage to native versions
+      hash: 878e484788dc9f74d7c8d88b136694943e6ae592
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.47.3
+  title: "'Convert lodash  usage to native versions'"
+  date: 2022-07-25T12:55:28.636Z
+- commits:
     - subject: Narrow the scope of the permissions bypass for root permissions
       hash: 5b25906b444af997d0cae532d60866479b077c0d
       body: |
