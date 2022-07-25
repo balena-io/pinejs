@@ -1,4 +1,16 @@
 - commits:
+    - subject: Convert lodash flatMap/flatten to native versions
+      hash: 84d66b7adad29cafdfe80fcdc62d396c7ff5640e
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.47.4
+  title: "'Convert lodash flatMap/flatten to native versions'"
+  date: 2022-07-25T14:28:40.196Z
+- commits:
     - subject: Convert lodash `isObject` usage to native versions
       hash: 878e484788dc9f74d7c8d88b136694943e6ae592
       body: ""
