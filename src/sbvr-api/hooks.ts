@@ -131,11 +131,14 @@ export const rollbackRequestHooks = <T extends InstantiatedHooks>(
 	if (hooks == null) {
 		return;
 	}
-	settleMapSeries(_(hooks).flatMap().compact().value(), async (hook) => {
-		if (hook instanceof SideEffectHook) {
-			await hook.rollback();
-		}
-	});
+	settleMapSeries(
+		Object.values(hooks).flatMap((v): Array<Hook<HookFn>> => v),
+		async (hook) => {
+			if (hook instanceof SideEffectHook) {
+				await hook.rollback();
+			}
+		},
+	);
 };
 
 const instantiateHooks = (hooks: HookBlueprints): InstantiatedHooks =>
