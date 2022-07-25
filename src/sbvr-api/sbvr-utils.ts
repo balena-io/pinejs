@@ -171,13 +171,12 @@ const memoizedResolveNavigationResource = memoizeWeak(
 		resourceName: string,
 		navigationName: string,
 	): string => {
-		const navigation = _(odataNameToSqlName(navigationName))
+		const navigation = odataNameToSqlName(navigationName)
 			.split('-')
 			.flatMap((namePart) =>
 				memoizedResolvedSynonym(abstractSqlModel, namePart).split('-'),
-			)
-			.concat('$')
-			.value();
+			);
+		navigation.push('$');
 		const resolvedResourceName = memoizedResolvedSynonym(
 			abstractSqlModel,
 			resourceName,

@@ -49,7 +49,7 @@ const app = (function () {
 			match,
 			paramName,
 			// Flatten middleware list to handle arrays of middleware in the arg list.
-			middleware: _.flattenDeep(middleware),
+			middleware: middleware.flat(Infinity),
 		});
 	};
 	const process = async function (

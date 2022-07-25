@@ -11,7 +11,7 @@
 		"removeComments": true,
 		"rootDir": "src",
 		"sourceMap": true,
-		"target": "es2018",
+		"target": "es2019",
 		"declaration": true,
 		"skipLibCheck": true,
 		"resolveJsonModule": true,
