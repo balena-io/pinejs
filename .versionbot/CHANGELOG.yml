@@ -1,4 +1,16 @@
 - commits:
+    - subject: Prefer for..of over forEach
+      hash: 71449d9e0eccc52209e8639f3146d0a672408000
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.47.5
+  title: "'Prefer for..of over forEach'"
+  date: 2022-07-26T14:28:43.972Z
+- commits:
     - subject: Convert lodash flatMap/flatten to native versions
       hash: 84d66b7adad29cafdfe80fcdc62d396c7ff5640e
       body: ""
