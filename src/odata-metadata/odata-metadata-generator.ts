@@ -21,17 +21,14 @@ const forEachUniqueTable = <T>(
 	const usedTableNames: { [tableName: string]: true } = {};
 
 	const result = [];
-	for (const key in model) {
-		if (model.hasOwnProperty(key)) {
-			const table = model[key];
-			if (
-				typeof table !== 'string' &&
-				!table.primitive &&
-				!usedTableNames[table.name]
-			) {
-				usedTableNames[table.name] = true;
-				result.push(callback(key, table));
-			}
+	for (const [key, table] of Object.entries(model)) {
+		if (
+			typeof table !== 'string' &&
+			!table.primitive &&
+			!usedTableNames[table.name]
+		) {
+			usedTableNames[table.name] = true;
+			result.push(callback(key, table));
 		}
 	}
 	return result;

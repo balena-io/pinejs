@@ -278,11 +278,11 @@ export async function setup(app, sbvrUtils, db) {
 								'SELECT * FROM "' + tableName + '";',
 							);
 							let insQuery = '';
-							result.rows.forEach((currRow) => {
+							for (const currRow of result.rows) {
 								let notFirst = false;
 								insQuery += 'INSERT INTO "' + tableName + '" (';
 								let valQuery = '';
-								for (let propName of Object.keys(currRow)) {
+								for (const propName of Object.keys(currRow)) {
 									if (notFirst) {
 										insQuery += ',';
 										valQuery += ',';
@@ -293,7 +293,7 @@ export async function setup(app, sbvrUtils, db) {
 									valQuery += "'" + currRow[propName] + "'";
 								}
 								insQuery += ') values (' + valQuery + ');\n';
-							});
+							}
 							exported += insQuery;
 						}),
 					);

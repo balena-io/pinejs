@@ -420,9 +420,9 @@ const convertToLambda = (filter: AnyObject, identifier: string) => {
 			return;
 		}
 		if (Array.isArray(object)) {
-			object.forEach((element) => {
+			for (const element of object) {
 				replaceObject(element);
-			});
+			}
 		}
 
 		if (object.hasOwnProperty('name')) {
@@ -717,7 +717,7 @@ const onceGetter = <T, U extends keyof T>(
 const deepFreezeExceptDefinition = (obj: AnyObject) => {
 	Object.freeze(obj);
 
-	Object.getOwnPropertyNames(obj).forEach((prop) => {
+	for (const prop of Object.getOwnPropertyNames(obj)) {
 		// We skip the definition because we know it's a property we've defined that will throw an error in some cases
 		if (
 			prop !== 'definition' &&
@@ -727,7 +727,7 @@ const deepFreezeExceptDefinition = (obj: AnyObject) => {
 		) {
 			deepFreezeExceptDefinition(obj);
 		}
-	});
+	}
 };
 
 const createBypassDefinition = (definition: Definition) =>
