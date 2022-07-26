@@ -963,7 +963,9 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 			(permissionsLookup: PermissionLookup, vocabulary: string) => {
 				const constrainedAbstractSqlModel = _.cloneDeep(abstractSqlModel);
 
-				const origSynonyms = Object.keys(constrainedAbstractSqlModel.synonyms);
+				const origSynonyms = Object.entries(
+					constrainedAbstractSqlModel.synonyms,
+				);
 				constrainedAbstractSqlModel.synonyms = new Proxy(
 					constrainedAbstractSqlModel.synonyms,
 					{
@@ -975,9 +977,9 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 							if (!alias) {
 								return;
 							}
-							origSynonyms.forEach((canonicalForm, synonym) => {
+							for (const [synonym, canonicalForm] of origSynonyms) {
 								synonyms[`${synonym}$${alias}`] = `${canonicalForm}$${alias}`;
-							});
+							}
 							return synonyms[permissionSynonym];
 						},
 					},
