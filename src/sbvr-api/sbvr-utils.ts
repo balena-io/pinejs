@@ -329,6 +329,42 @@ const prettifyConstraintError = (
 	}
 };
 
+let cachedIsModelNew: Set<string> | undefined;
+
+/**
+ *
+ * @param tx database transaction - Needs to be executed in one contained config-loader transaction
+ * @param modelName name of the model to check the database for existence
+ * @returns true when the model was existing in database before pine config-loader is executed,
+ * 			false when the model was not existing before config-loader was executed.
+ *
+ * ATTENTION: This function needs to be executed in the same transaction as all model manipulating
+ * operations are executed in (as migration table operations). Otherwise it's possible that an INSERT INTO "model"
+ * statement executes and succeeds. Then afterwards execution fails and the isModelNew request would return `false`.
+ * In the case of migrations the table wouldn't have an entry and therefore it would try to run all the historical
+ * migrations on a new model.
+ */
+
+export const isModelNew = async (
+	tx: Db.Tx,
+	modelName: string,
+): Promise<boolean> => {
+	const result = await tx.tableList("name = 'model'");
+	if (result.rows.length === 0) {
+		return true;
+	}
+	if (cachedIsModelNew == null) {
+		const { rows } = await tx.executeSql(
+			`SELECT "is of-vocabulary" FROM "model";`,
+		);
+		cachedIsModelNew = new Set<string>(
+			rows.map((row) => row['is of-vocabulary']),
+		);
+	}
+
+	return !cachedIsModelNew.has(modelName);
+};
+
 export const validateModel = async (
 	tx: Db.Tx,
 	modelName: string,
