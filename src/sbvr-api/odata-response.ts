@@ -148,16 +148,16 @@ export const process = async (
 	);
 
 	const odataIdField = sqlNameToODataName(table.idField);
-	rows.forEach((row) => {
-		processedFields.forEach((fieldName) => {
+	for (const row of rows) {
+		for (const fieldName of processedFields) {
 			row[fieldName] = fetchProcessingFields[fieldName](row[fieldName]);
-		});
+		}
 		if (includeMetadata) {
 			row.__metadata = {
 				uri: resourceURI(vocab, resourceName, row[odataIdField]),
 			};
 		}
-	});
+	}
 
 	if (expandableFields.length > 0) {
 		await Promise.all(

@@ -44,7 +44,7 @@ export interface Model {
 export interface User {
 	username: string;
 	password: string;
-	permissions: string[];
+	permissions?: string[];
 }
 export interface Config {
 	models: Model[];
@@ -103,20 +103,17 @@ export const setup = (app: Express.Application) => {
 				const permissionsCache: {
 					[index: string]: Promise<number>;
 				} = {};
-				users.forEach((user) => {
+				for (const user of users) {
 					if (user.permissions == null) {
-						return;
+						continue;
 					}
-					user.permissions.forEach((permissionName) => {
-						if (permissionsCache[permissionName] != null) {
-							return;
-						}
-						permissionsCache[permissionName] = getOrCreatePermission(
+					for (const permissionName of user.permissions) {
+						permissionsCache[permissionName] ??= getOrCreatePermission(
 							authApiTx,
 							permissionName,
 						);
-					});
-				});
+					}
+				}
 
 				await Promise.all(
 					users.map(async (user) => {

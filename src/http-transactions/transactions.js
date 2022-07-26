@@ -137,7 +137,7 @@ WHERE "conditional resource"."transaction" = ?;\
 					[transactionID],
 				);
 
-				conditionalResources.rows.forEach((conditionalResource) => {
+				for (const conditionalResource of conditionalResources.rows) {
 					const { placeholder } = conditionalResource;
 					if (placeholder != null && placeholder.length > 0) {
 						/** @type {Function} */
@@ -151,7 +151,7 @@ WHERE "conditional resource"."transaction" = ?;\
 						// @ts-ignore
 						placeholders[placeholder] = { promise, resolve, reject };
 					}
-				});
+				}
 
 				// get conditional resources (if exist)
 				await Promise.all(

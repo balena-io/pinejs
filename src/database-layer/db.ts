@@ -584,12 +584,12 @@ if (maybePg != null) {
 					const queryQueue = this.db.queryQueue as Pg.Query[];
 					if (queryQueue.length > 0) {
 						const err = new DatabaseError('Rolling back transaction');
-						queryQueue.forEach((query) => {
+						for (const query of queryQueue) {
 							process.nextTick(() => {
 								// @ts-expect-error typings do not include this function
 								query.handleError(err, this.db.connection);
 							});
-						});
+						}
 						queryQueue.length = 0;
 					}
 					await timeout(

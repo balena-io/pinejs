@@ -96,12 +96,12 @@ export const memoizedParseOdata = (() => {
 				// Try to cache based on parameter aliases if there might be some
 				const parameterAliases = new URLSearchParams();
 				const queryParams = new URLSearchParams(url.slice(queryParamsIndex));
-				Array.from(queryParams.entries()).forEach(([key, value]) => {
+				for (const [key, value] of Array.from(queryParams.entries())) {
 					if (key.startsWith('@')) {
 						parameterAliases.append(key, value);
 						queryParams.delete(key);
 					}
-				});
+				}
 				const parameterAliasesString = parameterAliases.toString();
 				if (parameterAliasesString !== '') {
 					const parsed = _.cloneDeep(

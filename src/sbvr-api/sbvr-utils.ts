@@ -1054,9 +1054,9 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 						tx.on('rollback', () => {
 							rollbackRequestHooks(reqHooks);
 							if (Array.isArray(request)) {
-								request.forEach(({ hooks }) => {
+								for (const { hooks } of request) {
 									rollbackRequestHooks(hooks);
-								});
+								}
 							} else {
 								rollbackRequestHooks(request.hooks);
 							}
