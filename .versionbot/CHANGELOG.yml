@@ -1,4 +1,24 @@
 - commits:
+    - subject: Refactur checkModelExists to isModelNew
+      hash: 28725993f36edb2f372145addb3841b9a899d880
+      body: >
+        Modules may need to know if a model existed before initialisation of the
+        instance.
+
+        Eg. migrations need to know if a model is freshly generated / executed
+
+        of if this model already existed and can be target for migrations.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 14.48.0
+  title: "'Refactor checkModelExists to isModelNew'"
+  date: 2022-07-26T17:59:52.601Z
+- commits:
     - subject: Fix synonyms iteration
       hash: a13857c71696aff92e01d5beab88f19470f57f08
       body: ""
