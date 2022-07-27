@@ -3,7 +3,6 @@ import {
 	MigrationTuple,
 	MigrationError,
 	defaultMigrationCategory,
-	checkModelAlreadyExists,
 	setExecutedMigrations,
 	getExecutedMigrations,
 	lockMigrations,
@@ -24,11 +23,10 @@ export const postRun = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 	}
 
 	const modelName = model.apiRoot;
-
-	const exists = await checkModelAlreadyExists(tx, modelName);
-	if (!exists) {
+	const modelIsNew = await sbvrUtils.isModelNew(tx, modelName);
+	if (modelIsNew) {
 		(sbvrUtils.api.migrations?.logger.info ?? console.info)(
-			'First time executing, running init script',
+			`First time executing '${modelName}', running init script`,
 		);
 
 		await lockMigrations(tx, modelName, async () => {
@@ -69,10 +67,10 @@ const $run = async (
 
 	// migrations only run if the model has been executed before,
 	// to make changes that can't be automatically applied
-	const exists = await checkModelAlreadyExists(tx, modelName);
-	if (!exists) {
+	const modelIsNew = await sbvrUtils.isModelNew(tx, modelName);
+	if (modelIsNew) {
 		(sbvrUtils.api.migrations?.logger.info ?? console.info)(
-			'First time model has executed, skipping migrations',
+			`First time model '${modelName}' has executed, skipping migrations`,
 		);
 
 		return await setExecutedMigrations(tx, modelName, Object.keys(migrations));

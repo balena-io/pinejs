@@ -14,11 +14,13 @@ type TestDevice = {
 	type: string;
 };
 
-async function executeModelBeforeMigrations() {
+async function executeModelBeforeMigrations(
+	modelFixturePath = fixturesBasePath + '00-execute-model',
+) {
 	// start pine instace with a configuration without migrations to execute the model in the DB once.
 	// model has an initSqlPath declared so that the database gets filled first
 	const executeModelsOnceBeforeTesting: ChildProcess = await testInit(
-		fixturesBasePath + '00-execute-model',
+		modelFixturePath,
 		true,
 	);
 	await testDeInit(executeModelsOnceBeforeTesting);
@@ -92,6 +94,37 @@ describe('02 Sync Migrations', async function () {
 			res.body.d.map((device: TestDevice) => {
 				expect(device.note).to.not.exist;
 			});
+		});
+	});
+
+	describe('Should not execute migrations for new executed model but run initSql', () => {
+		let pineTestInstance: ChildProcess;
+		before(async () => {
+			pineTestInstance = await testInit(
+				fixturesBasePath + '04-new-model-with-init',
+				true,
+			);
+		});
+
+		after(async () => {
+			await testDeInit(pineTestInstance);
+		});
+
+		it('check that model migration was loaded and set executed', async () => {
+			const migs = await supertest(testLocalServer)
+				.get(`/migrations/migration?$filter=model_name eq 'example'`)
+				.expect(200);
+			expect(migs?.body?.d?.[0]?.model_name).to.eql('example');
+			expect(migs?.body?.d?.[0]?.executed_migrations).to.have.ordered.members([
+				'0001',
+			]);
+		});
+
+		it('Check that /example/device data has not additionally migrated', async () => {
+			const res = await supertest(testLocalServer)
+				.get('/example/device')
+				.expect(200);
+			expect(res?.body?.d).to.have.length(1);
 		});
 	});
 

@@ -51,7 +51,11 @@ export const lockMigrations = async <T>(
 	tx: Tx,
 	modelName: string,
 	fn: () => Promise<T>,
-): Promise<T> => {
+): Promise<T | undefined> => {
+	if (!(await migrationTablesExist(tx))) {
+		return;
+	}
+
 	try {
 		await tx.executeSql(
 			binds`
@@ -88,26 +92,6 @@ WHERE "model name" = ${1}`,
 	}
 };
 
-export const checkModelAlreadyExists = async (
-	tx: Tx,
-	modelName: string,
-): Promise<boolean> => {
-	const result = await tx.tableList("name = 'migration'");
-	if (result.rows.length === 0) {
-		return false;
-	}
-	const { rows } = await tx.executeSql(
-		binds`
-SELECT 1
-FROM "model"
-WHERE "model"."is of-vocabulary" = ${1}
-LIMIT 1`,
-		[modelName],
-	);
-
-	return rows.length > 0;
-};
-
 export const setExecutedMigrations = async (
 	tx: Tx,
 	modelName: string,
@@ -115,8 +99,7 @@ export const setExecutedMigrations = async (
 ): Promise<void> => {
 	const stringifiedMigrations = JSON.stringify(executedMigrations);
 
-	const result = await tx.tableList("name = 'migration'");
-	if (result.rows.length === 0) {
+	if (!(await migrationTablesExist(tx))) {
 		return;
 	}
 
@@ -143,6 +126,10 @@ export const getExecutedMigrations = async (
 	tx: Tx,
 	modelName: string,
 ): Promise<string[]> => {
+	if (!(await migrationTablesExist(tx))) {
+		return [];
+	}
+
 	const { rows } = await tx.executeSql(
 		binds`
 SELECT "migration"."executed migrations" AS "executed_migrations"
@@ -157,4 +144,11 @@ WHERE "migration"."model name" = ${1}`,
 	}
 
 	return JSON.parse(data.executed_migrations) as string[];
+};
+
+export const migrationTablesExist = async (tx: Tx) => {
+	const tables = ['migration', 'migration lock'];
+	const where = tables.map((tableName) => `name = '${tableName}'`).join(' OR ');
+	const result = await tx.tableList(where);
+	return result.rows.length === tables.length;
 };

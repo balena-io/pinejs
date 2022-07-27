@@ -21,7 +21,7 @@
     "lint": "balena-lint -e js -e ts src build typings Gruntfile.ts && npx tsc --project tsconfig.dev.json --noEmit",
     "test": "npm run lint & npm run build && npm run webpack-build",
     "test:compose": "npm run compose:build && npm run compose:postgres && docker-compose -f docker-compose.test.yml run sut npm run mocha",
-    "test:fast": " npm run compose:postgres && npm run mocha:local",
+    "test:fast": "npm run compose:postgres && npm run mocha:local",
     "mocha": "TS_NODE_FILES=true mocha",
     "mocha:local": "DATABASE_URL=postgres://docker:docker@localhost:5431/postgres npm run mocha",
     "compose:postgres": "docker-compose -f docker-compose.test.yml up -d postgres",
