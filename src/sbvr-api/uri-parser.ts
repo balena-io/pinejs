@@ -37,20 +37,22 @@ export interface UnparsedRequest {
 	_isChangeSet?: boolean;
 }
 
-export interface ODataRequest {
+export interface ParsedODataRequest {
 	method: SupportedMethod;
 	url: string;
+	vocabulary: string;
+	resourceName: string;
+	values: AnyObject;
 	odataQuery: ODataQuery;
 	odataBinds: OdataBinds;
-	values: AnyObject;
+	custom: AnyObject;
+	id?: number | undefined;
+	_defer?: boolean;
+}
+export interface ODataRequest extends ParsedODataRequest {
 	abstractSqlModel?: AbstractSQLCompiler.AbstractSqlModel;
 	abstractSqlQuery?: AbstractSQLCompiler.AbstractSqlQuery;
 	sqlQuery?: AbstractSQLCompiler.SqlResult | AbstractSQLCompiler.SqlResult[];
-	resourceName: string;
-	vocabulary: string;
-	_defer?: boolean;
-	id?: number | undefined;
-	custom: AnyObject;
 	tx?: Tx;
 	modifiedFields?: ReturnType<
 		AbstractSQLCompiler.EngineInstance['getModifiedFields']
@@ -58,7 +60,7 @@ export interface ODataRequest {
 	affectedIds?: number[];
 	pendingAffectedIds?: Promise<number[]>;
 	hooks?: InstantiatedHooks;
-	engine?: AbstractSQLCompiler.Engines;
+	engine: AbstractSQLCompiler.Engines;
 }
 
 // Converts a value to its string representation and tries to parse is as an
@@ -257,23 +259,26 @@ export const metadataEndpoints = ['$metadata', '$serviceroot'];
 
 export async function parseOData(
 	b: UnparsedRequest & { _isChangeSet?: false },
-): Promise<ODataRequest>;
+): Promise<ParsedODataRequest>;
 export async function parseOData(
 	b: UnparsedRequest & { _isChangeSet: true },
-): Promise<ODataRequest[]>;
+): Promise<ParsedODataRequest[]>;
 export async function parseOData(
 	b: UnparsedRequest,
-): Promise<ODataRequest | ODataRequest[]>;
+): Promise<ParsedODataRequest | ParsedODataRequest[]>;
 export async function parseOData(
 	b: UnparsedRequest,
-): Promise<ODataRequest | ODataRequest[]> {
+): Promise<ParsedODataRequest | ParsedODataRequest[]> {
 	try {
 		if (b._isChangeSet && b.changeSet != null) {
 			// We sort the CS set once, we must assure that requests which reference
 			// other requests in the changeset are placed last. Once they are sorted
 			// Map will guarantee retrival of results in insertion order
 			const sortedCS = _.sortBy(b.changeSet, (el) => el.url[0] !== '/');
-			const csReferences = new Map<ODataRequest['id'], ODataRequest>();
+			const csReferences = new Map<
+				ParsedODataRequest['id'],
+				ParsedODataRequest
+			>();
 			for (const cs of sortedCS) {
 				parseODataChangeset(csReferences, cs);
 			}
@@ -287,9 +292,9 @@ export async function parseOData(
 				url,
 				vocabulary: apiRoot,
 				resourceName: odata.tree.resource,
-				odataBinds: odata.binds,
-				odataQuery: odata.tree,
 				values: b.data ?? {},
+				odataQuery: odata.tree,
+				odataBinds: odata.binds,
 				custom: {},
 				_defer: false,
 			};
@@ -307,10 +312,13 @@ export async function parseOData(
 }
 
 const parseODataChangeset = (
-	csReferences: Map<ODataRequest['id'], ODataRequest>,
+	csReferences: Map<ParsedODataRequest['id'], ParsedODataRequest>,
 	b: UnparsedRequest,
 ): void => {
-	const contentId: ODataRequest['id'] = mustExtractHeader(b, 'content-id');
+	const contentId: ParsedODataRequest['id'] = mustExtractHeader(
+		b,
+		'content-id',
+	);
 
 	if (csReferences.has(contentId)) {
 		throw new BadRequestError('Content-Id must be unique inside a changeset');
@@ -341,7 +349,7 @@ const parseODataChangeset = (
 		defer = true;
 	}
 
-	const parseResult: ODataRequest = {
+	const parseResult: ParsedODataRequest = {
 		method: b.method as SupportedMethod,
 		url,
 		vocabulary: apiRoot,

@@ -173,7 +173,10 @@ const checkModifiedFields = (
 };
 export const isRuleAffected = (
 	rule: AbstractSQLCompiler.SqlRule,
-	request?: ODataRequest,
+	request?: Pick<
+		ODataRequest,
+		'abstractSqlQuery' | 'modifiedFields' | 'method' | 'vocabulary'
+	>,
 ) => {
 	// If there is no abstract sql query then nothing was modified
 	if (request?.abstractSqlQuery == null) {

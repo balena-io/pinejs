@@ -368,7 +368,10 @@ export const isModelNew = async (
 export const validateModel = async (
 	tx: Db.Tx,
 	modelName: string,
-	request?: uriParser.ODataRequest,
+	request?: Pick<
+		uriParser.ODataRequest,
+		'abstractSqlQuery' | 'modifiedFields' | 'method' | 'vocabulary'
+	>,
 ): Promise<void> => {
 	await Promise.all(
 		models[modelName].sql.rules.map(async (rule) => {
@@ -961,12 +964,19 @@ const $getAffectedIds = async ({
 	}
 	// We reparse to make sure we get a clean odataQuery, without permissions already added
 	// And we use the request's url rather than the req for things like batch where the req url is ../$batch
-	let affectedRequest = await uriParser.parseOData({
-		method: request.method,
-		url: `/${request.vocabulary}${request.url}`,
-	});
+	const parsedRequest: uriParser.ParsedODataRequest &
+		Partial<Pick<uriParser.ODataRequest, 'engine'>> =
+		await uriParser.parseOData({
+			method: request.method,
+			url: `/${request.vocabulary}${request.url}`,
+		});
 
-	affectedRequest.engine = request.engine;
+	parsedRequest.engine = request.engine;
+	// Mark that the engine is required now that we've set it
+	let affectedRequest: uriParser.ODataRequest = parsedRequest as RequiredField<
+		typeof parsedRequest,
+		'engine'
+	>;
 	const abstractSqlModel = getAbstractSqlModel(affectedRequest);
 	const resourceName = resolveSynonym(affectedRequest);
 	const resourceTable = abstractSqlModel.tables[resourceName];
@@ -1052,8 +1062,16 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 				requests = [{ method, url, data: body }];
 			}
 
-			const prepareRequest = async ($request: uriParser.ODataRequest) => {
-				$request.engine = db.engine;
+			const prepareRequest = async (
+				parsedRequest: uriParser.ParsedODataRequest &
+					Partial<Pick<uriParser.ODataRequest, 'engine'>>,
+			): Promise<uriParser.ODataRequest> => {
+				parsedRequest.engine = db.engine;
+				// Mark that the engine is required now that we've set it
+				const $request: uriParser.ODataRequest = parsedRequest as RequiredField<
+					typeof parsedRequest,
+					'engine'
+				>;
 				// Get the full hooks list now that we can.
 				$request.hooks = getHooks($request);
 				// Add/check the relevant permissions
@@ -1074,12 +1092,13 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 
 			// Parse the OData requests
 			const results = await mappingFn(requests, async (requestPart) => {
-				let request = await uriParser.parseOData(requestPart);
+				const parsedRequest = await uriParser.parseOData(requestPart);
 
-				if (Array.isArray(request)) {
-					request = await controlFlow.mapSeries(request, prepareRequest);
+				let request: uriParser.ODataRequest | uriParser.ODataRequest[];
+				if (Array.isArray(parsedRequest)) {
+					request = await controlFlow.mapSeries(parsedRequest, prepareRequest);
 				} else {
-					request = await prepareRequest(request);
+					request = await prepareRequest(parsedRequest);
 				}
 				// Run the request in its own transaction
 				return await runTransaction<Response | Response[]>(
