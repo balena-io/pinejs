@@ -1,6 +1,6 @@
 import type { OptionalField, Resolvable } from './common-types';
 import type { Tx } from '../database-layer/db';
-import type { ODataRequest } from './uri-parser';
+import type { ODataRequest, ParsedODataRequest } from './uri-parser';
 import type { AnyObject } from 'pinejs-client-core';
 import type { TypedError } from 'typed-error';
 import type { SupportedMethod } from '@balena/odata-to-abstract-sql';
@@ -194,14 +194,17 @@ const getMethodHooks = memoize(
 );
 export const getHooks = (
 	request: Pick<
-		OptionalField<ODataRequest, 'resourceName'>,
+		OptionalField<ParsedODataRequest, 'resourceName'>,
 		'resourceName' | 'method' | 'vocabulary'
 	>,
 ): InstantiatedHooks => {
 	let { resourceName } = request;
 	if (resourceName != null) {
 		resourceName = resolveSynonym(
-			request as Pick<ODataRequest, 'resourceName' | 'method' | 'vocabulary'>,
+			request as Pick<
+				ParsedODataRequest,
+				'resourceName' | 'method' | 'vocabulary'
+			>,
 		);
 	}
 	return instantiateHooks(
