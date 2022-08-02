@@ -48,7 +48,7 @@
     "@types/method-override": "^0.0.32",
     "@types/multer": "^1.4.7",
     "@types/mysql": "^2.15.21",
-    "@types/node": "^12.20.55",
+    "@types/node": "^14.18.23",
     "@types/passport": "^1.0.9",
     "@types/passport-local": "^1.0.34",
     "@types/passport-strategy": "^0.2.35",
@@ -116,7 +116,7 @@
     "serve-static": "^1.15.0"
   },
   "engines": {
-    "node": ">=12.0.0",
+    "node": ">=14.0.0",
     "npm": ">=6.0.0"
   },
   "husky": {
