@@ -1,4 +1,32 @@
 - commits:
+    - subject: Make checking that read-only TX queries are SELECT queries optional
+      hash: 7d6ef12d558b6cd5438b5cf277d969ccaccb5c21
+      body: |
+        This removes a cost per query which is generally unnecessary and can
+        add up to being significant in read heavy workloads
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+    - subject: Differentiate typings between parsed and processed odata requests
+      hash: af632f0cc0968b25d9acebca0d83bf22f84f617f
+      body: |
+        This allows us to make properties on the process odata request required
+        whereas previously they had to be optional in order to be compatible,
+        as of now this only affects the `engine` property but in future further
+        properties of the processed request could be made required. And even at
+        this point it will block passing a parsed only request object to a
+        function expecting a processed request object
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.49.0
+  title: "'Make checking that read-only TX queries are SELECT queries optional'"
+  date: 2022-08-04T12:48:55.107Z
+- commits:
     - subject: Refactur checkModelExists to isModelNew
       hash: 28725993f36edb2f372145addb3841b9a899d880
       body: >
