@@ -292,7 +292,11 @@ export abstract class Tx {
 		bindings: Bindings = [],
 		...args: any[]
 	): Promise<Result> {
-		if (this.readOnly && !/^\s*SELECT\s(?:[^;]|;\s*SELECT\s)*$/.test(sql)) {
+		if (
+			env.db.checkReadOnlyQueries &&
+			this.readOnly &&
+			!/^\s*SELECT\s(?:[^;]|;\s*SELECT\s)*$/.test(sql)
+		) {
 			throw new ReadOnlyViolationError(
 				`Attempted to run a non-SELECT statement in a read-only tx: ${sql}`,
 			);
