@@ -104,6 +104,15 @@ export const db = {
 	timeoutMS,
 	maxUses: Infinity,
 	maxLifetimeSeconds: 0,
+	/**
+	 * Check that queries in read-only TXs only contain `SELECT` statements, doing so adds a cost to each query
+	 * in a read-only TX and is unnecessary if it is part of a read-only database transaction. The only time a
+	 * writable transaction should be used with a read-only TX is during a read-only hook within a writable request
+	 * and so should only be able to catch cases of hooks that are incorrectly marked as read-only
+	 *
+	 * Defaults to true when in DEBUG mode, false otherwise
+	 */
+	checkReadOnlyQueries: DEBUG,
 };
 
 export const migrator = {
