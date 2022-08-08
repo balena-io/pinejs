@@ -1,4 +1,16 @@
 - commits:
+    - subject: Lazily define read-only hook args to avoid doing so unnecessarily
+      hash: 56eef2eb82ab4f0b2aa436e8b126d0013df7a790
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.49.1
+  title: "'Lazily define read-only hook args to avoid doing so unnecessarily'"
+  date: 2022-08-08T12:02:25.739Z
+- commits:
     - subject: Make checking that read-only TX queries are SELECT queries optional
       hash: 7d6ef12d558b6cd5438b5cf277d969ccaccb5c21
       body: |
