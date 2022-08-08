@@ -352,10 +352,29 @@ const defineApi = (args: HookArgs) => {
 	});
 };
 
+type RunHookArgs<T extends keyof Hooks> = Omit<
+	Parameters<NonNullable<Hooks[T]>>[0],
+	'api'
+>;
+const getReadOnlyArgs = <T extends keyof Hooks>(
+	args: RunHookArgs<T>,
+): RunHookArgs<T> => {
+	if (args.tx == null || args.tx.isReadOnly()) {
+		// If we don't have a tx then read-only/writable is irrelevant
+		return args;
+	}
+	let readOnlyArgs: typeof args;
+	readOnlyArgs = { ...args, tx: args.tx.asReadOnly() };
+	if ((args as HookArgs).request != null) {
+		defineApi(readOnlyArgs as HookArgs);
+	}
+	return readOnlyArgs;
+};
+
 export const runHooks = async <T extends keyof Hooks>(
 	hookName: T,
 	hooksList: InstantiatedHooks | undefined,
-	args: Omit<Parameters<NonNullable<Hooks[T]>>[0], 'api'>,
+	args: RunHookArgs<T>,
 ) => {
 	if (hooksList == null) {
 		return;
@@ -365,25 +384,16 @@ export const runHooks = async <T extends keyof Hooks>(
 		return;
 	}
 
-	let readOnlyArgs: typeof args;
-	if (args.tx != null && !args.tx.isReadOnly()) {
-		readOnlyArgs = { ...args, tx: args.tx.asReadOnly() };
-	} else {
-		// If we don't have a tx then read-only/writable is irrelevant
-		readOnlyArgs = args;
-	}
-
 	if ((args as HookArgs).request != null) {
 		defineApi(args as HookArgs);
-		if (args !== readOnlyArgs) {
-			// Only try to define a separate read-only api if it's different
-			defineApi(readOnlyArgs as HookArgs);
-		}
 	}
+
+	let readOnlyArgs: RunHookArgs<T>;
 
 	await Promise.all(
 		(hooks as Array<Hook<HookFn>>).map(async (hook) => {
 			if (hook.readOnlyTx) {
+				readOnlyArgs ??= getReadOnlyArgs(args);
 				await hook.run(readOnlyArgs);
 			} else {
 				await hook.run(args);
