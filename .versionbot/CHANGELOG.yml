@@ -1,4 +1,24 @@
 - commits:
+    - subject: Fixing issue reported by tsc 4.8.2
+      hash: 57b05baa09718525b4e0e85c99b2c6c8c5b387ae
+      body: >
+        Inferenced type of check could be I & null
+
+        when I is not set in the overload.
+
+
+        tsc 4.8 https://devblogs.microsoft.com/typescript/announcing-typescript-4-8/#unconstrained-generics-no-longer-assignable-to
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 14.49.2
+  title: "'Fixing issue reported by tsc 4.8.2'"
+  date: 2022-08-26T11:33:52.884Z
+- commits:
     - subject: Lazily define read-only hook args to avoid doing so unnecessarily
       hash: 56eef2eb82ab4f0b2aa436e8b126d0013df7a790
       body: ""
