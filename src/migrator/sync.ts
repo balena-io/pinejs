@@ -2,11 +2,12 @@ import {
 	modelText,
 	MigrationTuple,
 	MigrationError,
-	defaultMigrationCategory,
 	setExecutedMigrations,
 	getExecutedMigrations,
 	lockMigrations,
 	RunnableMigrations,
+	filterAndSortPendingMigrations,
+	getRunnableSyncMigrations,
 } from './utils';
 import type { Tx } from '../database-layer/db';
 import type { Config, Model } from '../config-loader/config-loader';
@@ -47,15 +48,8 @@ export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 	if (migrations == null || _.isEmpty(migrations)) {
 		return;
 	}
-	const defaultMigrations = migrations[defaultMigrationCategory];
-	const runMigrations: RunnableMigrations =
-		defaultMigrationCategory in migrations
-			? typeof defaultMigrations === 'object'
-				? defaultMigrations
-				: {}
-			: migrations;
-
-	return $run(tx, model, runMigrations);
+	const runnableMigrations = getRunnableSyncMigrations(migrations);
+	return $run(tx, model, runnableMigrations);
 };
 
 const $run = async (
@@ -102,17 +96,6 @@ const $run = async (
 		}
 	});
 };
-
-// turns {"key1": migration, "key3": migration, "key2": migration}
-// into  [["key1", migration], ["key2", migration], ["key3", migration]]
-const filterAndSortPendingMigrations = (
-	migrations: NonNullable<RunnableMigrations>,
-	executedMigrations: string[],
-): MigrationTuple[] =>
-	(_(migrations).omit(executedMigrations) as _.Object<typeof migrations>)
-		.toPairs()
-		.sortBy(([migrationKey]) => migrationKey)
-		.value();
 
 const executeMigrations = async (
 	tx: Tx,

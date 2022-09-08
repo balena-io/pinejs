@@ -119,4 +119,8 @@ export const migrator = {
 	lockTimeout: 5 * 60 * 1000,
 	// Used to delay the failure on lock taking, to avoid spam taking
 	lockFailDelay: 20 * 1000,
+	asyncMigrationDefaultDelayMS: 1000,
+	asyncMigrationDefaultBackoffDelayMS: 60000,
+	asyncMigrationDefaultErrorThreshold: 10,
+	asyncMigrationDefaultBatchSize: 1000,
 };

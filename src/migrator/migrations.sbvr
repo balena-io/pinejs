@@ -21,3 +21,46 @@ Term: migration lock
 
 Fact Type: migration lock has model name
 	Necessity: each migration lock has exactly one model name
+
+Term: migration key
+	Concept Type: Short Text (Type)
+Term: start time
+	Concept Type: Date Time (Type)
+Term: last run time
+	Concept Type: Date Time (Type)
+Term: run count
+	Concept Type: Integer (Type)
+Term: migrated row count
+	Concept Type: Integer (Type)
+Term: error count
+	Concept Type: Integer (Type)
+Term: converged time 
+	Concept Type: Date Time (Type)
+
+
+Term: migration status
+	Reference Scheme: migration key
+	Database ID Field: migration key
+
+Fact Type: migration status has migration key
+	Necessity: each migration status has exactly one migration key
+
+Fact Type: migration status has start time
+	Necessity: each migration status has at most one start time
+
+Fact Type: migration status has last run time
+	Necessity: each migration status has at most one last run time
+
+Fact Type: migration status has run count
+	Necessity: each migration status has exactly one run count
+
+Fact Type: migration status has migrated row count
+	Necessity: each migration status has at most one migrated row count
+
+Fact Type: migration status has error count
+	Necessity: each migration status has at most one error count
+
+Fact Type: migration status is backing off
+
+Fact Type: migration status has converged time 
+	Necessity: each migration status has at most one converged time

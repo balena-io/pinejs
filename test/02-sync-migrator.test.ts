@@ -128,38 +128,19 @@ describe('02 Sync Migrations', async function () {
 		});
 	});
 
-	describe('Should execute only migrations loaded from migrationsPath files', () => {
-		let pineTestInstance: ChildProcess;
-		before(async () => {
-			await executeModelBeforeMigrations();
-			pineTestInstance = await testInit(
-				fixturesBasePath + '03-compatible-migrations',
-				false,
-			);
-		});
-		after(async () => {
-			await testDeInit(pineTestInstance);
-		});
-
-		it('check that only migrations from migrationsPath files have been executed', async () => {
-			const migs = await supertest(testLocalServer)
-				.get(`/migrations/migration?$filter=model_name eq 'example'`)
-				.expect(200);
-			expect(migs?.body?.d?.[0]?.model_name).to.eql('example');
-			expect(migs?.body?.d?.[0]?.executed_migrations).to.have.ordered.members([
-				'0001',
-				'0002',
-			]);
-		});
-
-		it('Check that /example/device data has been migrated correctly', async () => {
-			const res = await supertest(testLocalServer)
-				.get('/example/device')
-				.expect(200);
-			expect(res?.body?.d).to.have.length(20);
-			res.body.d.map((device: TestDevice) => {
-				expect(device.note).to.exist.to.contain('#migrated');
-			});
+	describe('Should execute no mixed category migrations loaded from model.migrationsPath and model.migrations', () => {
+		let pineErrorInstance: ChildProcess;
+		it('should fail to start pine instance with mixed migration categories', async function () {
+			try {
+				await executeModelBeforeMigrations();
+				pineErrorInstance = await testInit(
+					fixturesBasePath + '03-exclusive-category',
+					false,
+				);
+				expect(pineErrorInstance).to.not.exist;
+			} catch (err: any) {
+				expect(err).to.equal('exit');
+			}
 		});
 	});
 });

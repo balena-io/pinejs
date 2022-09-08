@@ -89,8 +89,8 @@ const getOrCreatePermission = async (
 
 // Setup function
 export const setup = (app: Express.Application) => {
-	const loadConfig = (data: Config): Promise<void> =>
-		sbvrUtils.db.transaction(async (tx) => {
+	const loadConfig = async (data: Config): Promise<void> => {
+		await sbvrUtils.db.transaction(async (tx) => {
 			const authApiTx = sbvrUtils.api.Auth.clone({
 				passthrough: {
 					tx,
@@ -201,7 +201,7 @@ export const setup = (app: Express.Application) => {
 				}),
 			);
 		});
-
+	};
 	const loadConfigFile = async (configPath: string): Promise<Config> => {
 		console.info('Loading config:', configPath);
 		return await import(configPath);
@@ -262,7 +262,7 @@ export const setup = (app: Express.Application) => {
 										migrationCategory = fileNameParts[1] as MigrationCategories;
 									} else {
 										console.error(
-											`Unrecognised migration file category ${
+											`Unrecognized migration file category ${
 												fileNameParts[1]
 											}, skipping: ${path.extname(filename)}`,
 										);
@@ -277,6 +277,8 @@ export const setup = (app: Express.Application) => {
 								 *  key0-name.ts  				==> defaults startup migration
 								 *  key1-name1.sql 				==> defaults startup migration
 								 *  key2-name2.sync.sql 		==> explicit synchrony migration
+								 *  key3-name3.async.ts			==> async migration (async datafiller)
+								 *  key4-name4.async.sql		==> async migration (async datafiller)
 								 *
 								 */
 								const assignMigrationWithCategory = (
@@ -284,6 +286,12 @@ export const setup = (app: Express.Application) => {
 									newMigration: Migration,
 								) => {
 									const catMigrations = migrations[migrationCategory] || {};
+									if (
+										typeof newMigration === 'object' &&
+										migrationCategory === MigrationCategories.async
+									) {
+										newMigration.type = MigrationCategories.async;
+									}
 									if (typeof catMigrations === 'object') {
 										migrations[migrationCategory] = {
 											[newMigrationKey]: newMigration,
@@ -296,12 +304,21 @@ export const setup = (app: Express.Application) => {
 									case '.coffee':
 									case '.ts':
 									case '.js':
+										const migration = nodeRequire(filePath);
 										assignMigrationWithCategory(
 											migrationKey,
-											nodeRequire(filePath),
+											migration.default ?? migration,
 										);
 										break;
 									case '.sql':
+										if (migrationCategory === MigrationCategories.async) {
+											console.error(
+												`Plain async migration sql statement not supported, needs to be an object, skipping: ${path.extname(
+													filename,
+												)}`,
+											);
+											break;
+										}
 										assignMigrationWithCategory(
 											migrationKey,
 											await fs.promises.readFile(filePath, 'utf8'),
