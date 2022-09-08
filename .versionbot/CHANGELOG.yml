@@ -1,4 +1,18 @@
 - commits:
+    - subject: Replace balena ci with flowzone
+      hash: 8b7ef6e75ee2f27fffed23c508148a5a9061afb2
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+  version: 14.49.3
+  title: ""
+  date: 2022-09-08T10:38:53.110Z
+- commits:
     - subject: Fixing issue reported by tsc 4.8.2
       hash: 57b05baa09718525b4e0e85c99b2c6c8c5b387ae
       body: >
