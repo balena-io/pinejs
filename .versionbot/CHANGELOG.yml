@@ -1,4 +1,16 @@
 - commits:
+    - subject: Enable flowzone branch protection
+      hash: 4b7913a412b84d3db297dfec5f0a18406dd7946c
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.49.5
+  title: ""
+  date: 2022-09-08T11:55:39.940Z
+- commits:
     - subject: Remove prepublishOnly lint step
       hash: 07dea6a510d84954ff6dcaedf2b4731137fcc5bd
       body: |
