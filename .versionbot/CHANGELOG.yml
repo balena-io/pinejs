@@ -1,4 +1,18 @@
 - commits:
+    - subject: Remove prepublishOnly lint step
+      hash: 07dea6a510d84954ff6dcaedf2b4731137fcc5bd
+      body: |
+        It is already run as part of the tests which are required by CI before
+        it'll publish, and avoids issues when publishing without dev deps
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.49.4
+  title: ""
+  date: 2022-09-08T10:59:51.840Z
+- commits:
     - subject: Replace balena ci with flowzone
       hash: 8b7ef6e75ee2f27fffed23c508148a5a9061afb2
       body: ""
