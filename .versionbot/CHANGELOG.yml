@@ -1,4 +1,23 @@
 - commits:
+    - subject: Add async migrator
+      hash: 133896dadbb443130d20879fd9fee751fdbc705e
+      body: >
+        Needed for long lasting / massive data affecting migrations for zero
+        downtime of API.
+
+
+        Depends-on: #556
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 14.50.0
+  title: ""
+  date: 2022-09-09T14:19:48.435Z
+- commits:
     - subject: Remove docker hub credentials from flow zone job Set docker_image
         explicitly to empty to skip push
       hash: cfe220459485b0298ca64578a4dce4681c0447c3
