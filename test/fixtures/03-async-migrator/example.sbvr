@@ -1,0 +1,32 @@
+Vocabulary: example
+
+Term: name
+	  Concept Type: Short Text (Type)
+
+Term: note
+	  Concept Type: Text (Type)
+
+Term: type
+	  Concept Type: Short Text (Type)
+
+Term: device
+
+Fact Type: device has name
+	 Necessity: each device has at most one name.
+
+Fact Type: device has note
+	 Necessity: each device has at most one note.
+
+Fact Type: device has type
+	 Necessity: each device has exactly one type.
+
+Term: deviceb
+
+Fact Type: deviceb has name
+	 Necessity: each deviceb has at most one name.
+
+Fact Type: deviceb has note
+	 Necessity: each deviceb has at most one note.
+
+Fact Type: deviceb has type
+	 Necessity: each deviceb has exactly one type.

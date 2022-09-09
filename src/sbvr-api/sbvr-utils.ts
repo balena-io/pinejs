@@ -33,6 +33,7 @@ import { PinejsClientCore, PromiseResultTypes } from 'pinejs-client-core';
 
 import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
 
+import * as asyncMigrator from '../migrator/async';
 import * as syncMigrator from '../migrator/sync';
 import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
 
@@ -586,6 +587,12 @@ export const executeModels = async (
 				await Promise.all(
 					['se', 'lf', 'abstractSql', 'sql', 'odataMetadata'].map(updateModel),
 				);
+			}),
+		);
+
+		await Promise.all(
+			execModels.map(async (model) => {
+				await asyncMigrator.run(tx, model);
 			}),
 		);
 	} catch (err: any) {
