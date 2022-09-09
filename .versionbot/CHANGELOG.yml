@@ -1,4 +1,19 @@
 - commits:
+    - subject: Remove docker hub credentials from flow zone job Set docker_image
+        explicitly to empty to skip push
+      hash: cfe220459485b0298ca64578a4dce4681c0447c3
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 14.49.6
+  title: ""
+  date: 2022-09-09T12:54:05.264Z
+- commits:
     - subject: Enable flowzone branch protection
       hash: 4b7913a412b84d3db297dfec5f0a18406dd7946c
       body: ""
