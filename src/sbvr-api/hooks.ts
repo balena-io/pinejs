@@ -24,6 +24,7 @@ export interface HookReq {
 	method: string;
 	url: string;
 	query: AnyObject;
+	headers: AnyObject;
 	params: AnyObject;
 	body: AnyObject;
 	custom?: AnyObject;
