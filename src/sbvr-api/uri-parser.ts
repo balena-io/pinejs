@@ -235,11 +235,7 @@ const memoizedOdata2AbstractSQL = (() => {
 		if (odataQuery.options) {
 			odataQuery = {
 				...odataQuery,
-				options: _.pick(
-					odataQuery.options,
-					// @ts-expect-error: lodash typings do not allow a single array of property paths arrays but lodash itself does and it has better performance than property path strings
-					cachedProps,
-				) as ODataOptions,
+				options: _.pick(odataQuery.options, cachedProps) as ODataOptions,
 			};
 		}
 		const { tree, extraBodyVars, extraBindVars } = $memoizedOdata2AbstractSQL(
