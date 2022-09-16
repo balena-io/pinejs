@@ -1,4 +1,47 @@
 - commits:
+    - subject: Update lodash typings
+      hash: 734fd4c97f9438df4d2f80430739a4f1036e62cf
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Add support for `/$count` with nested `$filter` in $orderby & $orderby
+      hash: 55bbd0fe9359bc1d6e88c5f5eb6a65369c70d9c0
+      body: |
+        Update @balena/odata-parser from 2.3.0 to 2.4.0
+        Update @balena/odata-to-abstractsql from 5.4.14 to 5.5.0
+      footer:
+        Resolves: "#577"
+        resolves: "#577"
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Add support for `/$count` with nested `$filter` in $orderby & $orderby
+              hash: 350c08b3a8a8877290f1c753a57e86404f0d9548
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+                See: https://github.com/balena-io/pinejs/issues/577
+                see: https://github.com/balena-io/pinejs/issues/577
+                Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+              author: Thodoris Greasidis
+          version: odata-parser-2.4.0
+          title: "'Add support for  with nested  in  & '"
+          date: 2022-09-15T06:56:48.376Z
+  version: 14.51.0
+  title: ""
+  date: 2022-09-16T13:49:10.005Z
+- commits:
     - subject: Add async migrator
       hash: 133896dadbb443130d20879fd9fee751fdbc705e
       body: >
