@@ -3,7 +3,7 @@ import { expect } from 'chai';
 const fixturePath = __dirname + '/fixtures/01-constrain/config';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
 
-describe('01 basic constrain tests', function () {
+describe.only('01 basic constrain tests', function () {
 	let pineServer: Awaited<ReturnType<typeof testInit>>;
 	before(async () => {
 		pineServer = await testInit(fixturePath, true);
@@ -39,6 +39,43 @@ describe('01 basic constrain tests', function () {
 					lastname: 'Doe',
 					birthday: new Date(),
 					semester_credits: 10,
+				})
+				.expect(201);
+		});
+
+		it('create a subject', async () => {
+			await supertest(testLocalServer)
+				.post('/university/subject')
+				.send({
+					name: 'physics',
+				})
+				.expect(201);
+			await supertest(testLocalServer)
+				.post('/university/subject')
+				.send({
+					name: 'linguistics',
+				})
+				.expect(201);
+		});
+
+		it('create two campus', async () => {
+			await supertest(testLocalServer)
+				.post('/university/campus')
+				.send({
+					name: 'Campus of theoretical physics',
+					'offers subject': 1,
+				})
+				.expect(201);
+			await supertest(testLocalServer)
+				.post('/university/campus')
+				.send({
+					name: 'Campus of quantum physics',
+				})
+				.expect(201);
+			await supertest(testLocalServer)
+				.post('/university/campus')
+				.send({
+					name: 'Campus of linguistics',
 				})
 				.expect(201);
 		});

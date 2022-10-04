@@ -1,5 +1,3 @@
-Vocabulary: university
-
 Term: name
 	Concept Type: Short Text (Type)
 
@@ -15,6 +13,19 @@ Term: semester credits
 Term: matrix number
 	Concept Type: Integer (Type)
 
+
+Term: subject
+	Fact Type: subject has name
+	Necessity: each subject has exactly one name
+	Necessity: each name is of exactly one subject
+
+Term: campus
+Fact Type: campus has name
+	Necessity: each campus has exactly one name
+	Necessity: each name is of exactly one campus
+
+Fact Type: campus offers subject
+	Necessity: each campus offers at least one subject
 
 Term: student
 
@@ -34,3 +45,14 @@ Fact Type: student has birthday
 Fact Type: student has semester credits
 	Necessity: each student has at most one semester credits
 	Necessity: each student that has a semester credits, has a semester credits that is greater than or equal to 4 and is less than or equal to 16.
+
+Fact Type: student studies subject
+	Necessity: each student studies at least one subject
+
+Fact Type: student is member of campus
+	Necessity: each student is member of exactly one campus
+--	Necessity: It is necessary that each student that is a member of a campus that offers a subject1, studies a subject2 that is equal to subject1.
+	
+--	Necessity: each student that studies a subject1 is a member of a campus, that offers a subject2 that is equal to subject1.
+	Necessity: It is necessary that each student that studies a subject, is member of a campus that offers a subject
+
