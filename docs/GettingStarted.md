@@ -89,6 +89,8 @@ Fact Type: device has type
 
 In this model we are defining an entity called `device`, this entity has some attributes such as `name`, `note` and `type`, along with some constraints, ensuring that a device must have exactly one device type, and at most one name and one note. The `Vocabulary` declaration is a convenient way for partitioning parts of larger sbvr files.
 
+### Initialise a CoffeeScript project
+
 Now, let's create a small main file for our application that will call the Pine.js server. Let's install some basic dependencies:
 
 ```
@@ -167,29 +169,36 @@ $ tree -L 3
     └── example.sbvr
 ```
 
-### Initialise a typescript project
+### Initialise a TypeScript project
 
-``` typescript
+```sh
+npm install express body-parser
+npm install -D typescript ts-node @types/express
+```
+
+```typescript
+import express, { Request, Response } from 'express';
+import * as pine from '@balena/pinejs';
+
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use('/ping', (_req, res) => {
+app.use('/ping', (_req: Request, res: Response) => {
 	res.sendStatus(200);
 });
 
-try {
-	await pine.init(app);
-	await new Promise((resolve) => {
-		app.listen(1337', () => {
-			resolve('server started');
-		});
-	});
-	return app;
-} catch (e) {
-	console.log(`pineInit ${e}`);
-	exit(1);
-}
+pine.init(app).then(() => {
+    app.listen(1337, () => {
+        console.log('server started');
+    });
+});
+```
+
+Inside your `package.json` file enter the following line inside the section `scripts`:
+
+```
+"start": "ts-node src/app.ts src"
 ```
 
 ### Start the server
