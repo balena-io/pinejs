@@ -1,4 +1,21 @@
 - commits:
+    - subject: "Docs: Improve getting started doc"
+      hash: ee7df5cc1793438b8cc69b37607677fb7256e887
+      body: |
+        Give preference to TypeScript over CoffeeScript for the example app.
+        Improve code blocks by giving them types and removing unnecessary
+        characters to enable better copy-paste when viewing on GitHub.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@monarci.com>
+        signed-off-by: Josh Bowling <josh@monarci.com>
+      author: Josh Bowling
+      nested: []
+  version: 14.51.2
+  title: ""
+  date: 2022-11-02T00:59:23.434Z
+- commits:
     - subject: "Docs: Fix TypeScript getting started example"
       hash: 491a79b281ed551cdf174412df7466cf411befb4
       body: ""
