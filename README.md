@@ -1,4 +1,3 @@
-
 <div align="center">
   <img width="400" height="auto" src="https://raw.githubusercontent.com/balena-io/pinejs/master/pinejs.png">
   <br>
@@ -7,8 +6,9 @@
 
 [![npm version](https://badge.fury.io/js/@balena%2Fpinejs.svg)](https://badge.fury.io/js/@balena%2Fpinejs)
 
-
-Pine.js is a sophisticated rules-driven API engine that enables you to define rules in a structured subset of English. Those rules are used in order for Pine.js to generate a database schema and the associated [OData](http://www.odata.org/) API. This makes it very easy to rapidly create, update and maintain a backend while keeping the logic in an easily understood form, as well as providing the ability to update and maintain this logic going forward.
+Pine.js is a sophisticated rules-driven API engine that enables you to define rules in a structured subset of English.
+Those rules are used in order for Pine.js to generate a database schema and the associated [OData](http://www.odata.org/) API.
+This makes it very easy to rapidly create, update and maintain a backend while keeping the logic in an easily understood form, as well as providing the ability to update and maintain this logic going forward.
 
 Rules are described in *SBVR* format, which stands for "Semantics of Business Vocabulary and Business Rules". SBVR provides a way to capture specifications in natural language and represent them in formal logic, so they can be machine processed. 
 
@@ -55,7 +55,6 @@ The documentation inside /docs folder also provide a great overview of the main 
 * [docs/sequence-diagrams/](docs/sequence-diagrams): provide a great overview of how the main processes are executed, including OData request parsing, response processing, etc. (The sequence diagrams can be depicted in [websequencediagrams.com](https://www.websequencediagrams.com))
 
 One can experiment with Pine.js, its main dependencies and the above tools inside the development environment of balena.
-
 
 ### Where to go from here:
 Start by creating your very first application with Pine.js. Jump to the [Getting Started guide](https://github.com/balena-io/pinejs/blob/master/docs/GettingStarted.md).

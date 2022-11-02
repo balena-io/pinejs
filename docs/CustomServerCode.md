@@ -4,7 +4,8 @@ Custom server code should be provided in either Javascript or CoffeeScript forma
 
 `setup(app, sbvrUtils, db)`  
 
-If provided this function will be called whilst the server starts up and can be used to add custom server code for your project. This function can return a promise, which the server will wait upon if you need to initialize something before the server listens.
+If provided, this function will be called whilst the server starts up and can be used to add custom server code for your project.
+This function can return a promise, which the server will wait upon if you need to initialize something before the server listens.
 
 ### app
 This is an [express.js](http://expressjs.com/) app instance, and can be used to add your own routes.  
@@ -13,7 +14,8 @@ This is an [express.js](http://expressjs.com/) app instance, and can be used to 
 An entry point to the API internally to the server.
 
 #### runURI(method, uri, body = {}[, tx, req])
-This allows making an API request internally that should match the result of making an equivalent http request to the API, and returns a promise.The request will be run with full privileges unless the `req` object is provided to instruct using a specified user.
+This allows making an API request internally that should match the result of making an equivalent http request to the API, and returns a promise.
+The request will be run with full privileges unless the `req` object is provided to instruct using a specified user.
 
 ##### tx
 If provided, this should be an open transaction created with db.transaction, which will be used for running any database statements related to this API call.
@@ -21,12 +23,13 @@ If provided, this should be an open transaction created with db.transaction, whi
 ##### req
 If provided, this should be an an object. When provided the `users` and `apiKey` properties of this object will be used for permission checks (if they are `null`/`undefined` then it will default to guest user permissions).
 
-
 #### class PinejsClient
-This is a subclass of the PinejsClientCore class, which supports the additional special `req` and `tx` properties on the query objects.  The functionality of these properties match their counterparts on runURI.
+This is a subclass of the PinejsClientCore class, which supports the additional special `req` and `tx` properties on the query objects.
+The functionality of these properties match their counterparts on runURI.
 
 #### api
-This is an object containing keys of the api root and values that are an instance of PinejsClient for that api.  The PinejsClient instance also contains an additional `logger` property, which matches the interface of `console`, but which understands provided logging levels.
+This is an object containing keys of the api root and values that are an instance of PinejsClient for that api.
+The PinejsClient instance also contains an additional `logger` property, which matches the interface of `console`, but which understands provided logging levels.
 
 #### executeModel(tx, model)
 This is an alias for executeModels for the case of a single model.
@@ -35,10 +38,10 @@ This is an alias for executeModels for the case of a single model.
 Executes the given models and returns a promise.
 
 ##### tx
-This should be an open transaction created with db.transaction
+This should be an open transaction created with `db.transaction`.
 
 ##### models
-This is an array which contains model objects, matching the model object of the config.json file.
+This is an array which contains model objects, matching the model object of the `config.json` file.
 
 #### deleteModel(vocabulary)
 Deletes the given vocabulary and returns a promise.
@@ -50,38 +53,39 @@ The name of the vocabulary to delete.
 Runs the given rule text against the vocabulary and returns a promise that resolves to any violators.
 
 ##### vocab
-The vocabulary to run the rule against
+The vocabulary to run the rule against.
 
 ##### rule
-This is a rule text, eg. Each pilot can fly at least 1 plane
-
+This is a rule text, eg. "Each pilot can fly at least 1 plane".
 
 #### getUserPermissions(userId)
-This returns a promise that resolves to the user permissions for the given userId
+This returns a promise that resolves to the user permissions for the given `userId`.
 
 #### getApiKeyPermissions(apiKey)
-This returns a promise that resolves to the api key permissions for the given apiKey
+This returns a promise that resolves to the api key permissions for the given `apiKey`.
 
 #### apiKeyMiddleware(req, res, next)
 This is a default `customApiKeyMiddleware`, which is useful to avoid having to create your own default one.
 
 #### customApiKeyMiddleware(paramName = 'apiKey')
-This is a function that will return a middleware that checks for a `paramName` using `req.params(paramName)` containing a valid api key and adds a `req.apiKey` entry `{ key, permissions }`. The middleware can also be called directly and will return a Promise that signifies completion.
+This is a function that will return a middleware that checks for a `paramName` using `req.params(paramName)` containing a valid api key and adds a `req.apiKey` entry `{ key, permissions }`.
+The middleware can also be called directly and will return a Promise that signifies completion.
 
 #### authorizationMiddleware(req, res, next)
 This is a default `customAuthorizationMiddleware`, which is useful to avoid having to create your own default one.
 
 #### customAuthorizationMiddleware(expectedScheme = 'Bearer')
-This is a function that will return a middleware that checks the `Authorization` header for a `scheme` that matches the `expectedScheme` and a token matching a valid api key and adds a `req.apiKey` entry `{ key, permissions }`. The middleware can also be called directly and will return a Promise that signifies completion.
+This is a function that will return a middleware that checks the `Authorization` header for a `scheme` that matches the `expectedScheme` and a token matching a valid api key and adds a `req.apiKey` entry `{ key, permissions }`.
+The middleware can also be called directly and will return a Promise that signifies completion.
 
 #### checkPermissions(req, permissionCheck, request)
-This checks that the currently logged in (or guest) user has the required permissions
+This checks that the currently logged in (or guest) user has the required permissions.
 
 #### checkPermissionsMiddleware(permissionCheck)
-This generates a middleware that will run the given permissionCheck
+This generates a middleware that will run the given `permissionCheck`.
 
 #### handleODataRequest
-This is a middleware that will handle an OData request for `GET`/`PUT`/`POST`/`PATCH`/`MERGE`/`DELETE`
+This is a middleware that will handle an OData request for `GET`/`PUT`/`POST`/`PATCH`/`MERGE`/`DELETE`.
 
 #### executeStandardModels(tx)
 This executes the built in models (dev, transaction, Auth) and returns a promise that resolves upon completion.
@@ -90,16 +94,16 @@ This executes the built in models (dev, transaction, Auth) and returns a promise
 This runs adds a callback to be run when the specified hookpoint is triggered.
 
 ##### method
-This can be one of `GET`/`PUT`/`POST`/`PATCH`/`DELETE` (also `MERGE` as an alias for `PATCH`)
+This can be one of `GET`/`PUT`/`POST`/`PATCH`/`DELETE` (also `MERGE` as an alias for `PATCH`).
 
 ##### apiRoot
-The apiRoot to hook into, eg. Auth
+The apiRoot to hook into, eg. "Auth".
 
 ##### resourceName
-The name of the resource under the apiRoot to hook into, eg user
+The name of the resource under the apiRoot to hook into, eg "user".
 
 ##### callbacks
-An object containing a key of the hook point and a value of the callback to call. See [Hooks documentation](./Hooks.md) for more
+An object containing a key of the hook point and a value of the callback to call. See [Hooks documentation](./Hooks.md) for more.
 
 #### setup(app, db)
 This is called by the server, you should never need to use this.
@@ -108,10 +112,10 @@ This is called by the server, you should never need to use this.
 An object that allows direct connection to the database, which is similar to the WebSQL interface but allows asynchronous actions.
 
 #### engine
-A lowercase string that denotes the current database engine in use (possible values are currently: postgres, mysql, websql, and sqlite)
+A lowercase string that denotes the current database engine in use (possible values are currently: postgres, mysql, websql, and sqlite).
 
 #### executeSql(sql, bindings)
-This runs the given SQL statement in a transaction of it's own, with ? bindings replaced by the values in the bindings array and returns a promise.
+This runs the given SQL statement in a transaction of it's own, with "?" bindings replaced by the values in the bindings array and returns a promise.
 
 #### transaction([callback])
 Returns a promise that will provide a `tx` object.
@@ -120,10 +124,10 @@ Returns a promise that will provide a `tx` object.
 This callback is called with a `tx` object.
 
 ### tx
-This is created by a succesful call to `db.transaction`.
+This is created by a successful call to `db.transaction`.
 
 #### executeSql(sql, bindings)
-This runs the given SQL statement in the context of the transaction it is called on, with ? bindings replaced by the values in the bindings array and returns a promise.
+This runs the given SQL statement in the context of the transaction it is called on, with "?" bindings replaced by the values in the bindings array and returns a promise.
 
 #### end()
 This ends/commits a transaction.
@@ -132,7 +136,7 @@ This ends/commits a transaction.
 This rolls back a transaction.
 
 #### tableList(extraWhereClause = '')
-This returns a promise that resolves to a list of tables, the extraWhereClause can reference a "name" which will be the table's name.
+This returns a promise that resolves to a list of tables, the `extraWhereClause` can reference a "name" which will be the table's name.
 
 #### dropTable(tableName, ifExists = true)
 This will drop the given table, returning a promise.
@@ -148,18 +152,19 @@ Whether to use an "IF EXISTS" clause or not.
 An object matching the following
 
 ##### length
-This number of rows returned
+This number of rows returned.
 
 ##### item(i)
-Fetch the item at the given index
+Fetch the item at the given index.
 
 ##### forEach(iterator, thisArg)
-This acts like a standard Array.forEach call, to allow easier iteration of the rows.
+This acts like a standard `Array.forEach` call, to allow easier iteration of the rows.
 
 ##### map(iterator, thisArg)
-This acts like a standard Array.map call, to allow easier iteration of the rows.
+This acts like a standard `Array.map` call, to allow easier iteration of the rows.
 
 #### rowsAffected
 The number of rows affected by the statement.
+
 #### insertId
 This id of the first row inserted, if any.
