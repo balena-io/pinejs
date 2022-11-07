@@ -1,4 +1,18 @@
 - commits:
+    - subject: Change docker-compose sut spin up for node version testing.
+      hash: 1af7b85b567bbfbfa02449f0f60bbd3a4e335dcb
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+  version: 14.51.3
+  title: ""
+  date: 2022-11-07T09:24:01.901Z
+- commits:
     - subject: "Docs: Improve getting started doc"
       hash: ee7df5cc1793438b8cc69b37607677fb7256e887
       body: |
