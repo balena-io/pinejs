@@ -1,8 +1,0 @@
-# This file is needed here to satisfy balenaCI repo type docker as a work around.
-# The balenaCI docker target expects a docker-compose.yml and a docker-compose.test.yml (hardcoded)
-# It won't run without this dumy file here - no actual usage of this file.
-version: "2.1"
-services:
-  postgres:
-    image: postgres:14-alpine
-

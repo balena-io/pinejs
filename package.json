@@ -18,14 +18,9 @@
     "webpack-server": "grunt server",
     "webpack-build": "npm run webpack-browser && npm run webpack-module && npm run webpack-server",
     "lint": "balena-lint -e js -e ts src build typings Gruntfile.ts && npx tsc --project tsconfig.dev.json --noEmit",
-    "test": "npm run lint & npm run build && npm run webpack-build",
-    "test:compose": "npm run compose:build && npm run compose:postgres && docker-compose -f docker-compose.test.yml run sut npm run mocha",
-    "test:fast": "npm run compose:postgres && npm run mocha:local",
+    "test": "npm run lint & npm run build && npm run webpack-build && npm run test:compose",
+    "test:compose": "trap 'docker-compose -f docker-compose.npm-test.yml down ; echo Stopped ; exit 0' SIGINT; docker-compose -f docker-compose.npm-test.yml up -d && sleep 2 && DATABASE_URL=postgres://docker:docker@localhost:5431/postgres npm run mocha",
     "mocha": "TS_NODE_FILES=true mocha",
-    "mocha:local": "DATABASE_URL=postgres://docker:docker@localhost:5431/postgres npm run mocha",
-    "compose:postgres": "docker-compose -f docker-compose.test.yml up -d postgres",
-    "compose:build": "docker-compose -f docker-compose.test.yml build",
-    "compose:down": "docker-compose -f docker-compose.test.yml down",
     "prettify": "balena-lint -e js -e ts --fix src build typings Gruntfile.ts"
   },
   "dependencies": {
