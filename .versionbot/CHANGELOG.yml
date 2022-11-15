@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update TypeScript to 4.9.3
+      hash: 8de1750986712a9f76a9c84e7de4d5c841fe33e3
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 14.51.4
+  title: ""
+  date: 2022-11-15T23:05:09.121Z
+- commits:
     - subject: Change docker-compose sut spin up for node version testing.
       hash: 1af7b85b567bbfbfa02449f0f60bbd3a4e335dcb
       body: ""
