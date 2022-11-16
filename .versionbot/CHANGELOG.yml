@@ -1,4 +1,18 @@
 - commits:
+    - subject: "Docs: Update/fix getting started doc"
+      hash: 40cafbeb714169cd7b4cffb06460fa5e695f47c0
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@monarci.com>
+        signed-off-by: Josh Bowling <josh@monarci.com>
+      author: Josh Bowling
+      nested: []
+  version: 14.51.6
+  title: ""
+  date: 2022-11-16T05:34:24.601Z
+- commits:
     - subject: "Docs: Update/fix advanced usage doc"
       hash: f4ce9b40cde82432c1f7c076b2592bf6ce8fd117
       body: ""
