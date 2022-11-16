@@ -1,8 +1,9 @@
 # Configuring A Project
 
-The project configuration is placed inside `config.json` that provides all the necessary information to Pine.js regarding the models, the API, and the users. This file should follow a specification based on the example shown below:
+The project configuration is placed inside `config.json` that provides all the necessary information for Pine.js regarding the models, the API, and the users.
+This file should follow a specification based on the example shown below:
 
-```
+```json
 {
 	"models": [{
 		"modelName": "Example",
@@ -54,7 +55,8 @@ Permissions currently work by having a name which defines what the permission co
 * `@__ACTOR_ID` - This is replaced by the `id` of the currently logged in actor (or `0` if not logged in), or the actor who owns the API key in use.
 
 ### Default/Guest User Permissions
-All users (including ones who are not logged in) automatically gain any permissions assigned to the account named "guest". You can create this user in the `config.json` as shown in the example above.
+All users (including ones who are not logged in) automatically gain any permissions assigned to the account named "guest".
+You can create this user in the `config.json` as shown in the example above.
 
 ### Model
 The SBVR model for users can be found at [/src/sbvr-api/user.sbvr](https://github.com/balena-io/pinejs/blob/master/src/sbvr-api/user.sbvr)
@@ -67,25 +69,14 @@ app.get('/Auth/*', sbvrUtils.runGet)
 ```
 This will allow you to access the user model under the `/Auth` entry point as you would any other model, e.g. `GET /Auth/user`.
 
-Alternatively, you can copy the user model vocabulary into your SBVR file, which will expose it under the same entry point as your vocabulary. The benefit to this is that you can add custom attributes for the user vocabulary to your vocabulary and have them be accessible via the API.
-
+Alternatively, you can copy the user model vocabulary into your SBVR file, which will expose it under the same entry point as your vocabulary.
+The benefit to this is that you can add custom attributes for the user vocabulary to your vocabulary and have them be accessible via the API.
 
 ## Database
-You can specify your database url in an environment variable called DATABASE_URL, refer to your OS documentation on how to do this (either on a global level for all programs, or just set it temporarily whilst launching your project).
+You can specify your database url in an environment variable called `DATABASE_URL`,
+refer to your OS documentation on how to do this (either on a global level for all programs, or just set it temporarily whilst launching your project).
 
 If you do not specify this environment variable, then the defaults are as follows:
 
-MySQL:
-
-```coffee
-	host: 'localhost'
-	user: 'root'
-	password: '.'
-	database: 'rulemotion'
-```
-
-PostgresSQL:
-
-```coffee
-	postgres://postgres:.@localhost:5432/postgres
-```
+MySQL: `mysql://mysql:.@localhost:3306`
+PostgresSQL: `postgres://postgres:.@localhost:5432/postgres`
