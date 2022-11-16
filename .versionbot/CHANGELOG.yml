@@ -1,4 +1,18 @@
 - commits:
+    - subject: "Docs: Update/fix advanced usage doc"
+      hash: f4ce9b40cde82432c1f7c076b2592bf6ce8fd117
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@monarci.com>
+        signed-off-by: Josh Bowling <josh@monarci.com>
+      author: Josh Bowling
+      nested: []
+  version: 14.51.5
+  title: ""
+  date: 2022-11-16T05:15:35.293Z
+- commits:
     - subject: Update TypeScript to 4.9.3
       hash: 8de1750986712a9f76a9c84e7de4d5c841fe33e3
       body: ""
