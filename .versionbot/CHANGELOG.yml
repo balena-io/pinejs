@@ -1,4 +1,18 @@
 - commits:
+    - subject: "Docs: Remove todo.txt"
+      hash: 2c05369400197509c54153c0a6a608c804558532
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@monarci.com>
+        signed-off-by: Josh Bowling <josh@monarci.com>
+      author: Josh Bowling
+      nested: []
+  version: 14.51.8
+  title: ""
+  date: 2022-11-17T08:58:33.706Z
+- commits:
     - subject: "Docs: Update/fix project config doc"
       hash: 4ae488bce82f09d7be7df6893c99910244bfbcd1
       body: ""
