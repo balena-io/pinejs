@@ -55,7 +55,7 @@
     "express-session": "^1.17.3",
     "lodash": "^4.17.21",
     "memoizee": "^0.4.15",
-    "pinejs-client-core": "^6.10.2",
+    "pinejs-client-core": "^6.12.2",
     "randomstring": "^1.2.2",
     "typed-error": "^3.2.1"
   },
