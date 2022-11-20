@@ -24,7 +24,7 @@
     "prettify": "balena-lint -e js -e ts --fix src build typings Gruntfile.ts"
   },
   "dependencies": {
-    "@balena/abstract-sql-compiler": "^7.20.0",
+    "@balena/abstract-sql-compiler": "^7.21.0",
     "@balena/abstract-sql-to-typescript": "^1.2.0",
     "@balena/lf-to-abstract-sql": "^4.5.1",
     "@balena/odata-parser": "^2.4.0",
