@@ -1,4 +1,18 @@
 - commits:
+    - subject: Update @balena/abstract-sql-compiler from 7.20.0 to 7.21.0
+      hash: 8c0be8878ca3b861d8c446163a7d376a340ad105
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@monarci.com>
+        signed-off-by: Josh Bowling <josh@monarci.com>
+      author: Josh Bowling
+      nested: []
+  version: 14.52.1
+  title: ""
+  date: 2022-11-20T12:19:10.444Z
+- commits:
     - subject: "Support `$count: { $filter: {...} }` notation in $filter & $orderby"
       hash: df3b7a4782a0bafdffaae0f1754ab32246eb7935
       body: |
