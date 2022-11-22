@@ -1,4 +1,78 @@
 - commits:
+    - subject: Use minimized aliases when not in debug mode for smaller queries
+      hash: 8a64ebc8d179814d1ab7747d6ecd94a626f61327
+      body: |
+        Update @balena/odata-to-abstract-sql from 5.5.0 to 5.6.2
+        Update @balena/abstract-sql-compiler from 7.21.0 to 7.21.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add support for getting the modified fields of an aliased query
+              hash: 3dacd6339349596d4e365c809971a86030bae4dc
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.21.1
+          title: ""
+          date: 2022-11-22T20:29:32.720Z
+        - commits:
+            - subject: Fix replacing an aliased resource select with bind vars for inserts
+              hash: e4c0f6569257ba7f4698bbdca66581c29f41f42a
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.6.2
+          title: ""
+          date: 2022-11-22T20:26:13.635Z
+        - commits:
+            - subject: Update dependencies
+              hash: 4148764f03b889684f81f49104b8b9d05e7d180d
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.6.1
+          title: ""
+          date: 2022-11-22T19:29:54.534Z
+        - commits:
+            - subject: Add an option to always use minimized aliases
+              hash: dd7994b908b2eed0f084fb173b100dfe6c651913
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.6.0
+          title: ""
+          date: 2022-11-22T19:02:39.696Z
+        - commits:
+            - subject: Switch from balenaCI to flowzone
+              hash: 0bf98cd9124614fa5d5121212b9d7d6abf079ed5
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.5.1
+          title: ""
+          date: 2022-10-14T16:18:47.577Z
+  version: 14.52.2
+  title: ""
+  date: 2022-11-22T20:43:22.519Z
+- commits:
     - subject: Update @balena/abstract-sql-compiler from 7.20.0 to 7.21.0
       hash: 8c0be8878ca3b861d8c446163a7d376a340ad105
       body: ""
