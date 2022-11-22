@@ -26,7 +26,7 @@ import type { AnyObject, Dictionary } from './common-types';
 
 import {
 	isBindReference,
-	OData2AbstractSQL,
+	type OData2AbstractSQL,
 	odataNameToSqlName,
 	ResourceFunction,
 	sqlNameToODataName,
