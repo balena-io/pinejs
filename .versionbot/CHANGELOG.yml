@@ -1,4 +1,482 @@
 - commits:
+    - subject: Update dependencies
+      hash: 99d4b29ee3147394514a9188526af9f7afd74ff9
+      body: |
+        Update @balena/abstract-sql-compiler from 7.21.1 to 7.22.0
+        Update @balena/abstract-sql-to-typescript from 1.2.0 to 1.3.0
+        Update @balena/odata-to-abstract-sql from 5.6.2 to 5.7.0
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested:
+        - commits:
+            - subject: Fix date fields used inside arithmetic expressions
+              hash: 3368afd1e908890e79691372f9c496665a329e6a
+              body: >
+                isNumericValue is evaluated in arithmetic expressions
+
+                if operands in expression can be used as numericValues.
+
+
+                In SQL statements arithmetic expressions like add/sub are supported for date values.
+
+                DateArithmetic nodes need input dependent typing.
+              footer:
+                Change-type: minor
+                change-type: minor
+                Signed-off-by: fisehara <harald@balena.io>
+                signed-off-by: fisehara <harald@balena.io>
+              author: fisehara
+              nested: []
+          version: abstract-sql-compiler-7.22.0
+          title: ""
+          date: 2022-11-23T16:53:11.719Z
+        - commits:
+            - subject: Update dependencies
+              hash: ed14c48faff14a33234a49f43208d14a8f2bf94f
+              body: |
+                Update @balena/abstract-sql-compiler from 7.19.1 to 7.22.0
+                Update @balena/odata-to-abstract-sql from 5.4.9 to 5.7.0
+              footer:
+                Change-type: minor
+                change-type: minor
+                Signed-off-by: fisehara <harald@balena.io>
+                signed-off-by: fisehara <harald@balena.io>
+              author: fisehara
+              nested:
+                - commits:
+                    - subject: Update dependencies
+                      hash: aec2d59610504bcc670d1af913c05805aabd312a
+                      body: >
+                        Update @balena/abstract-sql-compiler from 7.21.0 to 7.22.0
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                        Signed-off-by: fisehara <harald@balena.io>
+                        signed-off-by: fisehara <harald@balena.io>
+                      author: fisehara
+                      nested:
+                        - commits:
+                            - subject: Fix date fields used inside arithmetic expressions
+                              hash: 3368afd1e908890e79691372f9c496665a329e6a
+                              body: >
+                                isNumericValue is evaluated in arithmetic expressions
+
+                                if operands in expression can be used as numericValues.
+
+
+                                In SQL statements arithmetic expressions like add/sub are supported for date values.
+
+                                DateArithmetic nodes need input dependent typing.
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                                Signed-off-by: fisehara <harald@balena.io>
+                                signed-off-by: fisehara <harald@balena.io>
+                              author: fisehara
+                              nested: []
+                          version: abstract-sql-compiler-7.22.0
+                          title: ""
+                          date: 2022-11-23T16:53:11.719Z
+                        - commits:
+                            - subject: Add support for getting the modified fields of an aliased query
+                              hash: 3dacd6339349596d4e365c809971a86030bae4dc
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-7.21.1
+                          title: ""
+                          date: 2022-11-22T20:29:32.720Z
+                  version: odata-to-abstract-sql-5.7.0
+                  title: ""
+                  date: 2022-11-24T10:41:19.535Z
+                - commits:
+                    - subject: Fix replacing an aliased resource select with bind vars for inserts
+                      hash: e4c0f6569257ba7f4698bbdca66581c29f41f42a
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: odata-to-abstract-sql-5.6.2
+                  title: ""
+                  date: 2022-11-22T20:26:13.635Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: 4148764f03b889684f81f49104b8b9d05e7d180d
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: odata-to-abstract-sql-5.6.1
+                  title: ""
+                  date: 2022-11-22T19:29:54.534Z
+                - commits:
+                    - subject: Add an option to always use minimized aliases
+                      hash: dd7994b908b2eed0f084fb173b100dfe6c651913
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                      nested: []
+                  version: odata-to-abstract-sql-5.6.0
+                  title: ""
+                  date: 2022-11-22T19:02:39.696Z
+                - commits:
+                    - subject: Switch from balenaCI to flowzone
+                      hash: 0bf98cd9124614fa5d5121212b9d7d6abf079ed5
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: odata-to-abstract-sql-5.5.1
+                  title: ""
+                  date: 2022-10-14T16:18:47.577Z
+                - commits:
+                    - subject: Add support for `/$count` with nested `$filter` in $orderby & $orderby
+                      hash: 4a41b94551c9d3ee23e95e34bda0a4415dc2bdad
+                      body: |
+                        Update @balena/odata-parser from 2.2.9 to 2.4.0
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                        See: https://github.com/balena-io/pinejs/issues/577
+                        see: https://github.com/balena-io/pinejs/issues/577
+                        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                      author: Thodoris Greasidis
+                      nested:
+                        - commits:
+                            - subject: Add support for `/$count` with nested `$filter` in $orderby & $orderby
+                              hash: 350c08b3a8a8877290f1c753a57e86404f0d9548
+                              body: ""
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                                See: https://github.com/balena-io/pinejs/issues/577
+                                see: https://github.com/balena-io/pinejs/issues/577
+                                Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                                signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                              author: Thodoris Greasidis
+                          version: odata-parser-2.4.0
+                          title: "'Add support for  with nested  in  & '"
+                          date: 2022-09-15T06:56:48.376Z
+                        - commits:
+                            - subject: Add source map
+                              hash: a6bb5e67fac1cdcc69491800ad042f003fa13556
+                              body: ""
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                              author: Pagan Gazzard
+                          version: odata-parser-2.3.0
+                          title: "'Add source map'"
+                          date: 2022-06-06T15:59:20.389Z
+                  version: odata-to-abstract-sql-5.5.0
+                  title: "'Add support for  with nested  in  & '"
+                  date: 2022-09-15T08:27:08.616Z
+                - commits:
+                    - subject: Stop using _.compact
+                      hash: 343e971b997b57e9c9f3bf2f30e68ce00d8e1dc5
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Thodoris Greasidis
+                      nested: []
+                    - subject: Stop using _.isObject in favor of the native methods
+                      hash: 71b4c2ba6ba120413bc23d1b838bfcf9b924cc22
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Thodoris Greasidis
+                      nested: []
+                    - subject: Stop using Lodash's Dictionary type
+                      hash: cec9d6697d796703ef7c43c46eff6256ef0f9e43
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                      author: Thodoris Greasidis
+                      nested: []
+                  version: odata-to-abstract-sql-5.4.15
+                  title: "'Reduce lodash usage'"
+                  date: 2022-07-26T15:15:05.261Z
+                - commits:
+                    - subject: Avoid unnecessary loop when adding computed fields to `SELECT *`
+                      hash: c0d3a54057a62eb39e385451f2e169e08a562e45
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+                      author: Thodoris Greasidis
+                      nested: []
+                  version: odata-to-abstract-sql-5.4.14
+                  title: "'Avoid unnecessary loop when adding computed fields to '"
+                  date: 2022-06-25T19:59:58.381Z
+                - commits:
+                    - subject: Use `SELECT *, $computedFields` for adding computed fields
+                      hash: b6ed24d0a4ad0a4d8aa71db00dc58280590ce9dd
+                      body: >
+                        This reduces the size of the generated SQL when computed fields are
+
+                        included and as such helps to make it more readable
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: odata-to-abstract-sql-5.4.13
+                  title: "'Use  for adding computed fields'"
+                  date: 2022-06-03T16:21:50.837Z
+                - commits:
+                    - subject: Use nullish coalescing when sensible
+                      hash: c69dff4d46792c4c858f869646adca9272210364
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: odata-to-abstract-sql-5.4.12
+                  title: "'Use nullish coalescing when sensible'"
+                  date: 2022-06-03T15:45:18.251Z
+                - commits:
+                    - subject: Improve support for computed fields by respecting them in more places
+                      hash: 3346e579e5e0b2b7b01066b3d95bd5b6e6281c63
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: odata-to-abstract-sql-5.4.11
+                  title: "'Improve computed fields'"
+                  date: 2022-05-19T19:26:50.059Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: 19c112c863b63bdd8d86a04b704fb136077d01a9
+                      body: >
+                        Update @balena/abstract-sql-compiler from 7.19.0 to 7.20.0
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested:
+                        - commits:
+                            - subject: Expose `isAliasNode` helper
+                              hash: 6f59b2d31e4dee5eef008e755d4ee2cb42dd50ba
+                              body: ""
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-7.20.0
+                          title: "'Expose  helper'"
+                          date: 2022-05-19T17:25:29.766Z
+                        - commits:
+                            - subject: Update dependencies
+                              hash: 923dd2d492246b99cc62d51a25dd96464e7c1e87
+                              body: |
+                                Update @balena/sbvr-types from 3.4.5 to 3.4.7
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested:
+                                - commits:
+                                    - subject: Update dependencies
+                                      hash: e416444d436c0e01474b624408635a811259f9a1
+                                      body: ""
+                                      footer:
+                                        Change-type: patch
+                                        change-type: patch
+                                      author: Pagan Gazzard
+                                    - subject: Remove circleci
+                                      hash: 15cbb6de080f6f5a7898d1626d9948b371d971b2
+                                      body: ""
+                                      footer:
+                                        Change-type: patch
+                                        change-type: patch
+                                      author: Pagan Gazzard
+                                  version: sbvr-types-3.4.7
+                                  title: "'Remove circleci/update deps'"
+                                  date: 2022-04-08T13:33:49.743Z
+                                - commits:
+                                    - subject: Avoid creating a new Date object when we already have one
+                                      hash: 07eb756eca00a506b618dc197b67dcc7a9ea3733
+                                      body: ""
+                                      footer:
+                                        Change-type: patch
+                                        change-type: patch
+                                      author: Pagan Gazzard
+                                  version: sbvr-types-3.4.6
+                                  date: 2021-09-21T14:01:00.590Z
+                          version: abstract-sql-compiler-7.19.1
+                          title: "'Update dependencies'"
+                          date: 2022-04-08T13:57:15.961Z
+                  version: odata-to-abstract-sql-5.4.10
+                  title: "'Update dependencies'"
+                  date: 2022-05-19T18:23:14.608Z
+          version: abstract-sql-to-typescript-1.3.0
+          title: ""
+          date: 2022-11-24T10:52:58.002Z
+        - commits:
+            - subject: "Dev: Update pre-commit hook"
+              hash: b14c1b11413c6d4286c74a970774851ad5c49b1f
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Josh Bowling <josh@monarci.com>
+                signed-off-by: Josh Bowling <josh@monarci.com>
+              author: Josh Bowling
+              nested: []
+          version: abstract-sql-to-typescript-1.2.6
+          title: ""
+          date: 2022-11-18T02:27:16.710Z
+        - commits:
+            - subject: "Dev: Migrate husky setup for v8"
+              hash: 85479e4e5fd052fbdaee8ba323038f4ed5b8df89
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Josh Bowling <josh@monarci.com>
+                signed-off-by: Josh Bowling <josh@monarci.com>
+              author: Josh Bowling
+              nested: []
+          version: abstract-sql-to-typescript-1.2.5
+          title: ""
+          date: 2022-11-18T01:34:46.967Z
+        - commits:
+            - subject: Update dependency mocha to 10.1.0
+              hash: 6e489e61c48227e209ba112c42e89ac927d8caf9
+              body: |
+                Update mocha to 10.1.0
+
+                Update mocha from 9.2.2 to 10.1.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Renovate Bot
+              nested: []
+          version: abstract-sql-to-typescript-1.2.4
+          title: ""
+          date: 2022-11-17T19:04:01.910Z
+        - commits:
+            - subject: Update dependency lint-staged to 13.0.3
+              hash: 6efeaac395f06a91959ecfe8f087ee347c2e825a
+              body: |
+                Update lint-staged to 13.0.3
+
+                Update lint-staged from 12.5.0 to 13.0.3
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Renovate Bot
+              nested: []
+          version: abstract-sql-to-typescript-1.2.3
+          title: ""
+          date: 2022-11-17T18:03:53.047Z
+        - commits:
+            - subject: Update dependency husky to 8.0.2
+              hash: a31d4b4ec35018cfb2e21f9128e1479be5ecd072
+              body: |
+                Update husky to 8.0.2
+
+                Update husky from 4.3.8 to 8.0.2
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Renovate Bot
+              nested: []
+          version: abstract-sql-to-typescript-1.2.2
+          title: ""
+          date: 2022-11-17T17:05:52.448Z
+        - commits:
+            - subject: Switch from balenaCI to flowzone
+              hash: 61d932ce996cb564443477a5469224e82cdca9b7
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-1.2.1
+          title: ""
+          date: 2022-10-14T16:27:10.552Z
+        - commits:
+            - subject: Update dependencies
+              hash: aec2d59610504bcc670d1af913c05805aabd312a
+              body: |
+                Update @balena/abstract-sql-compiler from 7.21.0 to 7.22.0
+              footer:
+                Change-type: minor
+                change-type: minor
+                Signed-off-by: fisehara <harald@balena.io>
+                signed-off-by: fisehara <harald@balena.io>
+              author: fisehara
+              nested:
+                - commits:
+                    - subject: Fix date fields used inside arithmetic expressions
+                      hash: 3368afd1e908890e79691372f9c496665a329e6a
+                      body: >
+                        isNumericValue is evaluated in arithmetic expressions
+
+                        if operands in expression can be used as numericValues.
+
+
+                        In SQL statements arithmetic expressions like add/sub are supported for date values.
+
+                        DateArithmetic nodes need input dependent typing.
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                        Signed-off-by: fisehara <harald@balena.io>
+                        signed-off-by: fisehara <harald@balena.io>
+                      author: fisehara
+                      nested: []
+                  version: abstract-sql-compiler-7.22.0
+                  title: ""
+                  date: 2022-11-23T16:53:11.719Z
+                - commits:
+                    - subject: Add support for getting the modified fields of an aliased query
+                      hash: 3dacd6339349596d4e365c809971a86030bae4dc
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.21.1
+                  title: ""
+                  date: 2022-11-22T20:29:32.720Z
+          version: odata-to-abstract-sql-5.7.0
+          title: ""
+          date: 2022-11-24T10:41:19.535Z
+  version: 14.53.0
+  title: ""
+  date: 2022-11-24T11:50:48.358Z
+- commits:
     - subject: Use minimized aliases when not in debug mode for smaller queries
       hash: 8a64ebc8d179814d1ab7747d6ecd94a626f61327
       body: |
