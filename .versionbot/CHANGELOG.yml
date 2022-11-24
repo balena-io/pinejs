@@ -1,5 +1,272 @@
 - commits:
     - subject: Update dependencies
+      hash: 9b24d54cff3f2e83456c9c2bd60ade9de8ab755b
+      body: >
+        Manual checking all dependency updates before pinejs will be moved under
+        renovate-bot control
+
+
+        Update @balena/lf-to-abstract-sql from 4.5.1 to 4.5.5
+
+        Update @balena/odata-parser from 2.4.0 to 2.4.2
+
+        Update @balena/sbvr-parser from 1.4.1 to 1.4.2
+
+        Update @balena/sbvr-types from 3.4.7 to 3.4.15
+
+        Update @types/express from 4.17.13 to 4.17.14
+
+        Update @types/lodash from 4.14.185 to 4.14.190
+
+        Update @types/passport from 1.0.9 to 1.0.11
+
+        Update commander from 9.4.0 to 9.4.1
+
+        Update randomstring from 1.2.2 to 1.2.3
+
+
+        Update @balena/lint from 6.2.0 to 6.2.1
+
+        Update @types/chai from 4.3.1 to 4.3.4
+
+        Update @types/mocha from 9.1.1 to 10.0.0
+
+        Update chai from 4.3.6 to 4.3.7
+
+        Update husky from 4.3.8 to 8.0.2
+
+        Update mocha from 9.2.2 to 10.1.0
+
+        Update supertest from 6.2.4 to 6.3.1
+
+        Update terser-webpack-plugin from 5.3.3 to 5.3.6
+
+        Update ts-loader from 9.3.1 to 9.4.1
+
+        Update webpack from 5.73.0 to 5.75.0
+
+        Update webpack-dev-server from 4.9.3 to 4.11.1
+
+
+        Update bcrypt from 5.0.1 to 5.1.0
+
+        Update body-parser from 1.20.0 to 1.20.1
+
+        Update express from 4.18.1 to 4.18.2
+
+        Update pg from 8.7.3 to 8.8.0
+
+
+        Migrated husky v4 to v8 configuration.
+
+
+        No added functionality, runtime deps are patch versions => patch
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested:
+        - commits:
+            - subject: Update @balena/sbvr-parser from 1.4.1 to 1.4.2
+              hash: 66473607a0ad66965d6660c94d8941e312282a6c
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Josh Bowling <josh@monarci.com>
+                signed-off-by: Josh Bowling <josh@monarci.com>
+              author: Josh Bowling
+              nested: []
+          version: lf-to-abstract-sql-4.5.5
+          title: ""
+          date: 2022-11-17T08:50:36.617Z
+        - commits:
+            - subject: Add .npmrc
+              hash: a2569a1953c937353ec94139a137283d719b9de3
+              body: |
+                Add .npmrc to stop generating package-lock.json on npm install
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Josh Bowling <josh@monarci.com>
+                signed-off-by: Josh Bowling <josh@monarci.com>
+              author: Josh Bowling
+              nested: []
+          version: lf-to-abstract-sql-4.5.4
+          title: ""
+          date: 2022-11-17T08:30:56.151Z
+        - commits:
+            - subject: Bump dev dependencies
+              hash: 53085507feff809010f36a8ba33297c177185af9
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Josh Bowling <josh@monarci.com>
+                signed-off-by: Josh Bowling <josh@monarci.com>
+              author: Josh Bowling
+              nested: []
+          version: lf-to-abstract-sql-4.5.3
+          title: ""
+          date: 2022-11-17T08:23:43.909Z
+        - commits:
+            - subject: Switch from balenaCI to flowzone
+              hash: ed2b55d1fa843ffe3d2f5705e85dcce1b14a8297
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: lf-to-abstract-sql-4.5.2
+          title: ""
+          date: 2022-10-14T16:18:40.351Z
+        - commits:
+            - subject: Test that `/$count` works with a `$filter`containing an 'and'
+              hash: cda0a1a54b2830cd393240dd5dddf1e4b42877c4
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+          version: odata-parser-2.4.2
+          title: ""
+          date: 2022-11-03T09:21:15.746Z
+        - commits:
+            - subject: Switch from balenaCI to flowzone
+              hash: 3e0435348860242b9252c2725427a42e28925b4f
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.4.1
+          title: ""
+          date: 2022-10-14T16:23:39.381Z
+        - commits:
+            - subject: Switch from balenaCI to flowzone
+              hash: 21d465c883e0bd4841b19606076060401b49758b
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-1.4.2
+          title: ""
+          date: 2022-10-14T16:24:15.591Z
+        - commits:
+            - subject: "Dev: Migrate husky setup for v8"
+              hash: d715082666edaa031ff971bf54f9fff5928bcbbe
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Josh Bowling <josh@monarci.com>
+                signed-off-by: Josh Bowling <josh@monarci.com>
+              author: Josh Bowling
+          version: sbvr-types-3.4.15
+          title: ""
+          date: 2022-11-18T01:50:51.136Z
+        - commits:
+            - subject: Update dependency mocha to 10.1.0
+              hash: 90b854cd4b606d4ebe87fb2a108745e76acbfe0d
+              body: |
+                Update mocha to 10.1.0
+
+                Update mocha from 9.2.2 to 10.1.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Renovate Bot
+          version: sbvr-types-3.4.14
+          title: ""
+          date: 2022-11-17T18:52:52.811Z
+        - commits:
+            - subject: Update dependency lint-staged to 13.0.3
+              hash: 42b86a5d0767440f1896f8131b45b495d96a7a56
+              body: |
+                Update lint-staged to 13.0.3
+
+                Update lint-staged from 12.5.0 to 13.0.3
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Renovate Bot
+          version: sbvr-types-3.4.13
+          title: ""
+          date: 2022-11-17T17:53:05.536Z
+        - commits:
+            - subject: Update dependency husky to 8.0.2
+              hash: cbd735b63b3f39d9cdaa3b3a448a9c6294639a1b
+              body: |
+                Update husky to 8.0.2
+
+                Update husky from 4.3.8 to 8.0.2
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Renovate Bot
+          version: sbvr-types-3.4.12
+          title: ""
+          date: 2022-11-17T17:07:42.075Z
+        - commits:
+            - subject: "Dev: Add lint-fix npm script"
+              hash: 3842a36b2e9d32a2244b10d0cedfe0e74c4dbee2
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Josh Bowling <josh@monarci.com>
+                signed-off-by: Josh Bowling <josh@monarci.com>
+              author: Josh Bowling
+          version: sbvr-types-3.4.11
+          title: ""
+          date: 2022-11-17T09:10:43.588Z
+        - commits:
+            - subject: "Dev: Move type deps to dev"
+              hash: bdfddfd6170e58b85db9646c11a21e43c5fd613c
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Josh Bowling <josh@monarci.com>
+                signed-off-by: Josh Bowling <josh@monarci.com>
+              author: Josh Bowling
+          version: sbvr-types-3.4.10
+          title: ""
+          date: 2022-11-17T09:04:12.596Z
+        - commits:
+            - subject: Add .npmrc
+              hash: 05305cc123a70c25045c1dc53ba021946ce22dcb
+              body: >
+                Add .npmrc to disable package-lock.json generation on npm install
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Josh Bowling <josh@monarci.com>
+                signed-off-by: Josh Bowling <josh@monarci.com>
+              author: Josh Bowling
+          version: sbvr-types-3.4.9
+          title: ""
+          date: 2022-11-17T08:56:29.660Z
+        - commits:
+            - subject: Switch from balenaCI to flowzone
+              hash: f7e06b65458ca726e06ac08a8feead9dc4f76962
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-3.4.8
+          title: ""
+          date: 2022-10-14T16:25:28.978Z
+  version: 14.53.1
+  title: ""
+  date: 2022-11-24T16:09:20.132Z
+- commits:
+    - subject: Update dependencies
       hash: 99d4b29ee3147394514a9188526af9f7afd74ff9
       body: |
         Update @balena/abstract-sql-compiler from 7.21.1 to 7.22.0
