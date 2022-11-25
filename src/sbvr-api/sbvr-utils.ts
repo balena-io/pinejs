@@ -372,12 +372,60 @@ export const isModelNew = async (
 	return !cachedIsModelNew.has(modelName);
 };
 
+const bindsForAffectedIds = (
+	bindings: AbstractSQLCompiler.Binding[],
+	request?: Pick<
+		uriParser.ODataRequest,
+		| 'vocabulary'
+		| 'abstractSqlModel'
+		| 'method'
+		| 'resourceName'
+		| 'affectedIds'
+	>,
+) => {
+	if (request?.affectedIds == null) {
+		return {};
+	}
+
+	const tableName =
+		getAbstractSqlModel(request).tables[resolveSynonym(request)].name;
+
+	// If we're deleting the affected IDs then we can't narrow our rule to
+	// those IDs that are now missing
+	const isDelete = request.method === 'DELETE';
+
+	const odataBinds: { [key: string]: any } = {};
+	for (const bind of bindings) {
+		if (
+			bind.length !== 2 ||
+			bind[0] !== 'Bind' ||
+			typeof bind[1] !== 'string'
+		) {
+			continue;
+		}
+
+		const bindName = bind[1];
+		if (!isDelete && bindName === tableName) {
+			odataBinds[bindName] = ['Text', `{${request.affectedIds}}`];
+		} else {
+			odataBinds[bindName] = ['Text', '{}'];
+		}
+	}
+
+	return odataBinds;
+};
+
 export const validateModel = async (
 	tx: Db.Tx,
 	modelName: string,
 	request?: Pick<
 		uriParser.ODataRequest,
-		'abstractSqlQuery' | 'modifiedFields' | 'method' | 'vocabulary'
+		| 'abstractSqlQuery'
+		| 'modifiedFields'
+		| 'method'
+		| 'vocabulary'
+		| 'resourceName'
+		| 'affectedIds'
 	>,
 ): Promise<void> => {
 	const { sql } = models[modelName];
@@ -394,7 +442,16 @@ export const validateModel = async (
 			const values = await getAndCheckBindValues(
 				{
 					vocabulary: modelName,
-					odataBinds: [],
+					// TODO: `odataBinds` is of type `ODataBinds`, which is an
+					// array with extra arbitrary fields. `getAndCheckBindValues`
+					// accepts that and also a pure object form for this
+					// argument. Given how arrays have predefined symbols,
+					// `bindsForAffectedIds` cannot return an `ODataBinds`.
+					// Both `ODataBinds` and `getAndCheckBindValues` should be
+					// fixed to accept a pure object with both string and
+					// numerical keys, for named and positional binds
+					// respectively
+					odataBinds: bindsForAffectedIds(rule.bindings, request) as any,
 					values: {},
 					engine: db.engine,
 				},

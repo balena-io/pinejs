@@ -24,10 +24,10 @@
     "prettify": "balena-lint -e js -e ts --fix src build typings Gruntfile.ts"
   },
   "dependencies": {
-    "@balena/abstract-sql-compiler": "^7.26.0",
+    "@balena/abstract-sql-compiler": "^8.0.0",
     "@balena/abstract-sql-to-typescript": "^1.4.2",
     "@balena/env-parsing": "^1.1.5",
-    "@balena/lf-to-abstract-sql": "^4.7.0",
+    "@balena/lf-to-abstract-sql": "^5.0.0",
     "@balena/odata-parser": "^2.4.2",
     "@balena/odata-to-abstract-sql": "^5.9.2",
     "@balena/sbvr-parser": "^1.4.3",
