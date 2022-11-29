@@ -15,6 +15,8 @@ export { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser
 
 import * as passportPinejs from '../passport-pinejs/passport-pinejs';
 
+import * as multerPinejs from '../multer-pinejs/multer-pinejs';
+
 import * as express from 'express';
 
 const app = express();
@@ -84,6 +86,7 @@ export const initialised = Pinejs.init(app)
 		await Promise.all([
 			configLoader.loadConfig(passportPinejs.config),
 			configLoader.loadConfig(Pinejs.PinejsSessionStore.config),
+			configLoader.loadConfig(multerPinejs.config),
 		]);
 
 		if (
