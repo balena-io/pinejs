@@ -1,9 +1,7 @@
 declare module '@balena/abstract-sql-compiler' {
 	interface AbstractSqlTable {
 		fetchProcessingFields?: {
-			[field: string]: NonNullable<
-				(typeof sbvrTypes)[string]['fetchProcessing']
-			>;
+			[field: string]: NonNullable<SbvrType['fetchProcessing']>;
 		};
 		localFields?: {
 			[odataName: string]: true;
@@ -18,7 +16,7 @@ import type {
 import type { Result, Row } from '../database-layer/db';
 
 import { sqlNameToODataName } from '@balena/odata-to-abstract-sql';
-import * as sbvrTypes from '@balena/sbvr-types';
+import sbvrTypes, { SbvrType } from '@balena/sbvr-types';
 import * as _ from 'lodash';
 import { resolveNavigationResource, resolveSynonym } from './sbvr-utils';
 
@@ -101,10 +99,18 @@ const getLocalFields = (table: AbstractSqlTable) => {
 };
 const getFetchProcessingFields = (table: AbstractSqlTable) => {
 	return (table.fetchProcessingFields ??= _(table.fields)
-		.filter(({ dataType }) => sbvrTypes[dataType]?.fetchProcessing != null)
+		.filter(
+			({ dataType }) =>
+				(sbvrTypes[dataType as keyof typeof sbvrTypes] as SbvrType)
+					?.fetchProcessing != null,
+		)
 		.map(({ fieldName, dataType }) => {
 			const odataName = sqlNameToODataName(fieldName);
-			return [odataName, sbvrTypes[dataType].fetchProcessing];
+			return [
+				odataName,
+				(sbvrTypes[dataType as keyof typeof sbvrTypes] as SbvrType)
+					.fetchProcessing,
+			];
 		})
 		.fromPairs()
 		.value());

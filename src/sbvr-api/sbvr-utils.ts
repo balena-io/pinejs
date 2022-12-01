@@ -28,7 +28,7 @@ import {
 	sqlNameToODataName,
 	SupportedMethod,
 } from '@balena/odata-to-abstract-sql';
-import * as sbvrTypes from '@balena/sbvr-types';
+import sbvrTypes from '@balena/sbvr-types';
 import deepFreeze = require('deep-freeze');
 import { PinejsClientCore, PromiseResultTypes } from 'pinejs-client-core';
 

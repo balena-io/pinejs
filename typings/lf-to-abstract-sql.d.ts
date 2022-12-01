@@ -1,5 +1,5 @@
 declare module '@balena/lf-to-abstract-sql' {
-	import type sbvrTypes = require('@balena/sbvr-types');
+	import type sbvrTypes from '@balena/sbvr-types';
 	import type { LFModel } from '@balena/sbvr-parser';
 	import type { AbstractSqlModel } from '@balena/abstract-sql-compiler';
 	export const LF2AbstractSQL: {
