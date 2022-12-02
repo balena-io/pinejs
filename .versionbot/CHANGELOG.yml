@@ -1,4 +1,189 @@
 - commits:
+    - subject: Update eventemitter to 5.x
+      hash: 0787a4000b523f9687ea009a02fef6293de30ba4
+      body: |
+        Update @balena/abstract-sql-compiler from 7.22.0 to 7.22.4
+        Update @balena/lf-to-abstract-sql from 4.5.5 to 4.5.6
+        Update @balena/odata-to-abstract-sql from 5.7.0 to 5.7.2
+        Update @balena/sbvr-parser from 1.4.2 to 1.4.3
+        Update @balena/sbvr-types from 3.4.15 to 3.4.18
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: "Fix: move @balena/odata-to-abstract-sql to dev dependencies"
+              hash: a5bd2c11c4e6f04a98c7784601a0d0e36ca7f6a2
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.22.4
+          title: ""
+          date: 2022-11-30T16:23:35.142Z
+        - commits:
+            - subject: "Tests: update @balena/odata-to-abstract-sql to 5.x"
+              hash: e93dfd1cbf56a9df248ac199776dca44c71cbc11
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.22.3
+          title: ""
+          date: 2022-11-30T16:17:30.183Z
+        - commits:
+            - subject: Fix deprecation notice module name
+              hash: 7272a823a00ffd6af52228f2cab4c95e3b3474b9
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.22.2
+          title: ""
+          date: 2022-11-30T16:12:20.310Z
+        - commits:
+            - subject: Add deprecation notices to the legacy null formats of `null` and
+                `'Null'`
+              hash: d4a8a31911b80c4c8ad46e5b6567496c232fad9b
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Add deprecation notice to the legacy table format of `tableName`
+              hash: c0847bf375bb40bae0141aab5e09f97a844f69c7
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Add deprecation notice to the legacy alias format of `[node, alias]`
+              hash: 75e04d107ad1d1ddd7f8e33fa53c3a70c46a35ac
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.22.1
+          title: ""
+          date: 2022-11-29T18:49:06.598Z
+        - commits:
+            - subject: Stop using legacy/deprecated format for table aliases
+              hash: aa18d8cd7733e5250f9dfb2415904e9fc5a0c4b6
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: lf-to-abstract-sql-4.5.6
+          title: ""
+          date: 2022-11-29T18:24:46.542Z
+        - commits:
+            - subject: Switch insert casts from using legacy `'Null'` to using a `['Null']`
+                node
+              hash: c128ca4bb6eaecedcf27415bb54c8a0fc402ffc7
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.7.2
+          title: ""
+          date: 2022-11-29T22:18:35.576Z
+        - commits:
+            - subject: Remove package-lock.json
+              hash: 916fc55329e382480799bf070b2ac4bafc843f07
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.7.1
+          title: ""
+          date: 2022-11-25T14:54:13.165Z
+        - commits:
+            - subject: Update dependencies
+              hash: b684c615822ea97db0a898dc2dd82bf7a1282d3f
+              body: |
+                Update @balena/lint from 6.2.0 to 6.2.1
+                Update @balena/sbvr-types from 3.4.6 to 3.4.15
+                Update chai from 4.3.6 to 4.3.7
+                Update mocha from 9.2.2 to 10.1.0
+
+                Only devDependencies -> patch
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: fisehara <harald@balena.io>
+                signed-off-by: fisehara <harald@balena.io>
+              author: fisehara
+          version: sbvr-parser-1.4.3
+          title: ""
+          date: 2022-11-24T15:22:51.079Z
+        - commits:
+            - subject: "Tests: remove chai-as-promised"
+              hash: bb50fbe22649f9ce9a328fdb52bba3bce2c9efb4
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: "Tests: remove bluebird"
+              hash: 76fde2a906f7baa4e2ce6ddb62e5194cd67aa68a
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: "Tests: remove lodash"
+              hash: 916ff7b68b215a08b6a65e42c4034c0205ec6256
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-3.4.18
+          title: ""
+          date: 2022-11-25T17:43:36.704Z
+        - commits:
+            - subject: Update dependencies
+              hash: e5d3ececb219aaf6380c9f56016a56c3c7c2023f
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-3.4.17
+          title: ""
+          date: 2022-11-25T16:27:57.945Z
+        - commits:
+            - subject: Switch from `new Buffer` to `Buffer.from` to avoid deprecation warnings
+              hash: e671336ee310572b02253ba75d45b15d2c7acc76
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-3.4.16
+          title: ""
+          date: 2022-11-25T16:23:18.014Z
+  version: 14.53.2
+  title: ""
+  date: 2022-12-02T14:28:31.435Z
+- commits:
     - subject: Update dependencies
       hash: 9b24d54cff3f2e83456c9c2bd60ade9de8ab755b
       body: >
