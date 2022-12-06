@@ -1,4 +1,18 @@
 - commits:
+    - subject: "Flowzone: Allow external contributions"
+      hash: bd74494e79a3f59fd00250ed6924b6a9faf2b4e6
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Josh Bowling <josh@monarci.com>
+        signed-off-by: Josh Bowling <josh@monarci.com>
+      author: Josh Bowling
+      nested: []
+  version: 14.53.3
+  title: ""
+  date: 2022-12-06T16:37:16.705Z
+- commits:
     - subject: Update eventemitter to 5.x
       hash: 0787a4000b523f9687ea009a02fef6293de30ba4
       body: |
