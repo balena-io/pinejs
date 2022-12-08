@@ -1,4 +1,70 @@
 - commits:
+    - subject: Update dependencies
+      hash: 0b2bf79e448c346e6be3a4ad35f8f7cd504a95b6
+      body: |
+        Update @balena/abstract-sql-compiler from 7.22.4 to 7.23.0
+        Update @balena/lf-to-abstract-sql from 4.5.6 to 4.6.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add support for rules optimizations when using COUNT(*) = 0
+              hash: f45412c4dbec8bed287ef116b9c5f0afdc047f9f
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.23.0
+          title: ""
+          date: 2022-12-08T15:38:24.108Z
+        - commits:
+            - subject: "Flowzone: Allow external contributions"
+              hash: de26e9d6cc65ab9a03fd9e1ac6027e0df198864d
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Josh Bowling <josh@monarci.com>
+                signed-off-by: Josh Bowling <josh@monarci.com>
+              author: Josh Bowling
+              nested: []
+          version: abstract-sql-compiler-7.22.5
+          title: ""
+          date: 2022-12-08T01:00:02.914Z
+        - commits:
+            - subject: Switch UniversalQuantification from NOT EXISTS to COUNT(*) = 0
+              hash: a22870ca3143cbd12d4ffbdb911a1e1be177e952
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: lf-to-abstract-sql-4.6.0
+          title: ""
+          date: 2022-12-08T10:37:22.330Z
+        - commits:
+            - subject: "Flowzone: Allow external contributions"
+              hash: 0ae49b7c253761661f0d71f9868fe0528e5fee47
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Josh Bowling <josh@monarci.com>
+                signed-off-by: Josh Bowling <josh@monarci.com>
+              author: Josh Bowling
+              nested: []
+          version: lf-to-abstract-sql-4.5.7
+          title: ""
+          date: 2022-12-08T01:10:42.152Z
+  version: 14.53.5
+  title: ""
+  date: 2022-12-08T15:59:33.552Z
+- commits:
     - subject: Fix husky pre-commit script
       hash: 6b6abd11fedf61b4a69a50ce7f9ef990635e94a4
       body: ""
