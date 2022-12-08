@@ -1,4 +1,16 @@
 - commits:
+    - subject: Fix husky pre-commit script
+      hash: 6b6abd11fedf61b4a69a50ce7f9ef990635e94a4
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.53.4
+  title: ""
+  date: 2022-12-08T10:59:48.199Z
+- commits:
     - subject: "Flowzone: Allow external contributions"
       hash: bd74494e79a3f59fd00250ed6924b6a9faf2b4e6
       body: ""
