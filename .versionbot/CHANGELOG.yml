@@ -1,4 +1,19 @@
 - commits:
+    - subject: Update postgres Docker tag to v15
+      hash: e1c8e1436dae44739a844ecc86c09fd084f09e86
+      body: |
+        Update postgres to 15
+
+        Update postgres from 14 to 15
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Renovate Bot
+      nested: []
+  version: 14.54.0
+  title: ""
+  date: 2022-12-09T17:20:55.621Z
+- commits:
     - subject: Fix async migrations being able to stop unexpectedly in some failure
         cases
       hash: aa28e9213ca5b48cf247de635ff44f50764da699
