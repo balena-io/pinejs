@@ -1,4 +1,19 @@
 - commits:
+    - subject: Fix async migrations being able to stop unexpectedly in some failure
+        cases
+      hash: aa28e9213ca5b48cf247de635ff44f50764da699
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+  version: 14.53.6
+  title: ""
+  date: 2022-12-09T09:54:25.163Z
+- commits:
     - subject: Update dependencies
       hash: 0b2bf79e448c346e6be3a4ad35f8f7cd504a95b6
       body: |
