@@ -4,5 +4,4 @@ Therefore the `npm run test:compose` is used to test pinejs with a postgres data
 This approach guarantees that the node versions are tested by the flowzone test actions on a github pull request.
 
 #### Debug pinejs queries
-Specifying the environment variable DEBUG=true will log debug information of each pine query (This can be an very extensive output.) Caution, DEBUG is checked for existence so that even a DEBUG= or in a docker-compose file DEBUG:  will turn on the debugging.
-
+Specifying the environment variable PINEJS_DEBUG=1 will log debug information of each pine query (This can be a very verbose output.)
