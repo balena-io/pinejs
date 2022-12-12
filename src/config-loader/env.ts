@@ -1,7 +1,6 @@
 const { PINEJS_DEBUG } = process.env;
 if (![undefined, '', '0', '1'].includes(PINEJS_DEBUG)) {
-	// TODO-MAJOR: Throw on invalid value
-	console.warn(`Invalid value for PINEJS_DEBUG '${PINEJS_DEBUG}'`);
+	throw new Error(`Invalid value for PINEJS_DEBUG '${PINEJS_DEBUG}'`);
 }
 export const DEBUG = PINEJS_DEBUG === '1';
 
