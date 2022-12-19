@@ -1,4 +1,16 @@
 - commits:
+    - subject: Simplify `checkApiKey` by moving checks out to more relevant places
+      hash: c421ec64b7a7ad858007e3570065e5c9ec98d5f4
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.54.2
+  title: ""
+  date: 2022-12-19T15:37:05.130Z
+- commits:
     - subject: Update debugging docs
       hash: 6c6331cab24edc0d1264166d885c52246f71d04f
       body: ""
