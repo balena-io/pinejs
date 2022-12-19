@@ -1475,11 +1475,6 @@ export const resolveAuthHeader = async (
 	// TODO: Consider making tx the second argument in the next major
 	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
-	// TODO-MAJOR: remove this check
-	if (req.apiKey != null) {
-		return;
-	}
-
 	const auth = req.header('Authorization');
 	if (!auth) {
 		return;
