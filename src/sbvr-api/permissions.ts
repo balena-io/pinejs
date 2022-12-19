@@ -1447,26 +1447,13 @@ const checkApiKey = async (
 	apiKey: string,
 	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
-	let permissions: string[];
-	try {
-		permissions = await getApiKeyPermissions(apiKey, tx);
-	} catch (err: any) {
-		console.warn('Error with API key:', err);
-		// Ignore errors getting the api key and just use an empty permissions object.
-		permissions = [];
-	}
-	let actor;
-	if (permissions.length > 0) {
-		actor = await getApiKeyActorId(apiKey, tx);
-	}
-	const resolvedApiKey: PermissionReq['apiKey'] = {
+	const permissions = await getApiKeyPermissions(apiKey, tx);
+	const actor = await getApiKeyActorId(apiKey, tx);
+	return {
 		key: apiKey,
 		permissions,
+		actor,
 	};
-	if (actor != null) {
-		resolvedApiKey.actor = actor;
-	}
-	return resolvedApiKey;
 };
 
 export const resolveAuthHeader = async (
