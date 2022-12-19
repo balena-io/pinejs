@@ -130,7 +130,7 @@ export interface User extends Actor {
 
 export interface ApiKey extends Actor {
 	key: string;
-	actor?: number;
+	actor: number;
 }
 
 export interface Response {

@@ -1610,32 +1610,18 @@ const getReqPermissions = async (
 	req: PermissionReq,
 	odataBinds: ODataBinds = [] as any as ODataBinds,
 ) => {
-	const [guestPermissions] = await Promise.all([
-		(async () => {
-			if (
-				guestPermissionsInitialized === false &&
-				(req.user === root.user || req.user === rootRead.user)
-			) {
-				// In the case that guest permissions are not initialized yet and the query is being made with root permissions
-				// then we need to bypass `getGuestPermissions` as it will cause an infinite loop back to here.
-				// Therefore to break that loop we just ignore guest permissions.
-				return [];
-			}
-			return await getGuestPermissions();
-		})(),
-		(async () => {
-			// TODO: Remove this extra actor ID lookup making actor non-optional and updating open-balena-api.
-			if (
-				req.apiKey != null &&
-				req.apiKey.actor == null &&
-				req.apiKey.permissions != null &&
-				req.apiKey.permissions.length > 0
-			) {
-				const actorId = await getApiKeyActorId(req.apiKey.key);
-				req.apiKey!.actor = actorId;
-			}
-		})(),
-	]);
+	const guestPermissions = await (async () => {
+		if (
+			guestPermissionsInitialized === false &&
+			(req.user === root.user || req.user === rootRead.user)
+		) {
+			// In the case that guest permissions are not initialized yet and the query is being made with root permissions
+			// then we need to bypass `getGuestPermissions` as it will cause an infinite loop back to here.
+			// Therefore to break that loop we just ignore guest permissions.
+			return [];
+		}
+		return await getGuestPermissions();
+	})();
 
 	let actorPermissions: string[] = [];
 	const addActorPermissions = (actorId: number, perms: string[]) => {
