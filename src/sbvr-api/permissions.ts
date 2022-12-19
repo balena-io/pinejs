@@ -1525,11 +1525,6 @@ export const resolveApiKey = async (
 	// TODO: Consider making tx the second argument in the next major
 	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
-	// TODO-MAJOR: remove this check
-	if (req.apiKey != null) {
-		return;
-	}
-
 	const apiKey =
 		req.params[paramName] ?? req.body[paramName] ?? req.query[paramName];
 	if (apiKey == null) {
