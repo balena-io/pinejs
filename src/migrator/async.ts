@@ -250,7 +250,7 @@ const $run = async (
 									if (err instanceof Error) {
 										if (
 											migrationState.error_count %
-											initMigrationState.errorThreshold ===
+												initMigrationState.errorThreshold ===
 											0
 										) {
 											(sbvrUtils.api.migrations?.logger.error ?? console.error)(
