@@ -1430,13 +1430,9 @@ const getApiKeyActorId = (() => {
 })();
 
 const checkApiKey = async (
-	req: PermissionReq,
 	apiKey: string,
 	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
-	if (apiKey == null || req.apiKey != null) {
-		return;
-	}
 	let permissions: string[];
 	try {
 		permissions = await getApiKeyPermissions(apiKey, tx);
@@ -1465,6 +1461,11 @@ export const resolveAuthHeader = async (
 	// TODO: Consider making tx the second argument in the next major
 	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
+	// TODO-MAJOR: remove this check
+	if (req.apiKey != null) {
+		return;
+	}
+
 	const auth = req.header('Authorization');
 	if (!auth) {
 		return;
@@ -1480,7 +1481,7 @@ export const resolveAuthHeader = async (
 		return;
 	}
 
-	return await checkApiKey(req, apiKey, tx);
+	return await checkApiKey(apiKey, tx);
 };
 
 export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
@@ -1510,9 +1511,17 @@ export const resolveApiKey = async (
 	// TODO: Consider making tx the second argument in the next major
 	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
+	// TODO-MAJOR: remove this check
+	if (req.apiKey != null) {
+		return;
+	}
+
 	const apiKey =
 		req.params[paramName] ?? req.body[paramName] ?? req.query[paramName];
-	return await checkApiKey(req, apiKey, tx);
+	if (apiKey == null) {
+		return;
+	}
+	return await checkApiKey(apiKey, tx);
 };
 
 export const customApiKeyMiddleware = (paramName = 'apikey') => {
