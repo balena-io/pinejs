@@ -202,6 +202,29 @@ describe('03 Async Migrations', async function () {
 			expect(result[0]?.migrated_row_count - firstRowsMigrated).to.equal(1);
 			expect(Date.now().valueOf() - startTime).to.be.greaterThan(4000); // backOff time from migrator
 		});
+
+		it('should record last execution time ms of the last migration run', async function () {
+			let result: MigrationStatus[] = [];
+
+			const startTime = Date.now().valueOf();
+			// Wait until all migrations have run at least once
+			while (result.length === 0 || !result.every((row) => row.run_count > 0)) {
+				result = await getMigrationStatus();
+			}
+
+			const checkMigration0003 = result.find(
+				(row) => row.migration_key === '0003',
+			);
+			expect(checkMigration0003?.last_execution_time_ms).to.be.greaterThan(500); // should be reported greater than 500 ms (from the async migration function)
+			expect(checkMigration0003?.last_execution_time_ms).to.be.lessThan(2 * 500); // should not exceed twice the last execution time ms defined in the async migration function
+
+			/** 
+			 * Here it may need to be checked if the event for the async_migration_status metric was emitted.
+			 * As the pine instance is running in a childprocess the EventEmitter is decoupled from the test instance.
+			 * The EventEmitter exported from the migration utilities cannot be used for registering a listener, as it would
+			 * instantiate a separate EventEmitter in this process, which is not linked to the child-process in which pine actually runs.
+			 */
+		});
 	});
 
 	describe('Init sync and async migrations for new model', function () {
@@ -226,7 +249,7 @@ describe('03 Async Migrations', async function () {
 				.to.be.an('array');
 			expect(res.body.d[0]?.executed_migrations)
 				.to.be.an('array')
-				.to.have.all.members(['0001', '0002']);
+				.to.have.all.members(['0001', '0002', '0003']);
 		});
 	});
 

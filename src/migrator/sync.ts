@@ -8,6 +8,8 @@ import {
 	RunnableMigrations,
 	filterAndSortPendingMigrations,
 	getRunnableSyncMigrations,
+	migrationMetricsEmitter,
+	MigrationMetricsEventName,
 } from './utils';
 import type { Tx } from '../database-layer/db';
 import type { Config, Model } from '../config-loader/config-loader';
@@ -122,6 +124,8 @@ const executeMigration = async (
 		`Running migration ${JSON.stringify(key)}`,
 	);
 
+	const migrationStartTimeMs = Date.now();
+
 	if (typeof migration === 'function') {
 		await migration(tx, sbvrUtils);
 	} else if (typeof migration === 'string') {
@@ -129,6 +133,15 @@ const executeMigration = async (
 	} else {
 		throw new MigrationError(`Invalid migration type: ${typeof migration}`);
 	}
+
+	// follow the same interface for migration_key and last_execution_time_ms as migration status
+	migrationMetricsEmitter.emit(
+		MigrationMetricsEventName.sync_migration_status,
+		{
+			migration_key: key,
+			last_execution_time_ms: Date.now() - migrationStartTimeMs,
+		},
+	);
 };
 
 export const config: Config = {
@@ -145,6 +158,10 @@ export const config: Config = {
 				'11.0.1-modified-at': `
 					ALTER TABLE "migration lock"
 					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+				`,
+				'14.55.0-last-execution-time': `
+					ALTER TABLE "migration status"
+					ADD COLUMN IF NOT EXISTS "last execution time ms" INTEGER NULL;
 				`,
 			},
 		},
