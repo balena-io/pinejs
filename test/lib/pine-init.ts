@@ -15,6 +15,16 @@ export async function init(
 		res.sendStatus(200);
 	});
 
+	process.on('SIGUSR2', () => {
+		console.info(
+			`Received SIGUSR2 to toggle async migration execution enabled from ${
+				pine.env.migrator.asyncMigrationIsEnabled
+			} to ${!pine.env.migrator.asyncMigrationIsEnabled} `,
+		);
+		pine.env.migrator.asyncMigrationIsEnabled =
+			!pine.env.migrator.asyncMigrationIsEnabled;
+	});
+
 	try {
 		await cleanInit(deleteDb);
 		await pine.init(app, initConfig);

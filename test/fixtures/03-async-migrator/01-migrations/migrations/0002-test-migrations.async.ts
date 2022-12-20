@@ -26,8 +26,8 @@ const migration: AsyncMigration = {
         `;
 		await tx.executeSql(staticSql);
 	},
-	delayMS: 250,
-	backoffDelayMS: 4000,
+	delayMS: 50,
+	backoffDelayMS: 1000,
 	errorThreshold: 15,
 	finalize: false,
 };
