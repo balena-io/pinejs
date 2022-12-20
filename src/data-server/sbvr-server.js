@@ -140,7 +140,7 @@ export async function setup(app, sbvrUtils, db) {
 					const instance = result[0];
 					await sbvrUtils.executeModel(tx, {
 						apiRoot: instance.is_of__vocabulary,
-						modelText: instance.model_value,
+						modelText: instance.model_value.value,
 					});
 				});
 			await isServerOnAir(true);

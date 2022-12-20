@@ -682,7 +682,10 @@ export const executeModels = async (
 					let uri = '/dev/model';
 					const body: AnyObject = {
 						is_of__vocabulary: model.vocab,
-						model_value: model[modelType],
+						model_value:
+							typeof model[modelType] === 'string'
+								? { value: model[modelType] }
+								: model[modelType],
 						model_type: modelType,
 					};
 					const id = result?.[0]?.id;
@@ -1875,12 +1878,22 @@ export const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
 						case 'mysql':
 							await $tx.executeSql(`\
 								ALTER TABLE "model"
-								MODIFY "model value" JSON NOT NULL;`);
+								MODIFY "model value" JSON NOT NULL;
+
+								UPDATE "model"
+								SET "model value" = CAST('{"value":' || CAST("model value" AS CHAR) || '}' AS JSON)
+								WHERE "model type" IN ('se', 'odataMetadata')
+								AND CAST("model value" AS CHAR) LIKE '"%';`);
 							break;
 						case 'postgres':
 							await $tx.executeSql(`\
 								ALTER TABLE "model"
-								ALTER COLUMN "model value" SET DATA TYPE JSONB USING "model value"::JSONB;`);
+								ALTER COLUMN "model value" SET DATA TYPE JSONB USING "model value"::JSONB;
+
+								UPDATE "model"
+								SET "model value" = CAST('{"value":' || CAST("model value" AS TEXT) || '}' AS JSON)
+								WHERE "model type" IN ('se', 'odataMetadata')
+								AND CAST("model value" AS TEXT) LIKE '"%';`);
 							break;
 						// No need to migrate for websql
 					}
