@@ -1,4 +1,19 @@
 - commits:
+    - subject: Fix pre-commit husky hook
+      hash: c146ecb23faa8aeaa93086e6a4e78b5bdc3fecbc
+      body: |
+        pre-commit file has no executable flag.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+  version: 14.54.4
+  title: ""
+  date: 2022-12-22T16:30:12.873Z
+- commits:
     - subject: Fix running linting as part of `npm test`
       hash: 9bdc35e17faa8d9958b2046b691e9d28fb37d51c
       body: ""
