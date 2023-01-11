@@ -1,7 +1,9 @@
 declare module '@balena/abstract-sql-compiler' {
 	interface AbstractSqlTable {
 		fetchProcessingFields?: {
-			[field: string]: NonNullable<typeof sbvrTypes[string]['fetchProcessing']>;
+			[field: string]: NonNullable<
+				(typeof sbvrTypes)[string]['fetchProcessing']
+			>;
 		};
 		localFields?: {
 			[odataName: string]: true;

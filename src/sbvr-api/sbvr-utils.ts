@@ -1206,7 +1206,7 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 
 const handleErrorFns: Array<(req: Express.Request, err: HttpError) => void> =
 	[];
-export const onHandleHttpError = (fn: typeof handleErrorFns[number]) => {
+export const onHandleHttpError = (fn: (typeof handleErrorFns)[number]) => {
 	handleErrorFns.push(fn);
 };
 export const handleHttpErrors = (
