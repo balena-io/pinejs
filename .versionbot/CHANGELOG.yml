@@ -1,4 +1,18 @@
 - commits:
+    - subject: Prettified according to new rules
+      hash: 8c5a73399171eae3dd8d105810ba71b811cdc3ea
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+  version: 14.54.5
+  title: ""
+  date: 2023-01-11T14:18:59.648Z
+- commits:
     - subject: Fix pre-commit husky hook
       hash: c146ecb23faa8aeaa93086e6a4e78b5bdc3fecbc
       body: |
