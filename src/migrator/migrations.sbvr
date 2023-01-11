@@ -24,8 +24,8 @@ Fact Type: migration lock has model name
 
 Term: migration key
 	Concept Type: Short Text (Type)
-Term: start time
-	Concept Type: Date Time (Type)
+Term: last execution time ms
+	Concept Type: Integer (Type)
 Term: last run time
 	Concept Type: Date Time (Type)
 Term: run count
@@ -45,8 +45,8 @@ Term: migration status
 Fact Type: migration status has migration key
 	Necessity: each migration status has exactly one migration key
 
-Fact Type: migration status has start time
-	Necessity: each migration status has at most one start time
+Fact Type: migration status has last execution time ms
+	Necessity: each migration status has at most one last execution time ms
 
 Fact Type: migration status has last run time
 	Necessity: each migration status has at most one last run time

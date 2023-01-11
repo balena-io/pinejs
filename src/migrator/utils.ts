@@ -7,6 +7,14 @@ import { TypedError } from 'typed-error';
 import { migrator as migratorEnv } from '../config-loader/env';
 export { migrator as migratorEnv } from '../config-loader/env';
 import { delay } from '../sbvr-api/control-flow';
+import { EventEmitter } from 'eventemitter3';
+
+export const migrationMetricsEmitter = new EventEmitter();
+
+export enum MigrationMetricsEventName {
+	'sync_migration_status' = 'sync_migration_status',
+	'async_migration_status' = 'async_migration_status',
+}
 
 // tslint:disable-next-line:no-var-requires
 export const modelText = require('./migrations.sbvr');
@@ -87,7 +95,7 @@ export class MigrationError extends TypedError {}
 
 export type MigrationStatus = {
 	migration_key: string;
-	start_time: Date;
+	last_execution_time_ms: number;
 	last_run_time: Date | null;
 	run_count: number;
 	migrated_row_count: number;
@@ -283,13 +291,13 @@ export const initMigrationStatus = async (
 	try {
 		return await tx.executeSql(
 			binds`
-INSERT INTO "migration status" ("migration key", "start time", "is backing off", "run count")
+INSERT INTO "migration status" ("migration key", "last execution time ms", "is backing off", "run count")
 SELECT ${1}, ${2}, ${3}, ${4}
 WHERE NOT EXISTS (SELECT 1 FROM "migration status" WHERE "migration key" = ${5})
 `,
 			[
 				migrationStatus['migration_key'],
-				migrationStatus['start_time'],
+				migrationStatus['last_execution_time_ms'],
 				migrationStatus['is_backing_off'] ? 1 : 0,
 				migrationStatus['run_count'],
 				migrationStatus['migration_key'],
@@ -316,8 +324,9 @@ SET
 "migrated row count" = ${3},
 "error count" = ${4},
 "converged time" = ${5},
-"is backing off" = ${6}
-WHERE "migration status"."migration key" = ${7};`,
+"is backing off" = ${6},
+"last execution time ms" = ${7}
+WHERE "migration status"."migration key" = ${8};`,
 			[
 				migrationStatus['run_count'],
 				migrationStatus['last_run_time'],
@@ -325,6 +334,7 @@ WHERE "migration status"."migration key" = ${7};`,
 				migrationStatus['error_count'],
 				migrationStatus['converged_time'],
 				migrationStatus['is_backing_off'] ? 1 : 0,
+				migrationStatus['last_execution_time_ms'],
 				migrationStatus['migration_key'],
 			],
 		);
@@ -355,7 +365,7 @@ LIMIT 1;`,
 
 		return {
 			migration_key: data['migration key'],
-			start_time: data['start time'],
+			last_execution_time_ms: data['last execution time ms'],
 			last_run_time: data['last run time'],
 			run_count: data['run count'],
 			migrated_row_count: data['migrated row count'],

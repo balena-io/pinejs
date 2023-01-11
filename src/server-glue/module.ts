@@ -18,7 +18,7 @@ export * as env from '../config-loader/env';
 export * as types from '../sbvr-api/common-types';
 export * as hooks from '../sbvr-api/hooks';
 export type { configLoader as ConfigLoader };
-export type { migratorUtils as Migrator };
+export { migratorUtils as Migrator };
 
 let envDatabaseOptions: dbModule.DatabaseOptions<string>;
 if (dbModule.engines.websql != null) {

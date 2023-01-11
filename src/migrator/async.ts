@@ -26,6 +26,8 @@ import {
 	filterAndSortPendingMigrations,
 	MigrationStatus,
 	BaseAsyncMigration,
+	migrationMetricsEmitter,
+	MigrationMetricsEventName,
 } from './utils';
 
 export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
@@ -122,7 +124,7 @@ const $run = async (
 		let asyncRunnerMigratorFn: (tx: Tx) => Promise<number>;
 		let initMigrationState: InitialMigrationStatus = {
 			migration_key: key,
-			start_time: new Date(),
+			last_execution_time_ms: 0,
 			last_run_time: new Date(),
 			run_count: 0,
 			migrated_row_count: 0,
@@ -212,7 +214,7 @@ const $run = async (
 									);
 									return false;
 								}
-								// sync on the last execution time between instances
+								// sync on the execution time between instances
 								// precondition: All running instances are running on the same time/block
 								// skip execution
 								if (migrationState.last_run_time) {
@@ -229,11 +231,15 @@ const $run = async (
 								try {
 									// here a separate transaction is needed as this migration may fail
 									// when it fails it would break the transaction for managing the migration status
+									const executionStartTimeMS = Date.now();
 									const migratedRows = await sbvrUtils.db.transaction(
 										async (migrationTx) => {
 											return (await asyncRunnerMigratorFn?.(migrationTx)) ?? 0;
 										},
 									);
+									migrationState.last_execution_time_ms =
+										Date.now() - executionStartTimeMS;
+
 									migrationState.migrated_row_count += migratedRows;
 									if (migratedRows === 0) {
 										// when all rows have been catched up once we only catch up less frequently
@@ -268,6 +274,12 @@ const $run = async (
 									// either success or error release the lock
 									migrationState.last_run_time = new Date();
 									migrationState.run_count += 1;
+									// just emit
+									migrationMetricsEmitter.emit(
+										MigrationMetricsEventName.async_migration_status,
+										migrationState,
+									);
+
 									await updateMigrationStatus(tx, migrationState);
 								}
 								return migrationState;
