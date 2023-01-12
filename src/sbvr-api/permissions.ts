@@ -969,7 +969,10 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 				constrainedAbstractSqlModel.synonyms = new Proxy(
 					constrainedAbstractSqlModel.synonyms,
 					{
-						get: (synonyms, permissionSynonym: string) => {
+						get(synonyms, permissionSynonym, receiver) {
+							if (typeof permissionSynonym === 'symbol') {
+								return Reflect.get(synonyms, permissionSynonym, receiver);
+							}
 							if (synonyms[permissionSynonym]) {
 								return synonyms[permissionSynonym];
 							}
@@ -1017,7 +1020,10 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 				constrainedAbstractSqlModel.tables = new Proxy(
 					constrainedAbstractSqlModel.tables,
 					{
-						get: (tables, permissionResourceName: string) => {
+						get(tables, permissionResourceName, receiver) {
+							if (typeof permissionResourceName === 'symbol') {
+								return Reflect.get(tables, permissionResourceName, receiver);
+							}
 							if (tables[permissionResourceName]) {
 								return tables[permissionResourceName];
 							}
@@ -1062,7 +1068,14 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 				constrainedAbstractSqlModel.relationships = new Proxy(
 					constrainedAbstractSqlModel.relationships,
 					{
-						get: (relationships, permissionResourceName: string) => {
+						get(relationships, permissionResourceName, receiver) {
+							if (typeof permissionResourceName === 'symbol') {
+								return Reflect.get(
+									relationships,
+									permissionResourceName,
+									receiver,
+								);
+							}
 							if (relationships[permissionResourceName]) {
 								return relationships[permissionResourceName];
 							}
