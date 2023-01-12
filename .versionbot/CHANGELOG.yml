@@ -1,4 +1,16 @@
 - commits:
+    - subject: Handle symbols when proxying for constrained models
+      hash: e53a6744ba0e32e2ae414ab7bb1ae375957e115c
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.54.6
+  title: ""
+  date: 2023-01-12T18:51:58.179Z
+- commits:
     - subject: Prettified according to new rules
       hash: 8c5a73399171eae3dd8d105810ba71b811cdc3ea
       body: ""
