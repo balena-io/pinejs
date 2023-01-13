@@ -1,4 +1,19 @@
 - commits:
+    - subject: Filter for `SideEffectHook`s before entering the async rollback loop
+      hash: 887027c084172658d29904e9fcdc1104779ebfb2
+      body: |
+        This avoids unnecessary work by adding an async boundary for the
+        filtering part, meaning we can avoid any async boundaries in the case
+        of no side effecting hooks (the likely case)
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.54.7
+  title: ""
+  date: 2023-01-13T15:53:47.439Z
+- commits:
     - subject: Handle symbols when proxying for constrained models
       hash: e53a6744ba0e32e2ae414ab7bb1ae375957e115c
       body: ""
