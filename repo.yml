@@ -11,7 +11,7 @@ upstream:
   - repo: '@balena/odata-to-abstract-sql'
     url: 'https://github.com/balena-io-modules/odata-to-abstract-sql'
   - repo: 'pinejs-client-core'
-    url: 'https://github.com/balena-io/pinejs-client-js'
+    url: 'https://github.com/balena-io-modules/pinejs-client-js'
   - repo: '@balena/sbvr-parser'
     url: 'https://github.com/balena-io-modules/sbvr-parser'
   - repo: '@balena/sbvr-types'
