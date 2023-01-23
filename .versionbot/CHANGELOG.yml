@@ -1,4 +1,19 @@
 - commits:
+    - subject: Update dependency commander to 10.0.0
+      hash: 80989852ab6759e074f842a61fd1d72c951108e8
+      body: |
+        Update commander to 10.0.0
+
+        Update commander from 9.5.0 to 10.0.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Renovate Bot
+      nested: []
+  version: 14.55.0
+  title: ""
+  date: 2023-01-23T19:13:03.471Z
+- commits:
     - subject: Update dependencies
       hash: e174ca518bce3890988a964b8f267784710c5197
       body: |
