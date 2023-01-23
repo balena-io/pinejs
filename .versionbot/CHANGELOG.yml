@@ -1,4 +1,306 @@
 - commits:
+    - subject: Update dependencies
+      hash: e174ca518bce3890988a964b8f267784710c5197
+      body: |
+        Update @balena/abstract-sql-compiler from 7.23.0 to 7.25.0
+        Update @balena/lf-to-abstract-sql from 4.6.0 to 4.7.0
+        Update @balena/odata-to-abstract-sql from 5.7.2 to 5.8.0
+        Update pinejs-client-core from 6.12.2 to 6.12.3
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add `modifyFields`/`modifyName` to table definition
+              hash: 174c07b3923bb41fe50b413829b4268c1b28172e
+              body: >
+                This is intended to be used to target tables differently for reads vs
+
+                writes, eg where you might read from a view/definition but want to
+
+                write to a physical table instead
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.25.0
+          title: ""
+          date: 2023-01-23T17:39:22.841Z
+        - commits:
+            - subject: Add the AbstractSql node `Any`
+              hash: ebc43d8139624a95f08b18ee290e89bb425a791a
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+                Signed-off-by: Carol Schulze <carol@balena.io>
+                signed-off-by: Carol Schulze <carol@balena.io>
+              author: Carol Schulze
+              nested: []
+          version: abstract-sql-compiler-7.24.0
+          title: ""
+          date: 2023-01-16T14:40:50.608Z
+        - commits:
+            - subject: Empty commit to force a new version to be generated
+              hash: 41bc55fa9af394d8c2294c243839d472c1ed92c6
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+                Signed-off-by: Carol Schulze <carol@balena.io>
+                signed-off-by: Carol Schulze <carol@balena.io>
+              author: Carol Schulze
+              nested: []
+            - subject: Add an `lfInfo` entry in the results object
+              hash: 167680ba65e73235307370c3e211a211a14a1acc
+              body: >
+                `lfInfo` will be used to pass extra context extracted from LF
+
+                downstream. Currently the only context is the root table alias for each
+
+                rule.
+              footer:
+                Change-type: minor
+                change-type: minor
+                Signed-off-by: Carol Schulze <carol@balena.io>
+                signed-off-by: Carol Schulze <carol@balena.io>
+              author: Carol Schulze
+              nested: []
+          version: lf-to-abstract-sql-4.7.0
+          title: ""
+          date: 2022-12-14T12:09:57.887Z
+        - commits:
+            - subject: Respect `modifyFields`/`modifyName` in the table definition
+              hash: af5233c9c312ab23fbe6fa7bbcc20f5007c80dc2
+              body: >
+                This is intended to be used to target tables differently for reads vs
+
+                writes, eg where you might read from a view/definition but want to
+
+                write to a physical table instead
+
+
+                Update @balena/abstract-sql-compiler from 7.22.0 to 7.25.0
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Add `modifyFields`/`modifyName` to table definition
+                      hash: 174c07b3923bb41fe50b413829b4268c1b28172e
+                      body: >
+                        This is intended to be used to target tables differently for reads vs
+
+                        writes, eg where you might read from a view/definition but want to
+
+                        write to a physical table instead
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.25.0
+                  title: ""
+                  date: 2023-01-23T17:39:22.841Z
+                - commits:
+                    - subject: Add the AbstractSql node `Any`
+                      hash: ebc43d8139624a95f08b18ee290e89bb425a791a
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                        Signed-off-by: Carol Schulze <carol@balena.io>
+                        signed-off-by: Carol Schulze <carol@balena.io>
+                      author: Carol Schulze
+                      nested: []
+                  version: abstract-sql-compiler-7.24.0
+                  title: ""
+                  date: 2023-01-16T14:40:50.608Z
+                - commits:
+                    - subject: Add support for rules optimizations when using COUNT(*) = 0
+                      hash: f45412c4dbec8bed287ef116b9c5f0afdc047f9f
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.23.0
+                  title: ""
+                  date: 2022-12-08T15:38:24.108Z
+                - commits:
+                    - subject: "Flowzone: Allow external contributions"
+                      hash: de26e9d6cc65ab9a03fd9e1ac6027e0df198864d
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: Josh Bowling <josh@monarci.com>
+                        signed-off-by: Josh Bowling <josh@monarci.com>
+                      author: Josh Bowling
+                      nested: []
+                  version: abstract-sql-compiler-7.22.5
+                  title: ""
+                  date: 2022-12-08T01:00:02.914Z
+                - commits:
+                    - subject: "Fix: move @balena/odata-to-abstract-sql to dev dependencies"
+                      hash: a5bd2c11c4e6f04a98c7784601a0d0e36ca7f6a2
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.22.4
+                  title: ""
+                  date: 2022-11-30T16:23:35.142Z
+                - commits:
+                    - subject: "Tests: update @balena/odata-to-abstract-sql to 5.x"
+                      hash: e93dfd1cbf56a9df248ac199776dca44c71cbc11
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.22.3
+                  title: ""
+                  date: 2022-11-30T16:17:30.183Z
+                - commits:
+                    - subject: Fix deprecation notice module name
+                      hash: 7272a823a00ffd6af52228f2cab4c95e3b3474b9
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.22.2
+                  title: ""
+                  date: 2022-11-30T16:12:20.310Z
+                - commits:
+                    - subject: Add deprecation notices to the legacy null formats of `null` and
+                        `'Null'`
+                      hash: d4a8a31911b80c4c8ad46e5b6567496c232fad9b
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                    - subject: Add deprecation notice to the legacy table format of `tableName`
+                      hash: c0847bf375bb40bae0141aab5e09f97a844f69c7
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                    - subject: Add deprecation notice to the legacy alias format of `[node, alias]`
+                      hash: 75e04d107ad1d1ddd7f8e33fa53c3a70c46a35ac
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-7.22.1
+                  title: ""
+                  date: 2022-11-29T18:49:06.598Z
+          version: odata-to-abstract-sql-5.8.0
+          title: ""
+          date: 2023-01-23T18:27:50.934Z
+        - commits:
+            - subject: Always replace the table being modified in definitions, ignoring
+                aliases
+              hash: 253fdae228cf1edd5e9137819b1bbe783c0e72b0
+              body: >
+                This avoids issues where the aliases may not map up, particularly if
+
+                the definition was generated and may have automatic aliases, eg if
+
+                using the result of an odata-to-abstract-sql generation
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.7.7
+          title: ""
+          date: 2023-01-23T15:42:11.369Z
+        - commits:
+            - subject: Integrate beta version of sbvr-types supporting WebResource
+              hash: 8940999f5f3dda0f0f04012a6d0508c4a1028b94
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Ramiro Gonzalez <ramiro.gonzalez@balena.io>
+                signed-off-by: Ramiro Gonzalez <ramiro.gonzalez@balena.io>
+              author: Ramiro González Maciel
+              nested: []
+          version: odata-to-abstract-sql-5.7.6
+          title: ""
+          date: 2023-01-20T17:34:18.887Z
+        - commits:
+            - subject: Integrate beta version of sbvr-types supporting WebResource
+              hash: 2d045ee23367146eb53d9c1a8ea5c0bd6bde2abc
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Ramiro Gonzalez <ramiro.gonzalez@balena.io>
+                signed-off-by: Ramiro Gonzalez <ramiro.gonzalez@balena.io>
+              author: Ramiro González Maciel
+              nested: []
+          version: odata-to-abstract-sql-5.7.5
+          title: ""
+          date: 2023-01-16T14:51:23.427Z
+        - commits:
+            - subject: "Tests: reduce lodash usage"
+              hash: 99e3f4f2b3c67bac49c09a695f02070a9dd133ce
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.7.4
+          title: ""
+          date: 2023-01-10T17:12:08.376Z
+        - commits:
+            - subject: "Flowzone: Allow external contributions"
+              hash: 74dc9ac5c833d6bfe31de9500cc4692052179090
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Josh Bowling <josh@monarci.com>
+                signed-off-by: Josh Bowling <josh@monarci.com>
+              author: Josh Bowling
+              nested: []
+          version: odata-to-abstract-sql-5.7.3
+          title: ""
+          date: 2022-12-08T01:10:24.930Z
+        - commits:
+            - subject: "CI: Convert tests to TypeScript"
+              hash: 683efba924728fc57cbb9a43b7b65f124903661e
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Josh Bowling
+              nested: []
+          version: pinejs-client-js-6.12.3
+          title: ""
+          date: 2022-12-28T09:32:01.282Z
+  version: 14.54.8
+  title: ""
+  date: 2023-01-23T18:49:55.840Z
+- commits:
     - subject: Filter for `SideEffectHook`s before entering the async rollback loop
       hash: 887027c084172658d29904e9fcdc1104779ebfb2
       body: |
