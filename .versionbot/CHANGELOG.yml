@@ -1,4 +1,19 @@
 - commits:
+    - subject: Update dependency @types/node to 18.11.18
+      hash: 0997dacb598c5fdab904b9918a11f003d92a3f59
+      body: |
+        Update @types/node to 18.11.18
+
+        Update @types/node from 12.20.55 to 18.11.18
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Renovate Bot
+      nested: []
+  version: 14.56.0
+  title: ""
+  date: 2023-01-23T20:17:22.573Z
+- commits:
     - subject: Update dependency commander to 10.0.0
       hash: 80989852ab6759e074f842a61fd1d72c951108e8
       body: |
