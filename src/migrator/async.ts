@@ -201,77 +201,83 @@ const $run = async (
 				try {
 					const $migrationState = await sbvrUtils.db.transaction(
 						async (tx) =>
-							await lockMigrations(tx, modelName, async () => {
-								const migrationState = await readMigrationStatus(tx, key);
+							await lockMigrations(
+								{ tx, modelName, blocking: false },
+								async () => {
+									const migrationState = await readMigrationStatus(tx, key);
 
-								if (!migrationState) {
-									// migration status is unclear stop the migrator
-									// or migration should stop
-									(sbvrUtils.api.migrations?.logger.info ?? console.info)(
-										`stopping async migration due to missing migration status: ${key}`,
-									);
-									return false;
-								}
-								// sync on the last execution time between instances
-								// precondition: All running instances are running on the same time/block
-								// skip execution
-								if (migrationState.last_run_time) {
-									const durationSinceLastRun =
-										Date.now() - migrationState.last_run_time.getTime();
-									const delayMs = migrationState.is_backing_off
-										? initMigrationState.backoffDelayMS
-										: initMigrationState.delayMS;
-									if (durationSinceLastRun < delayMs) {
-										// will still execute finally block where the migration lock is released.
-										return;
-									}
-								}
-								try {
-									// here a separate transaction is needed as this migration may fail
-									// when it fails it would break the transaction for managing the migration status
-									const migratedRows = await sbvrUtils.db.transaction(
-										async (migrationTx) => {
-											return (await asyncRunnerMigratorFn?.(migrationTx)) ?? 0;
-										},
-									);
-									migrationState.migrated_row_count += migratedRows;
-									if (migratedRows === 0) {
-										// when all rows have been catched up once we only catch up less frequently
-										migrationState.is_backing_off = true;
-										// only store the first time when migrator converged to all data migrated
-										migrationState.converged_time ??= new Date();
-									} else {
-										// Only here for the case that after backoff more rows need to be caught up faster
-										// If rows have been updated recently we start the interval again with normal frequency
-										migrationState.is_backing_off = false;
-									}
-								} catch (err: unknown) {
-									migrationState.error_count++;
-									if (err instanceof Error) {
-										if (
-											migrationState.error_count %
-												initMigrationState.errorThreshold ===
-											0
-										) {
-											(sbvrUtils.api.migrations?.logger.error ?? console.error)(
-												`${key}: ${err.name} ${err.message}`,
-											);
-											migrationState.is_backing_off = true;
-										}
-									} else {
-										(sbvrUtils.api.migrations?.logger.error ?? console.error)(
-											`async migration error unknown: ${key}: ${err}`,
+									if (!migrationState) {
+										// migration status is unclear stop the migrator
+										// or migration should stop
+										(sbvrUtils.api.migrations?.logger.info ?? console.info)(
+											`stopping async migration due to missing migration status: ${key}`,
 										);
+										return false;
 									}
-								} finally {
-									// using finally as it will also run when return statement is called inside the try block
-									// either success or error release the lock
-									migrationState.last_run_time = new Date();
-									migrationState.run_count += 1;
-									await updateMigrationStatus(tx, migrationState);
-								}
-								return migrationState;
-							}),
+									// sync on the last execution time between instances
+									// precondition: All running instances are running on the same time/block
+									// skip execution
+									if (migrationState.last_run_time) {
+										const durationSinceLastRun =
+											Date.now() - migrationState.last_run_time.getTime();
+										const delayMs = migrationState.is_backing_off
+											? initMigrationState.backoffDelayMS
+											: initMigrationState.delayMS;
+										if (durationSinceLastRun < delayMs) {
+											// will still execute finally block where the migration lock is released.
+											return;
+										}
+									}
+									try {
+										// here a separate transaction is needed as this migration may fail
+										// when it fails it would break the transaction for managing the migration status
+										const migratedRows = await sbvrUtils.db.transaction(
+											async (migrationTx) => {
+												return (
+													(await asyncRunnerMigratorFn?.(migrationTx)) ?? 0
+												);
+											},
+										);
+										migrationState.migrated_row_count += migratedRows;
+										if (migratedRows === 0) {
+											// when all rows have been catched up once we only catch up less frequently
+											migrationState.is_backing_off = true;
+											// only store the first time when migrator converged to all data migrated
+											migrationState.converged_time ??= new Date();
+										} else {
+											// Only here for the case that after backoff more rows need to be caught up faster
+											// If rows have been updated recently we start the interval again with normal frequency
+											migrationState.is_backing_off = false;
+										}
+									} catch (err: unknown) {
+										migrationState.error_count++;
+										if (err instanceof Error) {
+											if (
+												migrationState.error_count %
+													initMigrationState.errorThreshold ===
+												0
+											) {
+												(
+													sbvrUtils.api.migrations?.logger.error ??
+													console.error
+												)(`${key}: ${err.name} ${err.message}`);
+												migrationState.is_backing_off = true;
+											}
+										} else {
+											(sbvrUtils.api.migrations?.logger.error ?? console.error)(
+												`async migration error unknown: ${key}: ${err}`,
+											);
+										}
+									} finally {
+										// using finally as it will also run when return statement is called inside the try block
+										// either success or error release the lock
+										migrationState.last_run_time = new Date();
+										migrationState.run_count += 1;
+										await updateMigrationStatus(tx, migrationState);
+									}
+									return migrationState;
+								},
+							),
 					);
 					if ($migrationState === false) {
 						// We've stopped the migration intentionally

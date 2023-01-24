@@ -115,6 +115,11 @@ export const db = {
 	checkReadOnlyQueries: DEBUG,
 };
 
+export const PINEJS_ADVISORY_LOCK = {
+	namespaceKey: 'pinejs_advisory_lock_namespace',
+	namespaceId: -1,
+};
+
 export const migrator = {
 	lockTimeout: 5 * 60 * 1000,
 	// Used to delay the failure on lock taking, to avoid spam taking

@@ -598,4 +598,44 @@ describe('03 Async Migrations', async function () {
 			}
 		});
 	});
+
+	describe('avoid starvation of sync migration because of an aggressive async migration', async function () {
+		const startPort = 1338;
+
+		const asyncInstaces: ChildProcess[] = [];
+		let syncMigrationInstance: ChildProcess;
+		before(async function () {
+			await executeModelBeforeMigrations();
+			for (let port = startPort; port < startPort + 2; port++) {
+				asyncInstaces.push(
+					await testInit(
+						fixturesBasePath + '/08-01-async-lock-taker',
+						false,
+						port,
+					),
+				);
+			}
+		});
+
+		after(async () => {
+			for (const instance of asyncInstaces) {
+				await testDeInit(instance);
+			}
+			await testDeInit(syncMigrationInstance);
+		});
+
+		it('should start a third pine instance with sync migration without starvation', async function () {
+			// timing out the test cases is the error condition represents a potential starvation.
+			syncMigrationInstance = await testInit(
+				fixturesBasePath + '/08-02-sync-lock-starvation',
+				false,
+				1337,
+			);
+
+			const countWholeData = await supertest(testLocalServer)
+				.get(`/example/device/$count`)
+				.expect(200);
+			expect(countWholeData?.body?.d).to.equal(30);
+		});
+	});
 });

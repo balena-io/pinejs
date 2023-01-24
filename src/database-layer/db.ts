@@ -116,8 +116,11 @@ const validateTransactionLockParameter = (
 	value: number,
 	parameterName: string,
 ) => {
-	// PG also support negative values, but we initially restrict this to non-negative only.
-	if (!Number.isInteger(value) || value < 0 || types.integer.max < value) {
+	if (
+		!Number.isInteger(value) ||
+		value < types.integer.min ||
+		types.integer.max < value
+	) {
 		throw new TypeError(
 			`Invalid parameter '${parameterName}' provided for transaction lock`,
 		);
@@ -125,6 +128,13 @@ const validateTransactionLockParameter = (
 };
 
 const transactionLockNamespaceMap: Dictionary<number> = {};
+
+/**
+ *
+ * @param namespaceKey 	Any string representing a namespace
+ * @param namespaceId 	For application level locks positive values should be used
+ * 						as internal / low level locks are recommended to use negative values
+ */
 
 export function registerTransactionLockNamespace(
 	namespaceKey: string,
@@ -390,7 +400,8 @@ export abstract class Tx {
 	public async getTxLevelLock(
 		_namespaceKey: string,
 		_key: number,
-	): Promise<void> {
+		_blocking: boolean,
+	): Promise<boolean> {
 		throw new Error(
 			'The getTxLevelLock method is not implemented for the current engine.',
 		);
@@ -619,7 +630,11 @@ if (maybePg != null) {
 				}
 			}
 
-			public override async getTxLevelLock(namespaceKey: string, key: number) {
+			public override async getTxLevelLock(
+				namespaceKey: string,
+				key: number,
+				blocking: boolean = true,
+			) {
 				validateTransactionLockParameter(key, 'key');
 				const namespaceId = transactionLockNamespaceMap[namespaceKey];
 				if (namespaceId == null) {
@@ -627,10 +642,25 @@ if (maybePg != null) {
 						`Transaction lock namespace ${namespaceKey} not registered.`,
 					);
 				}
-				await this.executeSql(`SELECT pg_advisory_xact_lock($1, $2);`, [
-					namespaceId,
-					key,
-				]);
+				try {
+					if (blocking) {
+						await this.executeSql(`SELECT pg_advisory_xact_lock($1, $2);`, [
+							namespaceId,
+							key,
+						]);
+						return true;
+					} else {
+						const { rows } = await this.executeSql(
+							`SELECT pg_try_advisory_xact_lock($1, $2);`,
+							[namespaceId, key],
+						);
+						return rows[0].pg_try_advisory_xact_lock === true;
+					}
+				} catch (err) {
+					throw new Error(
+						`getTxLevelLock error during getting lock from postgres db layer ${err}`,
+					);
+				}
 			}
 
 			public async tableList(extraWhereClause: string = '') {
