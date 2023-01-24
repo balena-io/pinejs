@@ -8,6 +8,7 @@ import * as migrator from '../migrator/sync';
 import * as migratorUtils from '../migrator/utils';
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+import { PINEJS_ADVISORY_LOCK } from '../config-loader/env';
 
 export * as dbModule from '../database-layer/db';
 export { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store';
@@ -52,6 +53,11 @@ export const init = async <T extends string>(
 ): Promise<ReturnType<typeof configLoader.setup>> => {
 	try {
 		const db = dbModule.connect(databaseOptions);
+		// register a pinejs unique lock namespace
+		dbModule.registerTransactionLockNamespace(
+			PINEJS_ADVISORY_LOCK.namespaceKey,
+			PINEJS_ADVISORY_LOCK.namespaceId,
+		);
 		await sbvrUtils.setup(app, db);
 		const cfgLoader = await configLoader.setup(app);
 		await cfgLoader.loadConfig(migrator.config);

@@ -30,7 +30,7 @@ export const postRun = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 			`First time executing '${modelName}', running init script`,
 		);
 
-		await lockMigrations(tx, modelName, async () => {
+		await lockMigrations({ tx, modelName, blocking: true }, async () => {
 			try {
 				await tx.executeSql(initSql);
 			} catch (err: any) {
@@ -69,7 +69,7 @@ const $run = async (
 
 		return await setExecutedMigrations(tx, modelName, Object.keys(migrations));
 	}
-	await lockMigrations(tx, modelName, async () => {
+	await lockMigrations({ tx, modelName, blocking: true }, async () => {
 		try {
 			const executedMigrations = await getExecutedMigrations(tx, modelName);
 			const pendingMigrations = filterAndSortPendingMigrations(

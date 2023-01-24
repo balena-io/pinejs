@@ -1,11 +1,13 @@
 import type { Result, Tx } from '../database-layer/db';
 import type { Resolvable } from '../sbvr-api/common-types';
 
+import { createHash } from 'crypto';
 import { Engines } from '@balena/abstract-sql-compiler';
 import * as _ from 'lodash';
 import { TypedError } from 'typed-error';
 import { migrator as migratorEnv } from '../config-loader/env';
 export { migrator as migratorEnv } from '../config-loader/env';
+import { PINEJS_ADVISORY_LOCK } from '../config-loader/env';
 import { delay } from '../sbvr-api/control-flow';
 
 // tslint:disable-next-line:no-var-requires
@@ -65,6 +67,11 @@ export function isAsyncMigration(
 	return (migration as AsyncMigration).type === MigrationCategories.async;
 }
 
+export function isSyncMigration(
+	migration: string | MigrationFn | RunnableMigrations,
+): migration is MigrationFn {
+	return typeof migration === 'function' || typeof migration === 'string';
+}
 export function areCategorizedMigrations(
 	migrations: Migrations,
 ): migrations is CategorizedMigrations {
@@ -130,7 +137,7 @@ export const getRunnableSyncMigrations = (
 						if (migration.finalize) {
 							runnableMigrations[key] = migration.syncFn ?? migration.syncSql;
 						}
-					} else {
+					} else if (isSyncMigration(migration)) {
 						runnableMigrations[key] = migration;
 					}
 				}
@@ -170,15 +177,20 @@ export const binds = (strings: TemplateStringsArray, ...bindNums: number[]) =>
 		})
 		.join('');
 
-export const lockMigrations = async <T>(
+/**
+ * Lock mechanism that tries to write model name to the migration lock table
+ * This creates an index write lock on this row. This lock is never persisted
+ * as the lock is hold only in the transaction and is delete at the end of the
+ * transaction.
+ *
+ * Disadvantage is that no blocking-wait queue can be generated on this lock mechanism
+ * It's database engine agnostic and works also for webSQL
+ */
+const $lockMigrations = async <T>(
 	tx: Tx,
 	modelName: string,
 	fn: () => Promise<T>,
 ): Promise<T | undefined> => {
-	if (!(await migrationTablesExist(tx))) {
-		return;
-	}
-
 	try {
 		await tx.executeSql(
 			binds`
@@ -212,6 +224,42 @@ WHERE "model name" = ${1}`,
 			// rolling back the transaction, and if we rethrow here we'll overwrite the real error
 			// making it much harder for users to see what went wrong and fix it
 		}
+	}
+};
+
+export const lockMigrations = async <T>(
+	options: { tx: Tx; modelName: string; blocking: boolean },
+	fn: () => Promise<T>,
+): Promise<T | undefined> => {
+	if (!(await migrationTablesExist(options.tx))) {
+		return;
+	}
+
+	if (sbvrUtils.db.engine === Engines.websql) {
+		return $lockMigrations(options.tx, options.modelName, fn);
+	} else if (sbvrUtils.db.engine === Engines.mysql) {
+		// right now the mysql locks are not testable
+		// pinejs generates models that are not executable on mysql databases
+		return $lockMigrations(options.tx, options.modelName, fn);
+	} else if (sbvrUtils.db.engine === Engines.postgres) {
+		// getTxLevelLock expects a 4 byte integer as the lock key.
+		// Therefore the model name is hashed and the first 4 bytes are taken as the Integer representation.
+		const modelKey: number = createHash('shake128', { outputLength: 4 })
+			.update('resin')
+			.digest()
+			.readInt32BE();
+		const lockStatus = await options.tx.getTxLevelLock(
+			PINEJS_ADVISORY_LOCK.namespaceKey,
+			modelKey,
+			options.blocking,
+		);
+
+		if (lockStatus) {
+			return await fn();
+		}
+	} else {
+		// we report any error here, as no error should happen at all
+		throw new Error(`unknown database engine for getting migration locks`);
 	}
 };
 
@@ -270,7 +318,7 @@ WHERE "migration"."model name" = ${1}`,
 };
 
 export const migrationTablesExist = async (tx: Tx) => {
-	const tables = ['migration', 'migration lock'];
+	const tables = ['migration', 'migration lock', 'migration status'];
 	const where = tables.map((tableName) => `name = '${tableName}'`).join(' OR ');
 	const result = await tx.tableList(where);
 	return result.rows.length === tables.length;
