@@ -1,4 +1,21 @@
 - commits:
+    - subject: Use postgres advisory locks for migration locking.
+      hash: b59c18865e5964d40bb31cc369eee33658f4e990
+      body: |
+        Avoid starvation of sync migrations while
+        aggressive async migrations take the model lock
+        over and over again.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 14.57.0
+  title: ""
+  date: 2023-01-24T16:21:38.099Z
+- commits:
     - subject: Update dependency @types/node to 18.11.18
       hash: 0997dacb598c5fdab904b9918a11f003d92a3f59
       body: |
