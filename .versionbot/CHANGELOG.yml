@@ -1,4 +1,18 @@
 - commits:
+    - subject: "db: Make the base getTxLevelLock blocking by default"
+      hash: 2aeef9f48b33892455779eab866cfc10988ab226
+      body: |
+        Otherwise users would get a  TS error after
+        updating.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 14.57.2
+  title: ""
+  date: 2023-01-25T09:56:48.633Z
+- commits:
     - subject: Update @balena/abstract-sql-compiler to 7.25.3
       hash: cba15cec2c99356371180feaf5dadf1601f3fe61
       body: |
