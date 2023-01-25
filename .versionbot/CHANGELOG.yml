@@ -1,4 +1,23 @@
 - commits:
+    - subject: Introduce control means for async migration execution
+      hash: a034b8ff3168284785b0d776954b16782b0f9a87
+      body: >
+        Introduce env var PINEJS_ASYNC_MIGRATION_ENABLED to control async
+        migration execution on startup.
+
+
+        Test with SIGUSR2 listener to toggle migration execution during runtime.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+  version: 14.59.0
+  title: ""
+  date: 2023-01-25T15:05:10.001Z
+- commits:
     - subject: "chore(deps): update node.js to v19"
       hash: 6b85dd0063669e7db4432bdb650927d05ef9f9c4
       body: |
