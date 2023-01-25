@@ -400,7 +400,7 @@ export abstract class Tx {
 	public async getTxLevelLock(
 		_namespaceKey: string,
 		_key: number,
-		_blocking: boolean,
+		_blocking: boolean = true,
 	): Promise<boolean> {
 		throw new Error(
 			'The getTxLevelLock method is not implemented for the current engine.',
