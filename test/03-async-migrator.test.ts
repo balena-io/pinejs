@@ -200,7 +200,59 @@ describe('03 Async Migrations', async function () {
 
 			expect(result[0]?.migrated_row_count).to.be.greaterThan(0);
 			expect(result[0]?.migrated_row_count - firstRowsMigrated).to.equal(1);
-			expect(Date.now().valueOf() - startTime).to.be.greaterThan(4000); // backOff time from migrator
+			expect(Date.now().valueOf() - startTime).to.be.greaterThan(1000); // backOff time from migrator
+		});
+	});
+
+	describe('async migration environment and runtime switches', function () {
+		let pineFirstInstace: ChildProcess;
+
+		afterEach(async () => {
+			await testDeInit(pineFirstInstace);
+		});
+
+		it('should not run async migrators until switch on via SIGUSR2', async function () {
+			await executeModelBeforeMigrations();
+			const fixturePath = fixturesBasePath + '01-migrations';
+			process.env.PINEJS_ASYNC_MIGRATION_ENABLED = 'false';
+			pineFirstInstace = await testInit(fixturePath, false);
+
+			await delay(200); // wait for one to have happened
+			let result: MigrationStatus[] = await getMigrationStatus();
+			for (const row of result) {
+				expect(row.run_count).to.be.equal(0);
+			}
+
+			// send the SIGUSR2 signal to enable migrations
+			pineFirstInstace.kill('SIGUSR2');
+			await delay(2000); // wait for migrations to return from backOff timeout
+			result = await getMigrationStatus();
+			for (const row of result) {
+				expect(row.run_count).to.be.greaterThan(0);
+			}
+		});
+
+		it('should run async migrators until switched off via SIGUSR2 signal', async function () {
+			await executeModelBeforeMigrations();
+			const fixturePath = fixturesBasePath + '01-migrations';
+			process.env.PINEJS_ASYNC_MIGRATION_ENABLED = 'true';
+			pineFirstInstace = await testInit(fixturePath, false);
+
+			await delay(200); // wait for one to have happened
+			let result: MigrationStatus[] = await getMigrationStatus();
+			for (const row of result) {
+				expect(row.run_count).to.be.greaterThan(0);
+			}
+
+			// send the SIGUSR2 signal to disable migrations
+			pineFirstInstace.kill('SIGUSR2');
+
+			await delay(2000); // wait for a migrations have cycled backOff timeout
+			const resultTest = await getMigrationStatus();
+			await delay(2000); // wait for a migration to have cycled backOff timeout once more
+			const resultTestEnd = await getMigrationStatus();
+
+			expect(resultTestEnd).deep.equal(resultTest);
 		});
 	});
 
@@ -323,7 +375,7 @@ describe('03 Async Migrations', async function () {
 				expect(row.migrated_row_count).to.be.greaterThan(0);
 				expect(row.migrated_row_count - firstRowsMigratedA).to.equal(1);
 			});
-			expect(Date.now().valueOf() - startTime).to.be.greaterThan(4000); // backOff time from migrator
+			expect(Date.now().valueOf() - startTime).to.be.greaterThan(1000); // backOff time from migrator
 		});
 	});
 

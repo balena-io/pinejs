@@ -27,6 +27,14 @@ import {
 	MigrationStatus,
 	BaseAsyncMigration,
 } from './utils';
+import { booleanToEnabledString } from '../config-loader/env';
+
+// log the startup condition of the async migration
+(sbvrUtils.api?.migrations?.logger.info ?? console.info)(
+	`Async migration execution is ${booleanToEnabledString(
+		migratorEnv.asyncMigrationIsEnabled,
+	)}`,
+);
 
 export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 	const { migrations } = model;
@@ -198,6 +206,11 @@ const $run = async (
 			asyncRunnerMigratorFn,
 		} of asyncMigrationSetup) {
 			const asyncRunner = async () => {
+				// don't run the async migration but keep checking
+				if (!migratorEnv.asyncMigrationIsEnabled) {
+					setTimeout(asyncRunner, initMigrationState.backoffDelayMS);
+					return;
+				}
 				try {
 					const $migrationState = await sbvrUtils.db.transaction(
 						async (tx) =>
