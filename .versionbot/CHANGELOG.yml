@@ -1,4 +1,19 @@
 - commits:
+    - subject: "chore(deps): update node.js to v19"
+      hash: 6b85dd0063669e7db4432bdb650927d05ef9f9c4
+      body: |
+        Update node to 19
+
+        Update node from 16 to 19
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Renovate Bot
+      nested: []
+  version: 14.58.0
+  title: ""
+  date: 2023-01-25T10:18:49.492Z
+- commits:
     - subject: "db: Make the base getTxLevelLock blocking by default"
       hash: 2aeef9f48b33892455779eab866cfc10988ab226
       body: |
