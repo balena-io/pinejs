@@ -1,4 +1,73 @@
 - commits:
+    - subject: Update @balena/abstract-sql-compiler to 7.25.3
+      hash: cba15cec2c99356371180feaf5dadf1601f3fe61
+      body: |
+        Update @balena/abstract-sql-compiler from 7.25.0 to 7.25.3
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Wrap Date & Duration operations with parenthesis when necessary
+              hash: 4d05dbf6d86bbc95b323e3571633e22c625a114d
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested: []
+            - subject: Wrap composite math operations with parenthesis when necessary
+              hash: ab7d6b73808affbf8316f816b9e968e58e83d733
+              body: ""
+              footer:
+                Resolves: "#184"
+                resolves: "#184"
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-7.25.3
+          title: ""
+          date: 2023-01-24T16:19:22.753Z
+        - commits:
+            - subject: "Tests: update @balena/odata-to-abstract-sql to 5.8"
+              hash: ade93b12c14a0a9c833845a9feb79f2feb4b6844
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-7.25.2
+          title: ""
+          date: 2023-01-24T07:18:49.086Z
+        - commits:
+            - subject: Change AggregateJSON to use `JSON_AGG` instead of
+                `ARRAY_TO_JSON`+`ARRAY_AGG`
+              hash: 360bbd95352d96be7ec0ce83521cd6e155b7da88
+              body: >
+                This increases the minimum postgres version for AggregateJSON from 9.2
+
+                to 9.3 but it is likely that other places already require postgres
+
+                >=9.3 and as such this should not increase the minimum version at all.
+
+                If it does somehow manage to then increasing the minimum from a 2012
+
+                postgres to 2013 should still be fine
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-7.25.1
+          title: ""
+          date: 2023-01-23T19:03:56.421Z
+  version: 14.57.1
+  title: ""
+  date: 2023-01-25T09:08:04.726Z
+- commits:
     - subject: Use postgres advisory locks for migration locking.
       hash: b59c18865e5964d40bb31cc369eee33658f4e990
       body: |
