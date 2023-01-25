@@ -1593,11 +1593,7 @@ export const checkPermissionsMiddleware =
 					);
 			}
 		} catch (err: any) {
-			sbvrUtils.api.Auth.logger.error(
-				'Error checking permissions',
-				err,
-				err.stack,
-			);
+			sbvrUtils.api.Auth.logger.error('Error checking permissions', err);
 			res.status(503).end();
 		}
 	};

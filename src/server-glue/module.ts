@@ -80,7 +80,7 @@ export const init = async <T extends string>(
 
 		return cfgLoader;
 	} catch (err: any) {
-		console.error('Error initialising server', err, err.stack);
+		console.error('Error initialising server', err);
 		process.exit(1);
 	}
 };

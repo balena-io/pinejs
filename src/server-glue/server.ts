@@ -95,7 +95,7 @@ export const initialised = Pinejs.init(app)
 				'/login',
 				passportPinejs.login((err, user, req, res) => {
 					if (err) {
-						console.error('Error logging in', err, err.stack);
+						console.error('Error logging in', err);
 						res.status(500).end();
 					} else if (user === false) {
 						if (req.xhr === true) {
@@ -123,6 +123,6 @@ export const initialised = Pinejs.init(app)
 		});
 	})
 	.catch((err) => {
-		console.error('Error initialising server', err, err.stack);
+		console.error('Error initialising server', err);
 		process.exit(1);
 	});
