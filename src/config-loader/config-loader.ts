@@ -342,7 +342,7 @@ export const setup = (app: Express.Application) => {
 			);
 			await loadConfig(configObj);
 		} catch (err: any) {
-			console.error('Error loading application config', err, err.stack);
+			console.error('Error loading application config', err);
 			process.exit(1);
 		}
 	};
