@@ -1,4 +1,16 @@
 - commits:
+    - subject: Remove duplicate stack trace logging
+      hash: 9399925c01dc42e5426d69e3843a63ed142795a7
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.59.1
+  title: ""
+  date: 2023-01-26T12:06:17.588Z
+- commits:
     - subject: Introduce control means for async migration execution
       hash: a034b8ff3168284785b0d776954b16782b0f9a87
       body: >
