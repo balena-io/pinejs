@@ -1,4 +1,22 @@
 - commits:
+    - subject: 'Revert "chore(deps): update node.js to v19"'
+      hash: 89555686d14cf155cd8d4cb23e10392b7672be9d
+      body: >
+        This reverts commit 6b85dd0063669e7db4432bdb650927d05ef9f9c4.
+
+
+        Pin grunt to fixed 1.5.3 as grunt does not follow semver. Needed for now to executed on node12
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+  version: 14.60.0
+  title: ""
+  date: 2023-01-30T21:05:20.149Z
+- commits:
     - subject: Remove duplicate stack trace logging
       hash: 9399925c01dc42e5426d69e3843a63ed142795a7
       body: ""
