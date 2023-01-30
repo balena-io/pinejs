@@ -70,7 +70,7 @@
     "@types/terser-webpack-plugin": "^5.2.0",
     "@types/webpack": "^5.28.0",
     "chai": "^4.3.7",
-    "grunt": "1.5.3",
+    "grunt": "1.6.0",
     "grunt-check-dependencies": "^1.0.0",
     "grunt-cli": "^1.4.3",
     "grunt-contrib-clean": "^2.0.1",
