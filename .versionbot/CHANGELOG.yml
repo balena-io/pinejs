@@ -1,4 +1,19 @@
 - commits:
+    - subject: "chore(deps): update dependency grunt to 1.6.1"
+      hash: 8887bb76b142d47a50b3a1c9f65a78af09d0a1a1
+      body: |
+        Update grunt to 1.6.1
+
+        Update grunt from 1.5.3 to 1.6.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+      nested: []
+  version: 14.60.1
+  title: ""
+  date: 2023-01-31T16:16:45.140Z
+- commits:
     - subject: 'Revert "chore(deps): update node.js to v19"'
       hash: 89555686d14cf155cd8d4cb23e10392b7672be9d
       body: >
