@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add support for models that are translated to other (newer) models
+      hash: aa7339a60e050deb73839dc3142b6fb810b83c57
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.61.0
+  title: ""
+  date: 2023-02-03T17:26:30.066Z
+- commits:
     - subject: "chore(deps): update dependency grunt to 1.6.1"
       hash: 8887bb76b142d47a50b3a1c9f65a78af09d0a1a1
       body: |
