@@ -95,7 +95,8 @@ export const getAndCheckBindValues = async (
 
 					const sqlTableName = odataNameToSqlName(tableName);
 					const sqlFieldName = odataNameToSqlName(fieldName);
-					const maybeField = sqlModelTables[sqlTableName].fields.find(
+					const table = sqlModelTables[sqlTableName];
+					const maybeField = (table.modifyFields ?? table.fields).find(
 						(f) => f.fieldName === sqlFieldName,
 					);
 					if (maybeField == null) {

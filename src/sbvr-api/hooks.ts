@@ -42,7 +42,9 @@ export interface Hooks {
 	PREPARSE?: (options: Omit<HookArgs, 'request' | 'api'>) => HookResponse;
 	POSTPARSE?: (options: HookArgs) => HookResponse;
 	PRERUN?: (options: HookArgs & { tx: Tx }) => HookResponse;
+	/** These are run in reverse translation order from newest to oldest */
 	POSTRUN?: (options: HookArgs & { tx: Tx; result: any }) => HookResponse;
+	/** These are run in reverse translation order from newest to oldest */
 	PRERESPOND?: (
 		options: HookArgs & {
 			tx: Tx;
@@ -53,6 +55,7 @@ export interface Hooks {
 			data?: any;
 		},
 	) => HookResponse;
+	/** These are run in reverse translation order from newest to oldest */
 	'POSTRUN-ERROR'?: (
 		options: HookArgs & { error: TypedError | any },
 	) => HookResponse;
@@ -126,13 +129,13 @@ class SideEffectHook<T extends HookFn> extends Hook<T> {
 
 // The execution order of rollback actions is unspecified
 export const rollbackRequestHooks = <T extends InstantiatedHooks>(
-	hooks: T | undefined,
+	hooksList: Array<[modelName: string, hooks: T]> | undefined,
 ): void => {
-	if (hooks == null) {
+	if (hooksList == null) {
 		return;
 	}
-	const sideEffectHooks = Object.values(hooks)
-		.flatMap((v): Array<Hook<HookFn>> => v)
+	const sideEffectHooks = hooksList
+		.flatMap(([, v]): Array<Hook<HookFn>> => Object.values(v).flat())
 		.filter(
 			(hook): hook is SideEffectHook<HookFn> => hook instanceof SideEffectHook,
 		);
@@ -177,21 +180,37 @@ const getResourceHooks = (vocabHooks: VocabHooks, resourceName?: string) => {
 const getVocabHooks = (
 	methodHooks: MethodHooks,
 	vocabulary: string,
-	resourceName?: string,
+	resourceName: string | undefined,
+	includeAllVocab: boolean,
 ) => {
 	if (methodHooks == null) {
 		return {};
 	}
+	const vocabHooks = getResourceHooks(methodHooks[vocabulary], resourceName);
+	if (!includeAllVocab) {
+		// Do not include `vocabulary='all'` hooks, useful for translated vocabularies
+		return vocabHooks;
+	}
 	return mergeHooks(
-		getResourceHooks(methodHooks[vocabulary], resourceName),
+		vocabHooks,
 		getResourceHooks(methodHooks['all'], resourceName),
 	);
 };
 const getMethodHooks = memoize(
-	(method: SupportedMethod, vocabulary: string, resourceName?: string) =>
+	(
+		method: SupportedMethod,
+		vocabulary: string,
+		resourceName: string | undefined,
+		includeAllVocab: boolean,
+	) =>
 		mergeHooks(
-			getVocabHooks(apiHooks[method], vocabulary, resourceName),
-			getVocabHooks(apiHooks['all'], vocabulary, resourceName),
+			getVocabHooks(
+				apiHooks[method],
+				vocabulary,
+				resourceName,
+				includeAllVocab,
+			),
+			getVocabHooks(apiHooks['all'], vocabulary, resourceName, includeAllVocab),
 		),
 	{ primitive: true },
 );
@@ -200,6 +219,7 @@ export const getHooks = (
 		OptionalField<ParsedODataRequest, 'resourceName'>,
 		'resourceName' | 'method' | 'vocabulary'
 	>,
+	includeAllVocab: boolean,
 ): InstantiatedHooks => {
 	let { resourceName } = request;
 	if (resourceName != null) {
@@ -208,10 +228,17 @@ export const getHooks = (
 				ParsedODataRequest,
 				'resourceName' | 'method' | 'vocabulary'
 			>,
-		);
+		)
+			// Remove version suffixes
+			.replace(/\$.*$/, '');
 	}
 	return instantiateHooks(
-		getMethodHooks(request.method, request.vocabulary, resourceName),
+		getMethodHooks(
+			request.method,
+			request.vocabulary,
+			resourceName,
+			includeAllVocab,
+		),
 	);
 };
 getHooks.clear = () => getMethodHooks.clear();
@@ -343,12 +370,11 @@ export const addPureHook = (
 	});
 };
 
-const defineApi = (args: HookArgs) => {
-	const { request, req, tx } = args;
-	const { vocabulary } = request;
+const defineApi = (modelName: string, args: HookArgs) => {
+	const { req, tx } = args;
 	Object.defineProperty(args, 'api', {
 		get: _.once(() =>
-			api[vocabulary].clone({
+			api[modelName].clone({
 				passthrough: { req, tx },
 			}),
 		),
@@ -360,6 +386,7 @@ type RunHookArgs<T extends keyof Hooks> = Omit<
 	'api'
 >;
 const getReadOnlyArgs = <T extends keyof Hooks>(
+	modelName: string,
 	args: RunHookArgs<T>,
 ): RunHookArgs<T> => {
 	if (args.tx == null || args.tx.isReadOnly()) {
@@ -369,38 +396,58 @@ const getReadOnlyArgs = <T extends keyof Hooks>(
 	let readOnlyArgs: typeof args;
 	readOnlyArgs = { ...args, tx: args.tx.asReadOnly() };
 	if ((args as HookArgs).request != null) {
-		defineApi(readOnlyArgs as HookArgs);
+		defineApi(modelName, readOnlyArgs as HookArgs);
 	}
 	return readOnlyArgs;
 };
 
 export const runHooks = async <T extends keyof Hooks>(
 	hookName: T,
-	hooksList: InstantiatedHooks | undefined,
+	/**
+	 * A list of modelName/hooks to run in order, which will be reversed for hooks after the "RUN" stage,
+	 * ie POSTRUN/PRERESPOND/POSTRUN-ERROR
+	 */
+	hooksList: Array<[modelName: string, hooks: InstantiatedHooks]> | undefined,
 	args: RunHookArgs<T>,
 ) => {
 	if (hooksList == null) {
 		return;
 	}
-	const hooks = hooksList[hookName];
-	if (hooks == null || hooks.length === 0) {
+	const hooks = hooksList
+		.map(([modelName, $hooks]): [string, InstantiatedHooks[T] | undefined] => [
+			modelName,
+			$hooks[hookName],
+		])
+		.filter(
+			(v): v is [string, InstantiatedHooks[T]] =>
+				v[1] != null && v[1].length > 0,
+		);
+	if (hooks.length === 0) {
 		return;
 	}
-
-	if ((args as HookArgs).request != null) {
-		defineApi(args as HookArgs);
+	if (['POSTRUN', 'PRERESPOND', 'POSTRUN-ERROR'].includes(hookName)) {
+		// Any hooks after we "run" the query are executed in reverse order from newest to oldest
+		// as they'll be translating the query results from "latest" backwards to the model that
+		// was actually requested
+		hooks.reverse();
 	}
 
-	let readOnlyArgs: RunHookArgs<T>;
+	for (const [modelName, modelHooks] of hooks) {
+		const modelArgs = { ...args };
+		let modelReadOnlyArgs: typeof modelArgs;
+		if ((args as HookArgs).request != null) {
+			defineApi(modelName, modelArgs as HookArgs);
+		}
 
-	await Promise.all(
-		(hooks as Array<Hook<HookFn>>).map(async (hook) => {
-			if (hook.readOnlyTx) {
-				readOnlyArgs ??= getReadOnlyArgs(args);
-				await hook.run(readOnlyArgs);
-			} else {
-				await hook.run(args);
-			}
-		}),
-	);
+		await Promise.all(
+			(modelHooks as Array<Hook<HookFn>>).map(async (hook) => {
+				if (hook.readOnlyTx) {
+					modelReadOnlyArgs ??= getReadOnlyArgs(modelName, args);
+					await hook.run(modelReadOnlyArgs);
+				} else {
+					await hook.run(modelArgs);
+				}
+			}),
+		);
+	}
 };
