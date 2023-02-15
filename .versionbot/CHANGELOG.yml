@@ -1,4 +1,25 @@
 - commits:
+    - subject: "Tests: use transpile-only for faster tests"
+      hash: 5d92233bb617d243afff13da7560dfad22887bc1
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "Tests: type-check tests as part of tsconfig.dev.json and fix typing
+        error"
+      hash: a84fc64df74aee2973211bb792e9046f42af8437
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.61.3
+  title: ""
+  date: 2023-02-15T15:17:18.415Z
+- commits:
     - subject: Fix read-only hook args when there is a read-only or no transaction
       hash: fb648b2a82019f9c2d80c4c5af739d4e71e29f61
       body: ""
