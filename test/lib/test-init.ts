@@ -17,7 +17,7 @@ export async function testInit(
 		const testServer = fork(
 			__dirname + '/pine-in-process.ts',
 			[JSON.stringify(processArgs)],
-			{ detached: false, execArgv: ['-r', 'ts-node/register'] },
+			{ detached: false, execArgv: ['-r', 'ts-node/register/transpile-only'] },
 		);
 		await new Promise((resolve, reject) => {
 			testServer.on('message', (msg: { init: string }) => {
