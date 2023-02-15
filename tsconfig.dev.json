@@ -6,6 +6,7 @@
 	"include": [
 		"build/**/*",
 		"src/**/*",
+		"test/**/*",
 		"typings/**/*.d.ts"
 	]
 }
