@@ -442,7 +442,7 @@ export const runHooks = async <T extends keyof Hooks>(
 		await Promise.all(
 			(modelHooks as Array<Hook<HookFn>>).map(async (hook) => {
 				if (hook.readOnlyTx) {
-					modelReadOnlyArgs ??= getReadOnlyArgs(modelName, args);
+					modelReadOnlyArgs ??= getReadOnlyArgs(modelName, modelArgs);
 					await hook.run(modelReadOnlyArgs);
 				} else {
 					await hook.run(modelArgs);
