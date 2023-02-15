@@ -16,6 +16,8 @@ import {
 	Migrations,
 	defaultMigrationCategory,
 	MigrationCategories,
+	isSyncMigration,
+	isAsyncMigration,
 } from '../migrator/utils';
 
 import * as fs from 'fs';
@@ -342,11 +344,19 @@ export const setup = (app: Express.Application) => {
 									case '.coffee':
 									case '.ts':
 									case '.js':
-										const migration = nodeRequire(filePath);
-										assignMigrationWithCategory(
-											migrationKey,
-											migration.default ?? migration,
-										);
+										const loadeMigration = nodeRequire(filePath);
+										const migration = loadeMigration.default ?? loadeMigration;
+
+										if (
+											!isAsyncMigration(migration) &&
+											!isSyncMigration(migration)
+										) {
+											throw new Error(
+												`loaded migraton file at ${filePath} is neither a synchron nor a asyncron migration definition`,
+											);
+										}
+
+										assignMigrationWithCategory(migrationKey, migration);
 										break;
 									case '.sql':
 										if (migrationCategory === MigrationCategories.async) {

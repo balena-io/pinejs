@@ -62,13 +62,19 @@ export type AsyncMigration =
 	| AddFn<AddSql<BaseAsyncMigration, 'sync'>, 'async'>;
 
 export function isAsyncMigration(
-	migration: AsyncMigration | RunnableMigrations,
+	migration: string | MigrationFn | AsyncMigration | RunnableMigrations,
 ): migration is AsyncMigration {
-	return (migration as AsyncMigration).type === MigrationCategories.async;
+	return (
+		(typeof (migration as AsyncMigration).asyncFn === 'function' &&
+			typeof (migration as AsyncMigration).syncFn === 'function') ||
+		(typeof (migration as AsyncMigration).asyncSql === 'string' &&
+			typeof (migration as AsyncMigration).syncSql === 'string') ||
+		(migration as AsyncMigration).type === MigrationCategories.async
+	);
 }
 
 export function isSyncMigration(
-	migration: string | MigrationFn | RunnableMigrations,
+	migration: string | MigrationFn | RunnableMigrations | AsyncMigration,
 ): migration is MigrationFn {
 	return typeof migration === 'function' || typeof migration === 'string';
 }
