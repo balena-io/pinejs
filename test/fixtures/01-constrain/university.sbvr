@@ -15,6 +15,8 @@ Term: semester credits
 Term: matrix number
 	Concept Type: Integer (Type)
 
+Term: picture
+	  Concept Type: WebResource (Type)
 
 Term: student
 
@@ -34,3 +36,9 @@ Fact Type: student has birthday
 Fact Type: student has semester credits
 	Necessity: each student has at most one semester credits
 	Necessity: each student that has a semester credits, has a semester credits that is greater than or equal to 4 and is less than or equal to 16.
+
+Fact Type: student has picture
+	Necessity: each student has at most one picture
+	Necessity: each picture is of exactly one student.
+	Necessity: each student that has a picture, has a picture that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg".
+	Necessity: each student that has a picture, has a picture that has a Size (Type) that is greater than 0.

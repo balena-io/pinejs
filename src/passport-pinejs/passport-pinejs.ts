@@ -54,7 +54,7 @@ const setup: ConfigLoader.SetupFunction = async (app: Express.Application) => {
 		passport.use(new LocalStrategy(checkPassword));
 
 		login = (fn) => (req, res, next) =>
-			passport.authenticate('local', (err, user?) => {
+			passport.authenticate('local', (err: any, user?: any) => {
 				if (err || user == null) {
 					fn(err, user, req, res, next);
 					return;
