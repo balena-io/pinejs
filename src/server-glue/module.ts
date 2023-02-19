@@ -10,8 +10,6 @@ import * as migratorUtils from '../migrator/utils';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import { PINEJS_ADVISORY_LOCK } from '../config-loader/env';
 
-import { initS3Storage } from '@balena/pinejs-s3-storage';
-
 export * as dbModule from '../database-layer/db';
 export { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store';
 export * as sbvrUtils from '../sbvr-api/sbvr-utils';
@@ -80,10 +78,6 @@ export const init = async <T extends string>(
 			promises.push(cfgLoader.loadApplicationConfig(config));
 		}
 		await Promise.all(promises);
-
-		if (process.env.PINEJS_STORAGE_ENGINE === 'S3') {
-			initS3Storage();
-		}
 
 		return cfgLoader;
 	} catch (err: any) {
