@@ -1,4 +1,18 @@
 - commits:
+    - subject: Fixes setting only finalized async migration as executed
+      hash: a5c808007b829669de3dfdfd682404150022a57a
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 14.61.5
+  title: ""
+  date: 2023-02-20T15:48:32.572Z
+- commits:
     - subject: Fixes implicit any type
       hash: 8cfb7573f667cbe846d7eea357fa3bec2493b143
       body: ""
