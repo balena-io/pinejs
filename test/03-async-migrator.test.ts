@@ -239,7 +239,7 @@ describe('03 Async Migrations', async function () {
 			pineFirstInstace = await testInit(fixturePath, false);
 
 			await delay(200); // wait for one to have happened
-			let result: MigrationStatus[] = await getMigrationStatus();
+			const result: MigrationStatus[] = await getMigrationStatus();
 			for (const row of result) {
 				expect(row.run_count).to.be.greaterThan(0);
 			}
@@ -268,7 +268,9 @@ describe('03 Async Migrations', async function () {
 			await testDeInit(pineFirstInstace);
 		});
 
-		it('check /migrations/migration is served by pinejs', async () => {
+		it('should mark only finalized and sync migrations as executed', async () => {
+			// should only mark async migrations as executed when they are finalized.
+			// 0002 is not finalized, thus should not be marked as executed.
 			const res = await supertest(testLocalServer)
 				.get('/migrations/migration')
 				.expect(200);
@@ -278,7 +280,7 @@ describe('03 Async Migrations', async function () {
 				.to.be.an('array');
 			expect(res.body.d[0]?.executed_migrations)
 				.to.be.an('array')
-				.to.have.all.members(['0001', '0002']);
+				.to.have.all.members(['0001', '0003']);
 		});
 	});
 
