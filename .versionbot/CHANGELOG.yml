@@ -1,4 +1,18 @@
 - commits:
+    - subject: Fixes implicit any type
+      hash: 8cfb7573f667cbe846d7eea357fa3bec2493b143
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 14.61.4
+  title: ""
+  date: 2023-02-20T15:14:55.623Z
+- commits:
     - subject: "Tests: use transpile-only for faster tests"
       hash: 5d92233bb617d243afff13da7560dfad22887bc1
       body: ""
