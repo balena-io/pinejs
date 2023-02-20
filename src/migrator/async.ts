@@ -14,7 +14,6 @@ type InitialMigrationStatus = MigrationStatus &
 import {
 	MigrationTuple,
 	AsyncMigrationFn,
-	setExecutedMigrations,
 	getExecutedMigrations,
 	migratorEnv,
 	lockMigrations,
@@ -64,19 +63,10 @@ const $run = async (
 	}> = [];
 
 	// get a transaction for setting up the async migrator
-	const modelIsNew = await sbvrUtils.isModelNew(setupTx, modelName);
+
 	const executedMigrations = await getExecutedMigrations(setupTx, modelName);
 
-	if (modelIsNew) {
-		(sbvrUtils.api.migrations?.logger.info ?? console.info)(
-			'First time model has executed, skipping async migrations',
-		);
-
-		return await setExecutedMigrations(setupTx, modelName, [
-			...executedMigrations,
-			...Object.keys(migrations),
-		]);
-	}
+	// if the model is new, the sync migration parts (marked by finalize=true) are already marked in the sync migration runner.
 
 	/**
 	 * preflight check if there are already migrations executed before starting the async scheduler
