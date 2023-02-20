@@ -10,7 +10,7 @@ import * as permissions from '../sbvr-api/permissions';
 export let login: (
 	fn: (
 		err: any,
-		user: {} | undefined,
+		user: {} | null | false | undefined,
 		req: Express.Request,
 		res: Express.Response,
 		next: Express.NextFunction,
@@ -54,15 +54,15 @@ const setup: ConfigLoader.SetupFunction = async (app: Express.Application) => {
 		passport.use(new LocalStrategy(checkPassword));
 
 		login = (fn) => (req, res, next) =>
-			passport.authenticate('local', (err, user?) => {
-				if (err || user == null) {
+			passport.authenticate('local', ((err, user) => {
+				if (err || user == null || user === false) {
 					fn(err, user, req, res, next);
 					return;
 				}
 				req.login(user, (error) => {
 					fn(error, user, req, res, next);
 				});
-			})(req, res, next);
+			}) as Passport.AuthenticateCallback)(req, res, next);
 
 		logout = (req, _res, next) => {
 			req.logout((error) => {
