@@ -1,4 +1,18 @@
 - commits:
+    - subject: Use `affectedIds` to narrow the number of rows checked by rules
+      hash: b76afb213dc1e120ac6b43a3c8ce2887e69407a4
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Carol Schulze <carol@balena.io>
+        signed-off-by: Carol Schulze <carol@balena.io>
+      author: Carol Schulze
+      nested: []
+  version: 14.62.0
+  title: ""
+  date: 2023-02-20T17:04:40.883Z
+- commits:
     - subject: Fixes setting only finalized async migration as executed
       hash: a5c808007b829669de3dfdfd682404150022a57a
       body: ""
