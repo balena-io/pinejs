@@ -59,3 +59,8 @@ One can experiment with Pine.js, its main dependencies and the above tools insid
 
 ### Where to go from here:
 Start by creating your very first application with Pine.js. Jump to the [Getting Started guide](https://github.com/balena-io/pinejs/blob/master/docs/GettingStarted.md).
+
+## Storing files and other large objects
+
+An application can choose between two types to save file content or another large object: `File` or `WebResource`. When using a `File`, PineJS saves the content in the database using a binary data type like `BYTEA` or `BLOB`. When using a `WebResource`, PineJS saves the binary content on an external storage service and then writes metadata, including the content public URL, to the database. Client apps use the `WebResource` `href` to get the content.
+

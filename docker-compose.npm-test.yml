@@ -9,3 +9,24 @@ services:
       POSTGRES_DB: postgres
     ports:
       - "5431:5432"
+  minio-server:
+    image: minio/minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: AKIAIOSFODNN7EXAMPLE
+      MINIO_ROOT_PASSWORD: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    command: server /data --console-address ":9001"
+    ports:
+      - "43680:9000"
+      - "43697:9001"
+  minio-client:
+    image: minio/mc
+    depends_on:
+      - minio-server
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add minio-server http://minio-server:9000 AKIAIOSFODNN7EXAMPLE wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY;
+      /usr/bin/mc mb --ignore-existing minio-server/balena-pine-web-resources;
+      /usr/bin/mc anonymous set download minio-server/balena-pine-web-resources;
+      exit 0;
+      "

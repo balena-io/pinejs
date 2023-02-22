@@ -27,6 +27,7 @@ import * as path from 'path';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 
 import * as permissions from '../sbvr-api/permissions';
+import * as webResource from '../server-glue/webresource-handler';
 import { AliasValidNodeType } from '../sbvr-api/translations';
 
 export type SetupFunction = (
@@ -196,6 +197,8 @@ export const setup = (app: Express.Application) => {
 
 						const apiRoute = `/${model.apiRoot}/*`;
 						app.options(apiRoute, (_req, res) => res.status(200).end());
+						app.all(apiRoute, webResource.multerPinejs);
+						app.all(apiRoute, webResource.handleMultipartRequest);
 						app.all(apiRoute, sbvrUtils.handleODataRequest);
 
 						console.info(

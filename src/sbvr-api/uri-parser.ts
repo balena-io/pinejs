@@ -147,10 +147,7 @@ export const memoizedParseOdata = (() => {
 
 export const memoizedGetOData2AbstractSQL = memoizeWeak(
 	(abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel) => {
-		return new OData2AbstractSQL(abstractSqlModel, undefined, {
-			// Use minimized aliases when not in debug mode for smaller queries
-			minimizeAliases: !env.DEBUG,
-		});
+		return new OData2AbstractSQL(abstractSqlModel, undefined);
 	},
 );
 
