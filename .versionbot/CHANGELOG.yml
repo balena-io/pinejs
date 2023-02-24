@@ -1,4 +1,61 @@
 - commits:
+    - subject: Update @balena/odata-parser to 2.4.6
+      hash: c2ae65faa13a420c87bbd2608974c3387b1350fc
+      body: |
+        Update @balena/odata-parser from 2.4.2 to 2.4.6
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Improve typings
+              hash: ed5fa5675021485a775eb777f2358d8041b93ce1
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.4.6
+          title: ""
+          date: 2023-02-24T17:02:58.272Z
+        - commits:
+            - subject: Use const/let as appropriate
+              hash: 0824fe7d85eeb97941319749fc802f9bae3c9fb6
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.4.5
+          title: ""
+          date: 2023-02-23T16:31:08.299Z
+        - commits:
+            - subject: Use shorthand object notation
+              hash: 611c0480681965c7af06302264eac79fea18bded
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.4.4
+          title: ""
+          date: 2023-02-23T16:26:30.639Z
+        - commits:
+            - subject: Update dependencies
+              hash: 25b153aca258347c6742cb8b4efe54c0ae199695
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-2.4.3
+          title: ""
+          date: 2023-02-23T16:14:13.013Z
+  version: 14.62.1
+  title: ""
+  date: 2023-02-24T17:45:10.612Z
+- commits:
     - subject: Use `affectedIds` to narrow the number of rows checked by rules
       hash: b76afb213dc1e120ac6b43a3c8ce2887e69407a4
       body: ""
