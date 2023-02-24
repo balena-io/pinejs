@@ -23,6 +23,7 @@ import { version as AbstractSQLCompilerVersion } from '@balena/abstract-sql-comp
 import * as LF2AbstractSQL from '@balena/lf-to-abstract-sql';
 
 import {
+	ODataBinds,
 	odataNameToSqlName,
 	sqlNameToODataName,
 	SupportedMethod,
@@ -886,7 +887,7 @@ export const runRule = (() => {
 		const values = await getAndCheckBindValues(
 			{
 				vocabulary: vocab,
-				odataBinds: [],
+				odataBinds: [] as any as ODataBinds,
 				values: {},
 				engine: db.engine,
 			},
@@ -1533,7 +1534,8 @@ const updateBinds = (
 	request: uriParser.ODataRequest,
 ) => {
 	if (request._defer) {
-		request.odataBinds = request.odataBinds.map(([tag, id]) => {
+		for (let i = 0; i < request.odataBinds.length; i++) {
+			const [tag, id] = request.odataBinds[i];
 			if (tag === 'ContentReference') {
 				const ref = changeSetResults.get(id);
 				if (
@@ -1545,10 +1547,9 @@ const updateBinds = (
 						'Reference to a non existing resource in Changeset',
 					);
 				}
-				return uriParser.parseId(ref.body.id);
+				request.odataBinds[i] = uriParser.parseId(ref.body.id);
 			}
-			return [tag, id];
-		});
+		}
 	}
 	return request;
 };

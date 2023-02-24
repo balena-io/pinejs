@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 
 import * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
+import type { BindKey } from '@balena/odata-parser';
 import {
 	ODataBinds,
 	odataNameToSqlName,
@@ -123,7 +124,7 @@ export const getAndCheckBindValues = async (
 						throw new Error('Invalid binding');
 					}
 					let dataType;
-					[dataType, value] = odataBinds[bindValue];
+					[dataType, value] = odataBinds[bindValue as BindKey];
 					field = { dataType };
 				} else {
 					throw new Error(`Unknown binding: ${binding}`);

@@ -1631,7 +1631,7 @@ const getGuestPermissions = memoize(
 
 const getReqPermissions = async (
 	req: PermissionReq,
-	odataBinds: ODataBinds = [],
+	odataBinds: ODataBinds = [] as any as ODataBinds,
 ) => {
 	const [guestPermissions] = await Promise.all([
 		(async () => {

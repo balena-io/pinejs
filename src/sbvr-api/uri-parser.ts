@@ -124,7 +124,9 @@ export const memoizedParseOdata = (() => {
 						},
 					);
 					parsed.tree.options ??= {};
-					for (const key of Object.keys(parsedParams.tree)) {
+					for (const key of Object.keys(
+						parsedParams.tree,
+					) as ODataParser.BindKey[]) {
 						parsed.tree.options[key] = parsedParams.tree[key];
 						parsed.binds[key] = parsedParams.binds[key];
 					}
