@@ -64,10 +64,10 @@ export function isAsyncMigration(
 	migration: string | MigrationFn | AsyncMigration | RunnableMigrations,
 ): migration is AsyncMigration {
 	return (
-		(typeof (migration as AsyncMigration).asyncFn === 'function' &&
-			typeof (migration as AsyncMigration).syncFn === 'function') ||
-		(typeof (migration as AsyncMigration).asyncSql === 'string' &&
-			typeof (migration as AsyncMigration).syncSql === 'string') ||
+		((typeof (migration as AsyncMigration).asyncFn === 'function' ||
+			typeof (migration as AsyncMigration).asyncSql === 'string') &&
+			(typeof (migration as AsyncMigration).syncFn === 'function' ||
+				typeof (migration as AsyncMigration).syncSql === 'string')) ||
 		(migration as AsyncMigration).type === MigrationCategories.async
 	);
 }
