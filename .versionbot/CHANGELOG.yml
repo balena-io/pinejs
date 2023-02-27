@@ -1,4 +1,16 @@
 - commits:
+    - subject: Fix `isAsyncMigration` to accept mixed fn and sql async migrations
+      hash: 4d6feb8f8164770e012e04a5c956b90ca0e3e9c3
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.62.3
+  title: ""
+  date: 2023-02-27T19:10:29.898Z
+- commits:
     - subject: Fix async migrator typings when mixing migrator fns and sql
       hash: 8432b1143acc6a7bbb7d96bb21caacb4e2f96579
       body: ""
