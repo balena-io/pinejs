@@ -36,8 +36,7 @@ export type AsyncMigrationFn = (
 ) => Resolvable<Result>;
 
 type AddFn<T extends {}, x extends 'sync' | 'async'> = T & {
-	syncFn: MigrationFn;
-	asyncFn: AsyncMigrationFn;
+	[key in `${x}Fn`]: key extends 'syncFn' ? MigrationFn : AsyncMigrationFn;
 } & {
 	[key in `${x}Sql`]?: undefined;
 };
