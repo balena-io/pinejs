@@ -1,4 +1,16 @@
 - commits:
+    - subject: Fix async migrator typings when mixing migrator fns and sql
+      hash: 8432b1143acc6a7bbb7d96bb21caacb4e2f96579
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.62.2
+  title: ""
+  date: 2023-02-27T18:23:58.423Z
+- commits:
     - subject: Update @balena/odata-parser to 2.4.6
       hash: c2ae65faa13a420c87bbd2608974c3387b1350fc
       body: |
