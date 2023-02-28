@@ -372,6 +372,9 @@ export abstract class Tx {
 		this.on = onEnd;
 		this.clearListeners();
 	}
+	public disableAutomaticClose(): void {
+		this.automaticClose.cancelPending();
+	}
 
 	private listeners: {
 		end: Array<() => void>;

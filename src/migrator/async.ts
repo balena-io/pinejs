@@ -236,6 +236,26 @@ const $run = async (
 										// when it fails it would break the transaction for managing the migration status
 										const migratedRows = await sbvrUtils.db.transaction(
 											async (migrationTx) => {
+												// disable automatic close on the management transaction as the migration transaction consumes up to max autoClose time
+												// disable first here, to let if fail when it takes to long before coming here to actually migrate.
+												tx.disableAutomaticClose();
+												const rollbackMigrationTx = async () => {
+													// if the parent transaction fails for any reason, the actual running migration transaction has to be rolled back to stop parallel unsafe async migrations.
+													try {
+														if (!migrationTx.isClosed()) {
+															await migrationTx.rollback();
+														}
+													} catch (err) {
+														(
+															sbvrUtils.api.migrations?.logger.error ??
+															console.error
+														)(
+															`error rolling back pending async migration tx on mgmt tx end/rollback: ${key}: ${err}`,
+														);
+													}
+												};
+												tx.on('rollback', rollbackMigrationTx);
+												tx.on('end', rollbackMigrationTx);
 												return (
 													(await asyncRunnerMigratorFn?.(migrationTx)) ?? 0
 												);
