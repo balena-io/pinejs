@@ -1,4 +1,19 @@
 - commits:
+    - subject: Rollback async migration tx on failed async mgmt tx
+      hash: c196aaa10afb407a2f83efb8fbfde8eaa568f156
+      body: |
+        Disable automaticClose on async mgmt tx
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+  version: 14.62.4
+  title: ""
+  date: 2023-02-28T17:52:52.534Z
+- commits:
     - subject: Fix `isAsyncMigration` to accept mixed fn and sql async migrations
       hash: 4d6feb8f8164770e012e04a5c956b90ca0e3e9c3
       body: ""
