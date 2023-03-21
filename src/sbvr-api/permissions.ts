@@ -1047,7 +1047,9 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 									permissionsLookup,
 									permissions,
 									vocabulary,
-									sqlNameToODataName(permissionsTable.name),
+									sqlNameToODataName(
+										permissionsTable.modifyName ?? permissionsTable.name,
+									),
 								),
 							);
 
