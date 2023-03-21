@@ -1,19 +1,24 @@
 import { ChildProcess, fork } from 'child_process';
-export const testListenPort = 1337;
-export const testLocalServer = `http://localhost:${testListenPort}`;
+import { boolVar } from '@balena/env-parsing';
+import type { PineTestOptions } from './pine-init';
+export const listenPortDefault = 1337;
+export const testLocalServer = `http://localhost:${listenPortDefault}`;
 
+console.log(`listenPortDefault:${JSON.stringify(listenPortDefault, null, 2)}`);
 export async function testInit(
-	fixturePath: string,
-	deleteDb: boolean = false,
-	pineListenPort: number = testListenPort,
+	options: Partial<PineTestOptions>,
 ): Promise<ChildProcess> {
 	try {
-		const processArgs = {
-			fixturePath,
-			testListenPort: pineListenPort,
-			deleteDb: deleteDb || process.env.DELETE_DB,
+		// manually setting defaults
+		if (options.configPath === undefined) {
+			throw new Error(`config path not set`);
+		}
+		const processArgs: PineTestOptions = {
+			listenPort: options.listenPort ?? listenPortDefault,
+			deleteDb: options.deleteDb ?? boolVar('DELETE_DB', false),
+			configPath: options.configPath,
+			hooksPath: options.hooksPath,
 		};
-
 		const testServer = fork(
 			__dirname + '/pine-in-process.ts',
 			[JSON.stringify(processArgs)],

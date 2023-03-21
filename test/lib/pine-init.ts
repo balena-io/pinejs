@@ -2,6 +2,13 @@ import * as express from 'express';
 import { exit } from 'process';
 import * as pine from '../../src/server-glue/module';
 
+export type PineTestOptions = {
+	configPath: string;
+	hooksPath?: string;
+	deleteDb: boolean;
+	listenPort: number;
+};
+
 export async function init(
 	initConfig: pine.ConfigLoader.Config,
 	initPort: number,
