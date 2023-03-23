@@ -1,3 +1,5 @@
+import { AbstractSqlQuery } from '@balena/abstract-sql-compiler';
+import { getAbstractSqlModelFromFile } from '../../../src/bin/utils';
 import type { ConfigLoader } from '../../../src/server-glue/module';
 
 const apiRoot = 'university';
@@ -8,11 +10,20 @@ import { v1AbstractSqlModel, v1Translations } from './translations/v1';
 import { v2AbstractSqlModel, v2Translations } from './translations/v2';
 import { v3AbstractSqlModel, v3Translations } from './translations/v3';
 
+export const abstractSql = getAbstractSqlModelFromFile(modelFile);
+
+abstractSql.tables['student'].fields.push({
+	fieldName: 'test field',
+	dataType: 'Text',
+	required: false,
+	computed: ['EmbeddedText', 'latest_test_field'] as AbstractSqlQuery,
+});
+
 export default {
 	models: [
 		{
 			modelName,
-			modelFile,
+			abstractSql,
 			apiRoot,
 		},
 		{

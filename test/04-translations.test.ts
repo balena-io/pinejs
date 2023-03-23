@@ -3,6 +3,7 @@ const configPath = __dirname + '/fixtures/04-translations/config';
 const hooksPath = __dirname + '/fixtures/04-translations/translations/hooks';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
 import { AnyObject } from 'pinejs-client-core';
+import { expect } from 'chai';
 
 describe('04 native translation tests', function () {
 	let pineServer: Awaited<ReturnType<typeof testInit>>;
@@ -18,7 +19,7 @@ describe('04 native translation tests', function () {
 		await testDeInit(pineServer);
 	});
 
-	describe('university native (no translation)', () => {
+	describe.only('university native (no translation)', () => {
 		it('should create a faculty and student for /university apiRoot', async () => {
 			const { body: createdFaculty } = await supertest(testLocalServer)
 				.post('/university/faculty')
@@ -36,6 +37,32 @@ describe('04 native translation tests', function () {
 					studies_at__faculty: createdFaculty?.id,
 				})
 				.expect(201);
+
+			// const {
+			// 	body: {
+			// 		d: [student],
+			// 	},
+			// } = await supertest(testLocalServer)
+			// 	.get(`/university/student?$select=test_field`)
+			// 	.expect(200);
+
+			// console.log(`student:${JSON.stringify(student, null, 2)}`);
+			// expect(student)
+			// 	.to.have.ownProperty('test_field')
+			// 	.that.is.equal('latest_test_field');
+
+			const {
+				body: {
+					d: [v3student],
+				},
+			} = await supertest(testLocalServer)
+				.get(`/v3/student?$select=test_field`)
+				.expect(200);
+
+			console.log(`v3student:${JSON.stringify(v3student, null, 2)}`);
+			expect(v3student)
+				.to.have.ownProperty('test_field')
+				.that.is.equal('v3_test_field');
 		});
 	});
 	describe('university v3 translation', () => {
