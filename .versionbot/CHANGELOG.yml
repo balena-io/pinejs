@@ -1,4 +1,21 @@
 - commits:
+    - subject: Fix resourceName to resourceName native translation
+      hash: 6deffd6681f2d037776f352033867f408d2f9f04
+      body: >
+        Permissions lookup need to know the modifyName if the resource needs
+        translations for looking up the permissions from the destination
+        permissions table
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+  version: 14.62.5
+  title: ""
+  date: 2023-03-23T11:14:58.896Z
+- commits:
     - subject: Rollback async migration tx on failed async mgmt tx
       hash: c196aaa10afb407a2f83efb8fbfde8eaa568f156
       body: |
