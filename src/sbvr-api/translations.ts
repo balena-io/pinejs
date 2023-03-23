@@ -24,47 +24,75 @@ export type AliasValidNodeType =
 	| UnknownTypeNodes
 	| NullNode;
 const aliasFields = (
-	abstractSqlModel: AbstractSqlModel,
-	resourceName: string,
+	fromAbstractSqlModel: AbstractSqlModel,
+	toAbstractSqlModel: AbstractSqlModel,
+	fromResourceName: string,
+	toResource: string,
 	aliases: Dictionary<string | AliasValidNodeType>,
 ): SelectNode[1] => {
-	const fieldNames = abstractSqlModel.tables[resourceName].fields.map(
-		({ fieldName }) => fieldName,
-	);
-	const nonexistentFields = _.difference(Object.keys(aliases), fieldNames);
+	const fromFieldNames = fromAbstractSqlModel.tables[
+		fromResourceName
+	].fields.map(({ fieldName }) => fieldName);
+	const nonexistentFields = _.difference(Object.keys(aliases), fromFieldNames);
 	if (nonexistentFields.length > 0) {
 		throw new Error(
 			`Tried to alias non-existent fields: '${nonexistentFields.join(', ')}'`,
 		);
 	}
-	return fieldNames.map(
+	const toFieldNames = toAbstractSqlModel.tables[toResource].fields.map(
+		({ fieldName }) => fieldName,
+	);
+	const checkToFieldExists = (fromFieldName: string, toFieldName: string) => {
+		if (!toFieldNames.includes(toFieldName)) {
+			throw new Error(
+				`Tried to alias '${fromFieldName}' to the non-existent target field: '${toFieldName}'`,
+			);
+		}
+	};
+	return fromFieldNames.map(
 		(fieldName): AliasNode<AliasValidNodeType> | ReferencedFieldNode => {
 			const alias = aliases[fieldName];
 			if (alias) {
 				if (typeof alias === 'string') {
-					return ['Alias', ['ReferencedField', resourceName, alias], fieldName];
+					checkToFieldExists(fieldName, alias);
+					return [
+						'Alias',
+						['ReferencedField', fromResourceName, alias],
+						fieldName,
+					];
 				}
 				return ['Alias', alias, fieldName];
 			}
-			return ['ReferencedField', resourceName, fieldName];
+			checkToFieldExists(fieldName, fieldName);
+			return ['ReferencedField', fromResourceName, fieldName];
 		},
 	);
 };
 
 const aliasResource = (
-	abstractSqlModel: AbstractSqlModel,
-	resourceName: string,
+	fromAbstractSqlModel: AbstractSqlModel,
+	toAbstractSqlModel: AbstractSqlModel,
+	fromResourceName: string,
 	toResource: string,
 	aliases: Dictionary<string | AliasValidNodeType>,
 ): Definition => {
-	if (!abstractSqlModel.tables[toResource]) {
+	if (!toAbstractSqlModel.tables[toResource]) {
 		throw new Error(`Tried to alias to a non-existent resource: ${toResource}`);
 	}
 	return {
 		abstractSql: [
 			'SelectQuery',
-			['Select', aliasFields(abstractSqlModel, resourceName, aliases)],
-			['From', ['Alias', ['Resource', toResource], resourceName]],
+			[
+				'Select',
+				aliasFields(
+					fromAbstractSqlModel,
+					toAbstractSqlModel,
+					fromResourceName,
+					toResource,
+					aliases,
+				),
+			],
+			['From', ['Alias', ['Resource', toResource], fromResourceName]],
 		],
 	};
 };
@@ -196,6 +224,7 @@ export const translateAbstractSqlModel = (
 			} else {
 				table.definition = aliasResource(
 					fromAbstractSqlModel,
+					toAbstractSqlModel,
 					key,
 					toResource,
 					definition,
