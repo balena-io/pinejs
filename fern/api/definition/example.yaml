@@ -14,18 +14,42 @@ service:
           $expand: optional<string>
           $top: optional<integer>
           $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name,note
+          response:
+            body:
+              d:
+                - id: 4667
+                  name: asazpqprbwfzcgqpwggq
+                  note: eqydvcitnsirwajnugcd
+                - id: 4667
+                  name: asazpqprbwfzcgqpwggq
+                  note: eqydvcitnsirwajnugcd
     ReadApplication:
       path: /application(id)
       method: GET
       response: Application
       request:
         name: ReadApplicationById
+      examples:
+        - response:
+            body:
+              id: 4667
+              name: asazpqprbwfzcgqpwggq
+              note: eqydvcitnsirwajnugcd
     CreateApplication:
       path: /application(id)
       method: POST
       response: Application
       request:
         name: CreateApplicationById
+      examples:
+        - response:
+            body:
+              id: 4667
+              name: asazpqprbwfzcgqpwggq
+              note: eqydvcitnsirwajnugcd
     UpdateAllApplication:
       path: /application
       method: PATCH
@@ -37,11 +61,16 @@ service:
           $expand: optional<string>
           $top: optional<integer>
           $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name,note
     UpdateApplication:
       path: /application(id)
       method: PATCH
       request:
         name: UpdateApplicationById
+      examples:
+        - {}
     DeleteAllApplication:
       path: /application
       method: DELETE
@@ -53,11 +82,16 @@ service:
           $expand: optional<string>
           $top: optional<integer>
           $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name,note
     DeleteApplication:
       path: /application(id)
       method: DELETE
       request:
         name: DeleteApplicationById
+      examples:
+        - {}
     ReadAllDevice:
       path: /device
       method: GET
@@ -70,18 +104,42 @@ service:
           $expand: optional<string>
           $top: optional<integer>
           $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name,type,belongs_to__application
+          response:
+            body:
+              d:
+                - id: 82776
+                  name: kwyepepbhyjahnafvbmz
+                  type: duxabktuxrqniguywjzn
+                - id: 82776
+                  name: kwyepepbhyjahnafvbmz
+                  type: duxabktuxrqniguywjzn
     ReadDevice:
       path: /device(id)
       method: GET
       response: Device
       request:
         name: ReadDeviceById
+      examples:
+        - response:
+            body:
+              id: 82776
+              name: kwyepepbhyjahnafvbmz
+              type: duxabktuxrqniguywjzn
     CreateDevice:
       path: /device(id)
       method: POST
       response: Device
       request:
         name: CreateDeviceById
+      examples:
+        - response:
+            body:
+              id: 82776
+              name: kwyepepbhyjahnafvbmz
+              type: duxabktuxrqniguywjzn
     UpdateAllDevice:
       path: /device
       method: PATCH
@@ -93,11 +151,16 @@ service:
           $expand: optional<string>
           $top: optional<integer>
           $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name,type,belongs_to__application
     UpdateDevice:
       path: /device(id)
       method: PATCH
       request:
         name: UpdateDeviceById
+      examples:
+        - {}
     DeleteAllDevice:
       path: /device
       method: DELETE
@@ -109,11 +172,16 @@ service:
           $expand: optional<string>
           $top: optional<integer>
           $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name,type,belongs_to__application
     DeleteDevice:
       path: /device(id)
       method: DELETE
       request:
         name: DeleteDeviceById
+      examples:
+        - {}
     ReadAllGateway:
       path: /gateway
       method: GET
@@ -126,18 +194,38 @@ service:
           $expand: optional<string>
           $top: optional<integer>
           $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name
+          response:
+            body:
+              d:
+                - id: 93907
+                  name: grwlnjidfweccerzvxgo
+                - id: 93907
+                  name: grwlnjidfweccerzvxgo
     ReadGateway:
       path: /gateway(id)
       method: GET
       response: Gateway
       request:
         name: ReadGatewayById
+      examples:
+        - response:
+            body:
+              id: 93907
+              name: grwlnjidfweccerzvxgo
     CreateGateway:
       path: /gateway(id)
       method: POST
       response: Gateway
       request:
         name: CreateGatewayById
+      examples:
+        - response:
+            body:
+              id: 93907
+              name: grwlnjidfweccerzvxgo
     UpdateAllGateway:
       path: /gateway
       method: PATCH
@@ -149,11 +237,16 @@ service:
           $expand: optional<string>
           $top: optional<integer>
           $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name
     UpdateGateway:
       path: /gateway(id)
       method: PATCH
       request:
         name: UpdateGatewayById
+      examples:
+        - {}
     DeleteAllGateway:
       path: /gateway
       method: DELETE
@@ -165,11 +258,16 @@ service:
           $expand: optional<string>
           $top: optional<integer>
           $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name
     DeleteGateway:
       path: /gateway(id)
       method: DELETE
       request:
         name: DeleteGatewayById
+      examples:
+        - {}
     ReadAllGateway__connects__device:
       path: /gateway__connects__device
       method: GET
@@ -182,18 +280,34 @@ service:
           $expand: optional<string>
           $top: optional<integer>
           $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,gateway,connects__device
+          response:
+            body:
+              d:
+                - id: 58529
+                - id: 58529
     ReadGateway__connects__device:
       path: /gateway__connects__device(id)
       method: GET
       response: Gateway__connects__device
       request:
         name: ReadGateway__connects__deviceById
+      examples:
+        - response:
+            body:
+              id: 58529
     CreateGateway__connects__device:
       path: /gateway__connects__device(id)
       method: POST
       response: Gateway__connects__device
       request:
         name: CreateGateway__connects__deviceById
+      examples:
+        - response:
+            body:
+              id: 58529
     UpdateAllGateway__connects__device:
       path: /gateway__connects__device
       method: PATCH
@@ -205,11 +319,16 @@ service:
           $expand: optional<string>
           $top: optional<integer>
           $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,gateway,connects__device
     UpdateGateway__connects__device:
       path: /gateway__connects__device(id)
       method: PATCH
       request:
         name: UpdateGateway__connects__deviceById
+      examples:
+        - {}
     DeleteAllGateway__connects__device:
       path: /gateway__connects__device
       method: DELETE
@@ -221,11 +340,16 @@ service:
           $expand: optional<string>
           $top: optional<integer>
           $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,gateway,connects__device
     DeleteGateway__connects__device:
       path: /gateway__connects__device(id)
       method: DELETE
       request:
         name: DeleteGateway__connects__deviceById
+      examples:
+        - {}
 types:
   Application:
     properties:
@@ -242,9 +366,9 @@ types:
         type: string
     examples:
       - value:
-          id: 66373
-          name: ttpffnhlhdcvtdofbdel
-          note: ggewjgbmvhrxrzlquold
+          id: 4667
+          name: asazpqprbwfzcgqpwggq
+          note: eqydvcitnsirwajnugcd
   Device:
     properties:
       created_at:
@@ -261,9 +385,9 @@ types:
       belongs_to__application: optional<Application>
     examples:
       - value:
-          id: 50431
-          name: ifmxoghvncqheqxwwenr
-          type: rljywhrcghwlhcgihtdz
+          id: 82776
+          name: kwyepepbhyjahnafvbmz
+          type: duxabktuxrqniguywjzn
   Gateway:
     properties:
       created_at:
@@ -277,8 +401,8 @@ types:
         type: optional<string>
     examples:
       - value:
-          id: 83118
-          name: tvsdvgvfljyfazvjfwbb
+          id: 93907
+          name: grwlnjidfweccerzvxgo
   Gateway__connects__device:
     properties:
       created_at:
@@ -292,4 +416,4 @@ types:
       connects__device: optional<Device>
     examples:
       - value:
-          id: 20562
+          id: 58529

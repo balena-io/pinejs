@@ -19,6 +19,9 @@ paths:
           required: false
           schema:
             type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name,note
         - name: $expand
           in: query
           required: false
@@ -45,6 +48,16 @@ paths:
                   type: array
                   items:
                     $ref: '#/components/schemas/Application'
+              examples:
+                Example1:
+                  value:
+                    d:
+                      - id: 4667
+                        name: asazpqprbwfzcgqpwggq
+                        note: eqydvcitnsirwajnugcd
+                      - id: 4667
+                        name: asazpqprbwfzcgqpwggq
+                        note: eqydvcitnsirwajnugcd
     patch:
       operationId: example_UpdateAllApplication
       tags:
@@ -60,6 +73,9 @@ paths:
           required: false
           schema:
             type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name,note
         - name: $expand
           in: query
           required: false
@@ -93,6 +109,9 @@ paths:
           required: false
           schema:
             type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name,note
         - name: $expand
           in: query
           required: false
@@ -124,6 +143,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Application'
+              examples:
+                Example1:
+                  value:
+                    id: 4667
+                    name: asazpqprbwfzcgqpwggq
+                    note: eqydvcitnsirwajnugcd
     post:
       operationId: example_CreateApplication
       tags:
@@ -136,6 +161,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Application'
+              examples:
+                Example1:
+                  value:
+                    id: 4667
+                    name: asazpqprbwfzcgqpwggq
+                    note: eqydvcitnsirwajnugcd
     patch:
       operationId: example_UpdateApplication
       tags:
@@ -168,6 +199,9 @@ paths:
           required: false
           schema:
             type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name,type,belongs_to__application
         - name: $expand
           in: query
           required: false
@@ -194,6 +228,16 @@ paths:
                   type: array
                   items:
                     $ref: '#/components/schemas/Device'
+              examples:
+                Example1:
+                  value:
+                    d:
+                      - id: 82776
+                        name: kwyepepbhyjahnafvbmz
+                        type: duxabktuxrqniguywjzn
+                      - id: 82776
+                        name: kwyepepbhyjahnafvbmz
+                        type: duxabktuxrqniguywjzn
     patch:
       operationId: example_UpdateAllDevice
       tags:
@@ -209,6 +253,9 @@ paths:
           required: false
           schema:
             type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name,type,belongs_to__application
         - name: $expand
           in: query
           required: false
@@ -242,6 +289,9 @@ paths:
           required: false
           schema:
             type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name,type,belongs_to__application
         - name: $expand
           in: query
           required: false
@@ -273,6 +323,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Device'
+              examples:
+                Example1:
+                  value:
+                    id: 82776
+                    name: kwyepepbhyjahnafvbmz
+                    type: duxabktuxrqniguywjzn
     post:
       operationId: example_CreateDevice
       tags:
@@ -285,6 +341,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Device'
+              examples:
+                Example1:
+                  value:
+                    id: 82776
+                    name: kwyepepbhyjahnafvbmz
+                    type: duxabktuxrqniguywjzn
     patch:
       operationId: example_UpdateDevice
       tags:
@@ -317,6 +379,9 @@ paths:
           required: false
           schema:
             type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name
         - name: $expand
           in: query
           required: false
@@ -343,6 +408,14 @@ paths:
                   type: array
                   items:
                     $ref: '#/components/schemas/Gateway'
+              examples:
+                Example1:
+                  value:
+                    d:
+                      - id: 93907
+                        name: grwlnjidfweccerzvxgo
+                      - id: 93907
+                        name: grwlnjidfweccerzvxgo
     patch:
       operationId: example_UpdateAllGateway
       tags:
@@ -358,6 +431,9 @@ paths:
           required: false
           schema:
             type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name
         - name: $expand
           in: query
           required: false
@@ -391,6 +467,9 @@ paths:
           required: false
           schema:
             type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name
         - name: $expand
           in: query
           required: false
@@ -422,6 +501,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Gateway'
+              examples:
+                Example1:
+                  value:
+                    id: 93907
+                    name: grwlnjidfweccerzvxgo
     post:
       operationId: example_CreateGateway
       tags:
@@ -434,6 +518,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Gateway'
+              examples:
+                Example1:
+                  value:
+                    id: 93907
+                    name: grwlnjidfweccerzvxgo
     patch:
       operationId: example_UpdateGateway
       tags:
@@ -466,6 +555,9 @@ paths:
           required: false
           schema:
             type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,gateway,connects__device
         - name: $expand
           in: query
           required: false
@@ -492,6 +584,12 @@ paths:
                   type: array
                   items:
                     $ref: '#/components/schemas/Gateway__connects__device'
+              examples:
+                Example1:
+                  value:
+                    d:
+                      - id: 58529
+                      - id: 58529
     patch:
       operationId: example_UpdateAllGateway__connects__device
       tags:
@@ -507,6 +605,9 @@ paths:
           required: false
           schema:
             type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,gateway,connects__device
         - name: $expand
           in: query
           required: false
@@ -540,6 +641,9 @@ paths:
           required: false
           schema:
             type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,gateway,connects__device
         - name: $expand
           in: query
           required: false
@@ -571,6 +675,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Gateway__connects__device'
+              examples:
+                Example1:
+                  value:
+                    id: 58529
     post:
       operationId: example_CreateGateway__connects__device
       tags:
@@ -583,6 +691,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Gateway__connects__device'
+              examples:
+                Example1:
+                  value:
+                    id: 58529
     patch:
       operationId: example_UpdateGateway__connects__device
       tags:
@@ -615,13 +727,13 @@ components:
           type: integer
           format: int64
           description: The unique identifier for a Application
-          example: 66373
+          example: 4667
         name:
           type: string
-          example: ttpffnhlhdcvtdofbdel
+          example: asazpqprbwfzcgqpwggq
         note:
           type: string
-          example: ggewjgbmvhrxrzlquold
+          example: eqydvcitnsirwajnugcd
       required:
         - id
         - name
@@ -640,10 +752,10 @@ components:
           type: integer
           format: int64
           description: The unique identifier for a Device
-          example: 50431
+          example: 82776
         name:
           type: string
-          example: ifmxoghvncqheqxwwenr
+          example: kwyepepbhyjahnafvbmz
         type:
           type: string
         belongs_to__application:
@@ -665,7 +777,7 @@ components:
           type: integer
           format: int64
           description: The unique identifier for a Gateway
-          example: 83118
+          example: 93907
         name:
           type: string
       required:
@@ -684,7 +796,7 @@ components:
           type: integer
           format: int64
           description: The unique identifier for a Gateway__connects__device
-          example: 20562
+          example: 58529
         gateway:
           $ref: '#/components/schemas/Gateway'
         connects__device:

@@ -189,7 +189,8 @@ export const generateFernMetadata = (
 		};
 
 		const selectableFields: any = [];
-		const exampleForFields: any = {};
+		const exampleForType: any = {};
+		const exampleForEndpoint: any = {};
 
 		fields
 			.filter(({ dataType }) => dataType !== 'ForeignKey')
@@ -214,7 +215,8 @@ export const generateFernMetadata = (
 						docs: `The unique identifier for a ${capitalize(resourceName)}`,
 					};
 				}
-				exampleForFields[fieldName] = exampleFaker(fieldName, dt);
+				exampleForType[fieldName] = exampleForEndpoint[fieldName] =
+					exampleFaker(fieldName, dt);
 			});
 
 		fields
@@ -240,12 +242,12 @@ export const generateFernMetadata = (
 					? `optional<${referenceResourceName}>`
 					: referenceResourceName;
 
-				// exampleForFields[fieldName] = exampleFaker(fieldName, 'id');
+				// exampleForType[fieldName] = exampleFaker(fieldName, 'id');
 			});
 
 		const capitalizedResourceName = capitalize(resourceName);
 
-		uniqueTable.examples ??= [{ value: exampleForFields }];
+		uniqueTable.examples ??= [{ value: exampleForType }];
 
 		fernRootTypes[capitalizedResourceName] = uniqueTable;
 
@@ -286,20 +288,20 @@ export const generateFernMetadata = (
 							name: capitalize(resKey) + 'all' + capitalizedResourceName,
 							'query-parameters': ODataQueryParameters,
 						},
-						// examples: [
-						// 	{
-						// 		'query-parameters': {
-						// 			$select: selectableFields.join(','),
-						// 		},
-						// 		response: compileResponse[resKey]
-						// 			? {
-						// 					body: {
-						// 						d: [exampleForFields, exampleForFields],
-						// 					},
-						// 			  }
-						// 			: undefined,
-						// 	},
-						// ],
+						examples: [
+							{
+								'query-parameters': {
+									$select: selectableFields.join(','),
+								},
+								response: compileResponse[resKey]
+									? {
+											body: {
+												d: [exampleForEndpoint, exampleForEndpoint],
+											},
+									  }
+									: undefined,
+							},
+						],
 					};
 				}
 
@@ -313,15 +315,15 @@ export const generateFernMetadata = (
 					request: {
 						name: capitalize(resKey) + capitalizedResourceName + 'ById',
 					},
-					// examples: [
-					// 	{
-					// 		response: compileResponse[resKey]
-					// 			? {
-					// 					body: exampleForFields,
-					// 			  }
-					// 			: undefined,
-					// 	},
-					// ],
+					examples: [
+						{
+							response: compileResponse[resKey]
+								? {
+										body: exampleForEndpoint,
+								  }
+								: undefined,
+						},
+					],
 				};
 			}
 		}
