@@ -57,6 +57,7 @@
     "lodash": "^4.17.21",
     "memoizee": "^0.4.15",
     "pinejs-client-core": "^6.12.3",
+    "odata-openapi": "^0.19.1",
     "randomstring": "^1.2.3",
     "typed-error": "^3.2.1"
   },
