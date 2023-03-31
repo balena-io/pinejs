@@ -1,0 +1,43 @@
+groups:
+  # # we run the FastAPI generator for server-side development
+  # server:
+  #   generators:
+  #     - name: fernapi/fern-fastapi-server
+  #       version: 0.0.33
+  #       output:
+  #         location: local-file-system
+  #         path: ../../app/fern/server
+  # # on every commit into the main branch, we generate SDKs for internal use
+  # internal:
+  #   generators:
+  #     - name: fernapi/fern-typescript-sdk
+  #       version: 0.0.249
+  #       output:
+  #         location: npm
+  #         package-name: "@fern-api/plantstore"
+  #         token: ${NPM_TOKEN}
+  #     - name: fernapi/fern-java-sdk
+  #       version: 0.0.125
+  #       output:
+  #         location: maven
+  #         coordinate: io.github.fern-api:plantstore
+  #         username: ${MAVEN_USERNAME}
+  #         password: ${MAVEN_PASSWORD}
+  # when we release, we publish our external-facing SDKs
+  external:
+    generators:
+      - name: fernapi/fern-openapi
+        version: 0.0.26
+        output: 
+          location: local-file-system
+          path: ./open-api
+      # - name: fernapi/fern-typescript-sdk
+      #   version: 0.5.6
+      #   output:
+      #     location: local-file-system
+      #     path: ./ts-sdk
+      # - name: fernapi/fern-python-sdk
+      #   version: 0.1.2
+      #   output:
+      #     location: local-file-system
+      #     path: ./python-sdk

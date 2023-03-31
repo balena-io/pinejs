@@ -1,0 +1,295 @@
+service:
+  auth: false
+  base-path: /example
+  endpoints:
+    ReadAllApplication:
+      path: /application
+      method: GET
+      response: map<string,list<Application>>
+      request:
+        name: ReadallApplication
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+    ReadApplication:
+      path: /application(id)
+      method: GET
+      response: Application
+      request:
+        name: ReadApplicationById
+    CreateApplication:
+      path: /application(id)
+      method: POST
+      response: Application
+      request:
+        name: CreateApplicationById
+    UpdateAllApplication:
+      path: /application
+      method: PATCH
+      request:
+        name: UpdateallApplication
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+    UpdateApplication:
+      path: /application(id)
+      method: PATCH
+      request:
+        name: UpdateApplicationById
+    DeleteAllApplication:
+      path: /application
+      method: DELETE
+      request:
+        name: DeleteallApplication
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+    DeleteApplication:
+      path: /application(id)
+      method: DELETE
+      request:
+        name: DeleteApplicationById
+    ReadAllDevice:
+      path: /device
+      method: GET
+      response: map<string,list<Device>>
+      request:
+        name: ReadallDevice
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+    ReadDevice:
+      path: /device(id)
+      method: GET
+      response: Device
+      request:
+        name: ReadDeviceById
+    CreateDevice:
+      path: /device(id)
+      method: POST
+      response: Device
+      request:
+        name: CreateDeviceById
+    UpdateAllDevice:
+      path: /device
+      method: PATCH
+      request:
+        name: UpdateallDevice
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+    UpdateDevice:
+      path: /device(id)
+      method: PATCH
+      request:
+        name: UpdateDeviceById
+    DeleteAllDevice:
+      path: /device
+      method: DELETE
+      request:
+        name: DeleteallDevice
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+    DeleteDevice:
+      path: /device(id)
+      method: DELETE
+      request:
+        name: DeleteDeviceById
+    ReadAllGateway:
+      path: /gateway
+      method: GET
+      response: map<string,list<Gateway>>
+      request:
+        name: ReadallGateway
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+    ReadGateway:
+      path: /gateway(id)
+      method: GET
+      response: Gateway
+      request:
+        name: ReadGatewayById
+    CreateGateway:
+      path: /gateway(id)
+      method: POST
+      response: Gateway
+      request:
+        name: CreateGatewayById
+    UpdateAllGateway:
+      path: /gateway
+      method: PATCH
+      request:
+        name: UpdateallGateway
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+    UpdateGateway:
+      path: /gateway(id)
+      method: PATCH
+      request:
+        name: UpdateGatewayById
+    DeleteAllGateway:
+      path: /gateway
+      method: DELETE
+      request:
+        name: DeleteallGateway
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+    DeleteGateway:
+      path: /gateway(id)
+      method: DELETE
+      request:
+        name: DeleteGatewayById
+    ReadAllGateway__connects__device:
+      path: /gateway__connects__device
+      method: GET
+      response: map<string,list<Gateway__connects__device>>
+      request:
+        name: ReadallGateway__connects__device
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+    ReadGateway__connects__device:
+      path: /gateway__connects__device(id)
+      method: GET
+      response: Gateway__connects__device
+      request:
+        name: ReadGateway__connects__deviceById
+    CreateGateway__connects__device:
+      path: /gateway__connects__device(id)
+      method: POST
+      response: Gateway__connects__device
+      request:
+        name: CreateGateway__connects__deviceById
+    UpdateAllGateway__connects__device:
+      path: /gateway__connects__device
+      method: PATCH
+      request:
+        name: UpdateallGateway__connects__device
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+    UpdateGateway__connects__device:
+      path: /gateway__connects__device(id)
+      method: PATCH
+      request:
+        name: UpdateGateway__connects__deviceById
+    DeleteAllGateway__connects__device:
+      path: /gateway__connects__device
+      method: DELETE
+      request:
+        name: DeleteallGateway__connects__device
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+    DeleteGateway__connects__device:
+      path: /gateway__connects__device(id)
+      method: DELETE
+      request:
+        name: DeleteGateway__connects__deviceById
+types:
+  Application:
+    properties:
+      created_at:
+        type: optional<datetime>
+      modified_at:
+        type: optional<datetime>
+      id:
+        type: long
+        docs: The unique identifier for a Application
+      name:
+        type: string
+      note:
+        type: string
+    examples:
+      - value:
+          id: 66373
+          name: ttpffnhlhdcvtdofbdel
+          note: ggewjgbmvhrxrzlquold
+  Device:
+    properties:
+      created_at:
+        type: optional<datetime>
+      modified_at:
+        type: optional<datetime>
+      id:
+        type: long
+        docs: The unique identifier for a Device
+      name:
+        type: string
+      type:
+        type: optional<string>
+      belongs_to__application: optional<Application>
+    examples:
+      - value:
+          id: 50431
+          name: ifmxoghvncqheqxwwenr
+          type: rljywhrcghwlhcgihtdz
+  Gateway:
+    properties:
+      created_at:
+        type: optional<datetime>
+      modified_at:
+        type: optional<datetime>
+      id:
+        type: long
+        docs: The unique identifier for a Gateway
+      name:
+        type: optional<string>
+    examples:
+      - value:
+          id: 83118
+          name: tvsdvgvfljyfazvjfwbb
+  Gateway__connects__device:
+    properties:
+      created_at:
+        type: optional<datetime>
+      modified_at:
+        type: optional<datetime>
+      id:
+        type: long
+        docs: The unique identifier for a Gateway__connects__device
+      gateway: optional<Gateway>
+      connects__device: optional<Device>
+    examples:
+      - value:
+          id: 20562

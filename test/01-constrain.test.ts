@@ -31,7 +31,7 @@ describe('01 basic constrain tests', function () {
 		});
 
 		it('create a student', async () => {
-			await supertest(testLocalServer)
+			const { body: student } = await supertest(testLocalServer)
 				.post('/university/student')
 				.send({
 					matrix_number: 1,
@@ -41,6 +41,16 @@ describe('01 basic constrain tests', function () {
 					semester_credits: 10,
 				})
 				.expect(201);
+
+			await supertest(testLocalServer)
+				.patch(`/university/student(${student.id})`)
+				.send({
+					matrix_number: 1,
+					name: 'Johnny',
+					lastname: 'Doe',
+					birthday: new Date(),
+					semester_credits: 10,
+				});
 		});
 
 		it('should fail to create a student with same matrix number ', async () => {
@@ -72,6 +82,23 @@ describe('01 basic constrain tests', function () {
 				.that.equals(
 					'It is necessary that each student that has a semester credits, has a semester credits that is greater than or equal to 4 and is less than or equal to 16.',
 				);
+		});
+
+		it('should create a student and delete it afterwards', async () => {
+			const { body: student } = await supertest(testLocalServer)
+				.post('/university/student')
+				.send({
+					matrix_number: 3,
+					name: 'Mad',
+					lastname: 'Max',
+					birthday: new Date(),
+					semester_credits: 10,
+				})
+				.expect(201);
+
+			await supertest(testLocalServer)
+				.delete(`/university/student(${student.id})`)
+				.expect(200);
 		});
 	});
 });

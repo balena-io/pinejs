@@ -37,6 +37,7 @@ import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser
 import * as asyncMigrator from '../migrator/async';
 import * as syncMigrator from '../migrator/sync';
 import { generateODataMetadataAsOpenApi } from '../odata-metadata/open-api-sepcification-generator';
+import { generateFernMetadata } from '../odata-metadata/fern-metadatagenerator';
 
 // tslint:disable-next-line:no-var-requires
 const devModel = require('./dev.sbvr');
@@ -1722,7 +1723,7 @@ const respondGet = async (
 				body: spec,
 				headers: { 'content-type': 'application/json' },
 			};
-		} else if (request.resourceName === 'openapi.json') {
+		} else if (request.resourceName === 'fern.json') {
 			// https://docs.oasis-open.org/odata/odata-openapi/v1.0/cn01/odata-openapi-v1.0-cn01.html#sec_ProvidingOASDocumentsforanODataServi
 			// Following the OASIS OData to openapi translation guide the openapi.json is an independent resource
 			const permLookup = await permissions.getReqPermissions(req);
@@ -1739,6 +1740,20 @@ const respondGet = async (
 			return {
 				statusCode: 200,
 				body: openApispec,
+				headers: { 'content-type': 'application/json' },
+			};
+		} else if (request.resourceName === 'openapi.json') {
+			// https://docs.oasis-open.org/odata/odata-openapi/v1.0/cn01/odata-openapi-v1.0-cn01.html#sec_ProvidingOASDocumentsforanODataServi
+			// Following the OASIS OData to openapi translation guide the openapi.json is an independent resource
+			const permLookup = await permissions.getReqPermissions(req);
+			const fernSpec = generateFernMetadata(
+				vocab,
+				models[vocab].abstractSql,
+				permLookup,
+			);
+			return {
+				statusCode: 200,
+				body: fernSpec,
 				headers: { 'content-type': 'application/json' },
 			};
 		} else {
