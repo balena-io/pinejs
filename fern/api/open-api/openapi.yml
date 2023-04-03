@@ -1,0 +1,862 @@
+openapi: 3.0.1
+info:
+  title: example
+  version: ''
+paths:
+  /example/application:
+    get:
+      operationId: example_ReadAllApplication
+      tags:
+        - Example
+      parameters:
+        - name: $filter
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $select
+          in: query
+          required: false
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name,note
+        - name: $expand
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+              examples:
+                Example1:
+                  value:
+                    d:
+                      - created_at: '2022-06-19T23:22:46.962Z'
+                        modified_at: '2022-08-12T08:38:22.014Z'
+                        id: 71065
+                        name: xrkeejdkpljamasgfarw
+                        note: eomyvjziulccgbqkfcly
+                      - created_at: '2022-06-19T23:22:46.962Z'
+                        modified_at: '2022-08-12T08:38:22.014Z'
+                        id: 71065
+                        name: xrkeejdkpljamasgfarw
+                        note: eomyvjziulccgbqkfcly
+    patch:
+      operationId: example_UpdateAllApplication
+      tags:
+        - Example
+      parameters:
+        - name: $filter
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $select
+          in: query
+          required: false
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name,note
+        - name: $expand
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: ''
+    delete:
+      operationId: example_DeleteAllApplication
+      tags:
+        - Example
+      parameters:
+        - name: $filter
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $select
+          in: query
+          required: false
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name,note
+        - name: $expand
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: ''
+  /example/application(id):
+    get:
+      operationId: example_ReadApplication
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+              examples:
+                Example1:
+                  value:
+                    created_at: '2022-06-19T23:22:46.962Z'
+                    modified_at: '2022-08-12T08:38:22.014Z'
+                    id: 71065
+                    name: xrkeejdkpljamasgfarw
+                    note: eomyvjziulccgbqkfcly
+    post:
+      operationId: example_CreateApplication
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+              examples:
+                Example1:
+                  value:
+                    created_at: '2022-06-19T23:22:46.962Z'
+                    modified_at: '2022-08-12T08:38:22.014Z'
+                    id: 71065
+                    name: xrkeejdkpljamasgfarw
+                    note: eomyvjziulccgbqkfcly
+    patch:
+      operationId: example_UpdateApplication
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '204':
+          description: ''
+    delete:
+      operationId: example_DeleteApplication
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '204':
+          description: ''
+  /example/device:
+    get:
+      operationId: example_ReadAllDevice
+      tags:
+        - Example
+      parameters:
+        - name: $filter
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $select
+          in: query
+          required: false
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name,type,belongs_to__application
+        - name: $expand
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponse'
+              examples:
+                Example1:
+                  value:
+                    d:
+                      - created_at: '2022-06-25T03:06:57.310Z'
+                        modified_at: '2022-12-24T06:08:24.699Z'
+                        id: 80097
+                        name: ewgdekqxythufswoytuc
+                        type: mjlemqmluysjbhenlfuk
+                      - created_at: '2022-06-25T03:06:57.310Z'
+                        modified_at: '2022-12-24T06:08:24.699Z'
+                        id: 80097
+                        name: ewgdekqxythufswoytuc
+                        type: mjlemqmluysjbhenlfuk
+    patch:
+      operationId: example_UpdateAllDevice
+      tags:
+        - Example
+      parameters:
+        - name: $filter
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $select
+          in: query
+          required: false
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name,type,belongs_to__application
+        - name: $expand
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: ''
+    delete:
+      operationId: example_DeleteAllDevice
+      tags:
+        - Example
+      parameters:
+        - name: $filter
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $select
+          in: query
+          required: false
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name,type,belongs_to__application
+        - name: $expand
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: ''
+  /example/device(id):
+    get:
+      operationId: example_ReadDevice
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+              examples:
+                Example1:
+                  value:
+                    created_at: '2022-06-25T03:06:57.310Z'
+                    modified_at: '2022-12-24T06:08:24.699Z'
+                    id: 80097
+                    name: ewgdekqxythufswoytuc
+                    type: mjlemqmluysjbhenlfuk
+    post:
+      operationId: example_CreateDevice
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+              examples:
+                Example1:
+                  value:
+                    created_at: '2022-06-25T03:06:57.310Z'
+                    modified_at: '2022-12-24T06:08:24.699Z'
+                    id: 80097
+                    name: ewgdekqxythufswoytuc
+                    type: mjlemqmluysjbhenlfuk
+    patch:
+      operationId: example_UpdateDevice
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '204':
+          description: ''
+    delete:
+      operationId: example_DeleteDevice
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '204':
+          description: ''
+  /example/gateway:
+    get:
+      operationId: example_ReadAllGateway
+      tags:
+        - Example
+      parameters:
+        - name: $filter
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $select
+          in: query
+          required: false
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name
+        - name: $expand
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GatewayResponse'
+              examples:
+                Example1:
+                  value:
+                    d:
+                      - created_at: '2023-03-11T21:19:54.812Z'
+                        modified_at: '2022-07-10T20:17:43.327Z'
+                        id: 68293
+                        name: lxakyatbhgluytsaeyvg
+                      - created_at: '2023-03-11T21:19:54.812Z'
+                        modified_at: '2022-07-10T20:17:43.327Z'
+                        id: 68293
+                        name: lxakyatbhgluytsaeyvg
+    patch:
+      operationId: example_UpdateAllGateway
+      tags:
+        - Example
+      parameters:
+        - name: $filter
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $select
+          in: query
+          required: false
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name
+        - name: $expand
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: ''
+    delete:
+      operationId: example_DeleteAllGateway
+      tags:
+        - Example
+      parameters:
+        - name: $filter
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $select
+          in: query
+          required: false
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,name
+        - name: $expand
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: ''
+  /example/gateway(id):
+    get:
+      operationId: example_ReadGateway
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gateway'
+              examples:
+                Example1:
+                  value:
+                    created_at: '2023-03-11T21:19:54.812Z'
+                    modified_at: '2022-07-10T20:17:43.327Z'
+                    id: 68293
+                    name: lxakyatbhgluytsaeyvg
+    post:
+      operationId: example_CreateGateway
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gateway'
+              examples:
+                Example1:
+                  value:
+                    created_at: '2023-03-11T21:19:54.812Z'
+                    modified_at: '2022-07-10T20:17:43.327Z'
+                    id: 68293
+                    name: lxakyatbhgluytsaeyvg
+    patch:
+      operationId: example_UpdateGateway
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '204':
+          description: ''
+    delete:
+      operationId: example_DeleteGateway
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '204':
+          description: ''
+  /example/gateway__connects__device:
+    get:
+      operationId: example_ReadAllGateway__connects__device
+      tags:
+        - Example
+      parameters:
+        - name: $filter
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $select
+          in: query
+          required: false
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,gateway,connects__device
+        - name: $expand
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gateway__connects__deviceResponse'
+              examples:
+                Example1:
+                  value:
+                    d:
+                      - created_at: '2023-03-12T20:55:03.789Z'
+                        modified_at: '2023-01-23T06:09:12.207Z'
+                        id: 49798
+                      - created_at: '2023-03-12T20:55:03.789Z'
+                        modified_at: '2023-01-23T06:09:12.207Z'
+                        id: 49798
+    patch:
+      operationId: example_UpdateAllGateway__connects__device
+      tags:
+        - Example
+      parameters:
+        - name: $filter
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $select
+          in: query
+          required: false
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,gateway,connects__device
+        - name: $expand
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: ''
+    delete:
+      operationId: example_DeleteAllGateway__connects__device
+      tags:
+        - Example
+      parameters:
+        - name: $filter
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $select
+          in: query
+          required: false
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: created_at,modified_at,id,gateway,connects__device
+        - name: $expand
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: $top
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: ''
+  /example/gateway__connects__device(id):
+    get:
+      operationId: example_ReadGateway__connects__device
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gateway__connects__device'
+              examples:
+                Example1:
+                  value:
+                    created_at: '2023-03-12T20:55:03.789Z'
+                    modified_at: '2023-01-23T06:09:12.207Z'
+                    id: 49798
+    post:
+      operationId: example_CreateGateway__connects__device
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gateway__connects__device'
+              examples:
+                Example1:
+                  value:
+                    created_at: '2023-03-12T20:55:03.789Z'
+                    modified_at: '2023-01-23T06:09:12.207Z'
+                    id: 49798
+    patch:
+      operationId: example_UpdateGateway__connects__device
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '204':
+          description: ''
+    delete:
+      operationId: example_DeleteGateway__connects__device
+      tags:
+        - Example
+      parameters: []
+      responses:
+        '204':
+          description: ''
+components:
+  schemas:
+    Application:
+      title: Application
+      type: object
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        modified_at:
+          type: string
+          format: date-time
+        id:
+          type: integer
+          format: int64
+          description: The unique identifier for a Application
+          example: 71065
+        name:
+          type: string
+          example: xrkeejdkpljamasgfarw
+        note:
+          type: string
+          example: eomyvjziulccgbqkfcly
+      required:
+        - id
+        - name
+        - note
+    ApplicationResponse:
+      title: ApplicationResponse
+      type: object
+      properties:
+        d:
+          type: array
+          items:
+            $ref: '#/components/schemas/Application'
+      required:
+        - d
+    Device:
+      title: Device
+      type: object
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        modified_at:
+          type: string
+          format: date-time
+        id:
+          type: integer
+          format: int64
+          description: The unique identifier for a Device
+          example: 80097
+        name:
+          type: string
+          example: ewgdekqxythufswoytuc
+        type:
+          type: string
+        belongs_to__application:
+          $ref: '#/components/schemas/Application'
+      required:
+        - id
+        - name
+    DeviceResponse:
+      title: DeviceResponse
+      type: object
+      properties:
+        d:
+          type: array
+          items:
+            $ref: '#/components/schemas/Device'
+      required:
+        - d
+    Gateway:
+      title: Gateway
+      type: object
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        modified_at:
+          type: string
+          format: date-time
+        id:
+          type: integer
+          format: int64
+          description: The unique identifier for a Gateway
+          example: 68293
+        name:
+          type: string
+      required:
+        - id
+    GatewayResponse:
+      title: GatewayResponse
+      type: object
+      properties:
+        d:
+          type: array
+          items:
+            $ref: '#/components/schemas/Gateway'
+      required:
+        - d
+    Gateway__connects__device:
+      title: Gateway__connects__device
+      type: object
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        modified_at:
+          type: string
+          format: date-time
+        id:
+          type: integer
+          format: int64
+          description: The unique identifier for a Gateway__connects__device
+          example: 49798
+        gateway:
+          $ref: '#/components/schemas/Gateway'
+        connects__device:
+          $ref: '#/components/schemas/Device'
+      required:
+        - id
+    Gateway__connects__deviceResponse:
+      title: Gateway__connects__deviceResponse
+      type: object
+      properties:
+        d:
+          type: array
+          items:
+            $ref: '#/components/schemas/Gateway__connects__device'
+      required:
+        - d
+  securitySchemes: {}

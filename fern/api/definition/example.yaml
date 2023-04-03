@@ -1,0 +1,471 @@
+service:
+  auth: false
+  base-path: /example
+  endpoints:
+    ReadAllApplication:
+      path: /application
+      method: GET
+      response: ApplicationResponse
+      request:
+        name: ReadallApplication
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name,note
+          response:
+            body:
+              d:
+                - created_at: 2022-06-19T23:22:46.962Z
+                  modified_at: 2022-08-12T08:38:22.014Z
+                  id: 71065
+                  name: xrkeejdkpljamasgfarw
+                  note: eomyvjziulccgbqkfcly
+                - created_at: 2022-06-19T23:22:46.962Z
+                  modified_at: 2022-08-12T08:38:22.014Z
+                  id: 71065
+                  name: xrkeejdkpljamasgfarw
+                  note: eomyvjziulccgbqkfcly
+    ReadApplication:
+      path: /application(id)
+      method: GET
+      response: Application
+      request:
+        name: ReadApplicationById
+      examples:
+        - response:
+            body:
+              created_at: 2022-06-19T23:22:46.962Z
+              modified_at: 2022-08-12T08:38:22.014Z
+              id: 71065
+              name: xrkeejdkpljamasgfarw
+              note: eomyvjziulccgbqkfcly
+    CreateApplication:
+      path: /application(id)
+      method: POST
+      response: Application
+      request:
+        name: CreateApplicationById
+      examples:
+        - response:
+            body:
+              created_at: 2022-06-19T23:22:46.962Z
+              modified_at: 2022-08-12T08:38:22.014Z
+              id: 71065
+              name: xrkeejdkpljamasgfarw
+              note: eomyvjziulccgbqkfcly
+    UpdateAllApplication:
+      path: /application
+      method: PATCH
+      request:
+        name: UpdateallApplication
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name,note
+    UpdateApplication:
+      path: /application(id)
+      method: PATCH
+      request:
+        name: UpdateApplicationById
+      examples:
+        - {}
+    DeleteAllApplication:
+      path: /application
+      method: DELETE
+      request:
+        name: DeleteallApplication
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name,note
+    DeleteApplication:
+      path: /application(id)
+      method: DELETE
+      request:
+        name: DeleteApplicationById
+      examples:
+        - {}
+    ReadAllDevice:
+      path: /device
+      method: GET
+      response: DeviceResponse
+      request:
+        name: ReadallDevice
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name,type,belongs_to__application
+          response:
+            body:
+              d:
+                - created_at: 2022-06-25T03:06:57.310Z
+                  modified_at: 2022-12-24T06:08:24.699Z
+                  id: 80097
+                  name: ewgdekqxythufswoytuc
+                  type: mjlemqmluysjbhenlfuk
+                - created_at: 2022-06-25T03:06:57.310Z
+                  modified_at: 2022-12-24T06:08:24.699Z
+                  id: 80097
+                  name: ewgdekqxythufswoytuc
+                  type: mjlemqmluysjbhenlfuk
+    ReadDevice:
+      path: /device(id)
+      method: GET
+      response: Device
+      request:
+        name: ReadDeviceById
+      examples:
+        - response:
+            body:
+              created_at: 2022-06-25T03:06:57.310Z
+              modified_at: 2022-12-24T06:08:24.699Z
+              id: 80097
+              name: ewgdekqxythufswoytuc
+              type: mjlemqmluysjbhenlfuk
+    CreateDevice:
+      path: /device(id)
+      method: POST
+      response: Device
+      request:
+        name: CreateDeviceById
+      examples:
+        - response:
+            body:
+              created_at: 2022-06-25T03:06:57.310Z
+              modified_at: 2022-12-24T06:08:24.699Z
+              id: 80097
+              name: ewgdekqxythufswoytuc
+              type: mjlemqmluysjbhenlfuk
+    UpdateAllDevice:
+      path: /device
+      method: PATCH
+      request:
+        name: UpdateallDevice
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name,type,belongs_to__application
+    UpdateDevice:
+      path: /device(id)
+      method: PATCH
+      request:
+        name: UpdateDeviceById
+      examples:
+        - {}
+    DeleteAllDevice:
+      path: /device
+      method: DELETE
+      request:
+        name: DeleteallDevice
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name,type,belongs_to__application
+    DeleteDevice:
+      path: /device(id)
+      method: DELETE
+      request:
+        name: DeleteDeviceById
+      examples:
+        - {}
+    ReadAllGateway:
+      path: /gateway
+      method: GET
+      response: GatewayResponse
+      request:
+        name: ReadallGateway
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name
+          response:
+            body:
+              d:
+                - created_at: 2023-03-11T21:19:54.812Z
+                  modified_at: 2022-07-10T20:17:43.327Z
+                  id: 68293
+                  name: lxakyatbhgluytsaeyvg
+                - created_at: 2023-03-11T21:19:54.812Z
+                  modified_at: 2022-07-10T20:17:43.327Z
+                  id: 68293
+                  name: lxakyatbhgluytsaeyvg
+    ReadGateway:
+      path: /gateway(id)
+      method: GET
+      response: Gateway
+      request:
+        name: ReadGatewayById
+      examples:
+        - response:
+            body:
+              created_at: 2023-03-11T21:19:54.812Z
+              modified_at: 2022-07-10T20:17:43.327Z
+              id: 68293
+              name: lxakyatbhgluytsaeyvg
+    CreateGateway:
+      path: /gateway(id)
+      method: POST
+      response: Gateway
+      request:
+        name: CreateGatewayById
+      examples:
+        - response:
+            body:
+              created_at: 2023-03-11T21:19:54.812Z
+              modified_at: 2022-07-10T20:17:43.327Z
+              id: 68293
+              name: lxakyatbhgluytsaeyvg
+    UpdateAllGateway:
+      path: /gateway
+      method: PATCH
+      request:
+        name: UpdateallGateway
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name
+    UpdateGateway:
+      path: /gateway(id)
+      method: PATCH
+      request:
+        name: UpdateGatewayById
+      examples:
+        - {}
+    DeleteAllGateway:
+      path: /gateway
+      method: DELETE
+      request:
+        name: DeleteallGateway
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,name
+    DeleteGateway:
+      path: /gateway(id)
+      method: DELETE
+      request:
+        name: DeleteGatewayById
+      examples:
+        - {}
+    ReadAllGateway__connects__device:
+      path: /gateway__connects__device
+      method: GET
+      response: Gateway__connects__deviceResponse
+      request:
+        name: ReadallGateway__connects__device
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,gateway,connects__device
+          response:
+            body:
+              d:
+                - created_at: 2023-03-12T20:55:03.789Z
+                  modified_at: 2023-01-23T06:09:12.207Z
+                  id: 49798
+                - created_at: 2023-03-12T20:55:03.789Z
+                  modified_at: 2023-01-23T06:09:12.207Z
+                  id: 49798
+    ReadGateway__connects__device:
+      path: /gateway__connects__device(id)
+      method: GET
+      response: Gateway__connects__device
+      request:
+        name: ReadGateway__connects__deviceById
+      examples:
+        - response:
+            body:
+              created_at: 2023-03-12T20:55:03.789Z
+              modified_at: 2023-01-23T06:09:12.207Z
+              id: 49798
+    CreateGateway__connects__device:
+      path: /gateway__connects__device(id)
+      method: POST
+      response: Gateway__connects__device
+      request:
+        name: CreateGateway__connects__deviceById
+      examples:
+        - response:
+            body:
+              created_at: 2023-03-12T20:55:03.789Z
+              modified_at: 2023-01-23T06:09:12.207Z
+              id: 49798
+    UpdateAllGateway__connects__device:
+      path: /gateway__connects__device
+      method: PATCH
+      request:
+        name: UpdateallGateway__connects__device
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,gateway,connects__device
+    UpdateGateway__connects__device:
+      path: /gateway__connects__device(id)
+      method: PATCH
+      request:
+        name: UpdateGateway__connects__deviceById
+      examples:
+        - {}
+    DeleteAllGateway__connects__device:
+      path: /gateway__connects__device
+      method: DELETE
+      request:
+        name: DeleteallGateway__connects__device
+        query-parameters:
+          $filter: optional<string>
+          $select: optional<string>
+          $expand: optional<string>
+          $top: optional<integer>
+          $count: optional<integer>
+      examples:
+        - query-parameters:
+            $select: created_at,modified_at,id,gateway,connects__device
+    DeleteGateway__connects__device:
+      path: /gateway__connects__device(id)
+      method: DELETE
+      request:
+        name: DeleteGateway__connects__deviceById
+      examples:
+        - {}
+types:
+  Application:
+    properties:
+      created_at:
+        type: optional<datetime>
+      modified_at:
+        type: optional<datetime>
+      id:
+        type: long
+        docs: The unique identifier for a Application
+      name:
+        type: string
+      note:
+        type: string
+    examples:
+      - value:
+          created_at: 2022-06-19T23:22:46.962Z
+          modified_at: 2022-08-12T08:38:22.014Z
+          id: 71065
+          name: xrkeejdkpljamasgfarw
+          note: eomyvjziulccgbqkfcly
+  ApplicationResponse:
+    properties:
+      d: list<Application>
+  Device:
+    properties:
+      created_at:
+        type: optional<datetime>
+      modified_at:
+        type: optional<datetime>
+      id:
+        type: long
+        docs: The unique identifier for a Device
+      name:
+        type: string
+      type:
+        type: optional<string>
+      belongs_to__application: optional<Application>
+    examples:
+      - value:
+          created_at: 2022-06-25T03:06:57.310Z
+          modified_at: 2022-12-24T06:08:24.699Z
+          id: 80097
+          name: ewgdekqxythufswoytuc
+          type: mjlemqmluysjbhenlfuk
+  DeviceResponse:
+    properties:
+      d: list<Device>
+  Gateway:
+    properties:
+      created_at:
+        type: optional<datetime>
+      modified_at:
+        type: optional<datetime>
+      id:
+        type: long
+        docs: The unique identifier for a Gateway
+      name:
+        type: optional<string>
+    examples:
+      - value:
+          created_at: 2023-03-11T21:19:54.812Z
+          modified_at: 2022-07-10T20:17:43.327Z
+          id: 68293
+          name: lxakyatbhgluytsaeyvg
+  GatewayResponse:
+    properties:
+      d: list<Gateway>
+  Gateway__connects__device:
+    properties:
+      created_at:
+        type: optional<datetime>
+      modified_at:
+        type: optional<datetime>
+      id:
+        type: long
+        docs: The unique identifier for a Gateway__connects__device
+      gateway: optional<Gateway>
+      connects__device: optional<Device>
+    examples:
+      - value:
+          created_at: 2023-03-12T20:55:03.789Z
+          modified_at: 2023-01-23T06:09:12.207Z
+          id: 49798
+  Gateway__connects__deviceResponse:
+    properties:
+      d: list<Gateway__connects__device>
