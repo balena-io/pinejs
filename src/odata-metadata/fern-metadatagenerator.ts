@@ -140,17 +140,17 @@ export const generateFernMetadata = (
 		$count: 'optional<integer>',
 	};
 
-	type FernEndpoint = {
-		path: string;
-		'path-parameters': { [key: string]: string };
-		method: string;
-		request: {
-			name: string;
-			'query-parameters': typeof ODataQueryParameters;
-			auth?: boolean;
-			docs?: string;
-		};
-	};
+	// type FernEndpoint = {
+	// 	path: string;
+	// 	'path-parameters': { [key: string]: string };
+	// 	method: string;
+	// 	request: {
+	// 		name: string;
+	// 		'query-parameters': typeof ODataQueryParameters;
+	// 		auth?: boolean;
+	// 		docs?: string;
+	// 	};
+	// };
 
 	const fernRootEndpoints: any = {};
 
@@ -160,13 +160,13 @@ export const generateFernMetadata = (
 	const exampleFaker = (
 		fieldName: string,
 		dataType?: any,
-		referencedResource?: string,
+		// referencedResource?: string,
 	) => {
 		if (fieldName === 'id' || dataType === 'long' || dataType === 'integer') {
 			return faker.datatype.number(100000);
-			// } else if (dataType === 'datetime') {
-			// 	// return faker.date.past();
-			// 	return new Date().toISOString();
+		} else if (dataType === 'datetime') {
+			return faker.date.past();
+			// return new Date().toISOString();
 		} else if (dataType === 'string') {
 			return faker.random.alpha(20);
 		}
@@ -250,6 +250,9 @@ export const generateFernMetadata = (
 		uniqueTable.examples ??= [{ value: exampleForType }];
 
 		fernRootTypes[capitalizedResourceName] = uniqueTable;
+		fernRootTypes[capitalizedResourceName + 'Response'] = {
+			properties: { d: `list<${capitalizedResourceName}>` },
+		};
 
 		for (const [resKey, resValue] of Object.entries(permissions) as Array<
 			[keyof PreparedPermissionsLookup[string][string], boolean]
@@ -262,8 +265,8 @@ export const generateFernMetadata = (
 			};
 
 			const compileResponse: any = {
-				read: capitalizedResourceName,
-				create: capitalizedResourceName,
+				read: capitalizedResourceName + 'Response',
+				create: capitalizedResourceName + 'Response',
 				update: undefined,
 				delete: undefined,
 			};
@@ -281,9 +284,7 @@ export const generateFernMetadata = (
 					] = {
 						path: `/${resourceName}`,
 						method: httpLookup[resKey],
-						response: compileResponse[resKey]
-							? `map<string,list<${compileResponse[resKey]}>>`
-							: undefined,
+						response: compileResponse[resKey],
 						request: {
 							name: capitalize(resKey) + 'all' + capitalizedResourceName,
 							'query-parameters': ODataQueryParameters,

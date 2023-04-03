@@ -5,7 +5,7 @@ service:
     ReadAllApplication:
       path: /application
       method: GET
-      response: map<string,list<Application>>
+      response: ApplicationResponse
       request:
         name: ReadallApplication
         query-parameters:
@@ -20,12 +20,16 @@ service:
           response:
             body:
               d:
-                - id: 4667
-                  name: asazpqprbwfzcgqpwggq
-                  note: eqydvcitnsirwajnugcd
-                - id: 4667
-                  name: asazpqprbwfzcgqpwggq
-                  note: eqydvcitnsirwajnugcd
+                - created_at: 2022-06-19T23:22:46.962Z
+                  modified_at: 2022-08-12T08:38:22.014Z
+                  id: 71065
+                  name: xrkeejdkpljamasgfarw
+                  note: eomyvjziulccgbqkfcly
+                - created_at: 2022-06-19T23:22:46.962Z
+                  modified_at: 2022-08-12T08:38:22.014Z
+                  id: 71065
+                  name: xrkeejdkpljamasgfarw
+                  note: eomyvjziulccgbqkfcly
     ReadApplication:
       path: /application(id)
       method: GET
@@ -35,9 +39,11 @@ service:
       examples:
         - response:
             body:
-              id: 4667
-              name: asazpqprbwfzcgqpwggq
-              note: eqydvcitnsirwajnugcd
+              created_at: 2022-06-19T23:22:46.962Z
+              modified_at: 2022-08-12T08:38:22.014Z
+              id: 71065
+              name: xrkeejdkpljamasgfarw
+              note: eomyvjziulccgbqkfcly
     CreateApplication:
       path: /application(id)
       method: POST
@@ -47,9 +53,11 @@ service:
       examples:
         - response:
             body:
-              id: 4667
-              name: asazpqprbwfzcgqpwggq
-              note: eqydvcitnsirwajnugcd
+              created_at: 2022-06-19T23:22:46.962Z
+              modified_at: 2022-08-12T08:38:22.014Z
+              id: 71065
+              name: xrkeejdkpljamasgfarw
+              note: eomyvjziulccgbqkfcly
     UpdateAllApplication:
       path: /application
       method: PATCH
@@ -95,7 +103,7 @@ service:
     ReadAllDevice:
       path: /device
       method: GET
-      response: map<string,list<Device>>
+      response: DeviceResponse
       request:
         name: ReadallDevice
         query-parameters:
@@ -110,12 +118,16 @@ service:
           response:
             body:
               d:
-                - id: 82776
-                  name: kwyepepbhyjahnafvbmz
-                  type: duxabktuxrqniguywjzn
-                - id: 82776
-                  name: kwyepepbhyjahnafvbmz
-                  type: duxabktuxrqniguywjzn
+                - created_at: 2022-06-25T03:06:57.310Z
+                  modified_at: 2022-12-24T06:08:24.699Z
+                  id: 80097
+                  name: ewgdekqxythufswoytuc
+                  type: mjlemqmluysjbhenlfuk
+                - created_at: 2022-06-25T03:06:57.310Z
+                  modified_at: 2022-12-24T06:08:24.699Z
+                  id: 80097
+                  name: ewgdekqxythufswoytuc
+                  type: mjlemqmluysjbhenlfuk
     ReadDevice:
       path: /device(id)
       method: GET
@@ -125,9 +137,11 @@ service:
       examples:
         - response:
             body:
-              id: 82776
-              name: kwyepepbhyjahnafvbmz
-              type: duxabktuxrqniguywjzn
+              created_at: 2022-06-25T03:06:57.310Z
+              modified_at: 2022-12-24T06:08:24.699Z
+              id: 80097
+              name: ewgdekqxythufswoytuc
+              type: mjlemqmluysjbhenlfuk
     CreateDevice:
       path: /device(id)
       method: POST
@@ -137,9 +151,11 @@ service:
       examples:
         - response:
             body:
-              id: 82776
-              name: kwyepepbhyjahnafvbmz
-              type: duxabktuxrqniguywjzn
+              created_at: 2022-06-25T03:06:57.310Z
+              modified_at: 2022-12-24T06:08:24.699Z
+              id: 80097
+              name: ewgdekqxythufswoytuc
+              type: mjlemqmluysjbhenlfuk
     UpdateAllDevice:
       path: /device
       method: PATCH
@@ -185,7 +201,7 @@ service:
     ReadAllGateway:
       path: /gateway
       method: GET
-      response: map<string,list<Gateway>>
+      response: GatewayResponse
       request:
         name: ReadallGateway
         query-parameters:
@@ -200,10 +216,14 @@ service:
           response:
             body:
               d:
-                - id: 93907
-                  name: grwlnjidfweccerzvxgo
-                - id: 93907
-                  name: grwlnjidfweccerzvxgo
+                - created_at: 2023-03-11T21:19:54.812Z
+                  modified_at: 2022-07-10T20:17:43.327Z
+                  id: 68293
+                  name: lxakyatbhgluytsaeyvg
+                - created_at: 2023-03-11T21:19:54.812Z
+                  modified_at: 2022-07-10T20:17:43.327Z
+                  id: 68293
+                  name: lxakyatbhgluytsaeyvg
     ReadGateway:
       path: /gateway(id)
       method: GET
@@ -213,8 +233,10 @@ service:
       examples:
         - response:
             body:
-              id: 93907
-              name: grwlnjidfweccerzvxgo
+              created_at: 2023-03-11T21:19:54.812Z
+              modified_at: 2022-07-10T20:17:43.327Z
+              id: 68293
+              name: lxakyatbhgluytsaeyvg
     CreateGateway:
       path: /gateway(id)
       method: POST
@@ -224,8 +246,10 @@ service:
       examples:
         - response:
             body:
-              id: 93907
-              name: grwlnjidfweccerzvxgo
+              created_at: 2023-03-11T21:19:54.812Z
+              modified_at: 2022-07-10T20:17:43.327Z
+              id: 68293
+              name: lxakyatbhgluytsaeyvg
     UpdateAllGateway:
       path: /gateway
       method: PATCH
@@ -271,7 +295,7 @@ service:
     ReadAllGateway__connects__device:
       path: /gateway__connects__device
       method: GET
-      response: map<string,list<Gateway__connects__device>>
+      response: Gateway__connects__deviceResponse
       request:
         name: ReadallGateway__connects__device
         query-parameters:
@@ -286,8 +310,12 @@ service:
           response:
             body:
               d:
-                - id: 58529
-                - id: 58529
+                - created_at: 2023-03-12T20:55:03.789Z
+                  modified_at: 2023-01-23T06:09:12.207Z
+                  id: 49798
+                - created_at: 2023-03-12T20:55:03.789Z
+                  modified_at: 2023-01-23T06:09:12.207Z
+                  id: 49798
     ReadGateway__connects__device:
       path: /gateway__connects__device(id)
       method: GET
@@ -297,7 +325,9 @@ service:
       examples:
         - response:
             body:
-              id: 58529
+              created_at: 2023-03-12T20:55:03.789Z
+              modified_at: 2023-01-23T06:09:12.207Z
+              id: 49798
     CreateGateway__connects__device:
       path: /gateway__connects__device(id)
       method: POST
@@ -307,7 +337,9 @@ service:
       examples:
         - response:
             body:
-              id: 58529
+              created_at: 2023-03-12T20:55:03.789Z
+              modified_at: 2023-01-23T06:09:12.207Z
+              id: 49798
     UpdateAllGateway__connects__device:
       path: /gateway__connects__device
       method: PATCH
@@ -366,9 +398,14 @@ types:
         type: string
     examples:
       - value:
-          id: 4667
-          name: asazpqprbwfzcgqpwggq
-          note: eqydvcitnsirwajnugcd
+          created_at: 2022-06-19T23:22:46.962Z
+          modified_at: 2022-08-12T08:38:22.014Z
+          id: 71065
+          name: xrkeejdkpljamasgfarw
+          note: eomyvjziulccgbqkfcly
+  ApplicationResponse:
+    properties:
+      d: list<Application>
   Device:
     properties:
       created_at:
@@ -385,9 +422,14 @@ types:
       belongs_to__application: optional<Application>
     examples:
       - value:
-          id: 82776
-          name: kwyepepbhyjahnafvbmz
-          type: duxabktuxrqniguywjzn
+          created_at: 2022-06-25T03:06:57.310Z
+          modified_at: 2022-12-24T06:08:24.699Z
+          id: 80097
+          name: ewgdekqxythufswoytuc
+          type: mjlemqmluysjbhenlfuk
+  DeviceResponse:
+    properties:
+      d: list<Device>
   Gateway:
     properties:
       created_at:
@@ -401,8 +443,13 @@ types:
         type: optional<string>
     examples:
       - value:
-          id: 93907
-          name: grwlnjidfweccerzvxgo
+          created_at: 2023-03-11T21:19:54.812Z
+          modified_at: 2022-07-10T20:17:43.327Z
+          id: 68293
+          name: lxakyatbhgluytsaeyvg
+  GatewayResponse:
+    properties:
+      d: list<Gateway>
   Gateway__connects__device:
     properties:
       created_at:
@@ -416,4 +463,9 @@ types:
       connects__device: optional<Device>
     examples:
       - value:
-          id: 58529
+          created_at: 2023-03-12T20:55:03.789Z
+          modified_at: 2023-01-23T06:09:12.207Z
+          id: 49798
+  Gateway__connects__deviceResponse:
+    properties:
+      d: list<Gateway__connects__device>

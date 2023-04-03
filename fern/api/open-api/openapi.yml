@@ -43,21 +43,21 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Application'
+                $ref: '#/components/schemas/ApplicationResponse'
               examples:
                 Example1:
                   value:
                     d:
-                      - id: 4667
-                        name: asazpqprbwfzcgqpwggq
-                        note: eqydvcitnsirwajnugcd
-                      - id: 4667
-                        name: asazpqprbwfzcgqpwggq
-                        note: eqydvcitnsirwajnugcd
+                      - created_at: '2022-06-19T23:22:46.962Z'
+                        modified_at: '2022-08-12T08:38:22.014Z'
+                        id: 71065
+                        name: xrkeejdkpljamasgfarw
+                        note: eomyvjziulccgbqkfcly
+                      - created_at: '2022-06-19T23:22:46.962Z'
+                        modified_at: '2022-08-12T08:38:22.014Z'
+                        id: 71065
+                        name: xrkeejdkpljamasgfarw
+                        note: eomyvjziulccgbqkfcly
     patch:
       operationId: example_UpdateAllApplication
       tags:
@@ -146,9 +146,11 @@ paths:
               examples:
                 Example1:
                   value:
-                    id: 4667
-                    name: asazpqprbwfzcgqpwggq
-                    note: eqydvcitnsirwajnugcd
+                    created_at: '2022-06-19T23:22:46.962Z'
+                    modified_at: '2022-08-12T08:38:22.014Z'
+                    id: 71065
+                    name: xrkeejdkpljamasgfarw
+                    note: eomyvjziulccgbqkfcly
     post:
       operationId: example_CreateApplication
       tags:
@@ -164,9 +166,11 @@ paths:
               examples:
                 Example1:
                   value:
-                    id: 4667
-                    name: asazpqprbwfzcgqpwggq
-                    note: eqydvcitnsirwajnugcd
+                    created_at: '2022-06-19T23:22:46.962Z'
+                    modified_at: '2022-08-12T08:38:22.014Z'
+                    id: 71065
+                    name: xrkeejdkpljamasgfarw
+                    note: eomyvjziulccgbqkfcly
     patch:
       operationId: example_UpdateApplication
       tags:
@@ -223,21 +227,21 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Device'
+                $ref: '#/components/schemas/DeviceResponse'
               examples:
                 Example1:
                   value:
                     d:
-                      - id: 82776
-                        name: kwyepepbhyjahnafvbmz
-                        type: duxabktuxrqniguywjzn
-                      - id: 82776
-                        name: kwyepepbhyjahnafvbmz
-                        type: duxabktuxrqniguywjzn
+                      - created_at: '2022-06-25T03:06:57.310Z'
+                        modified_at: '2022-12-24T06:08:24.699Z'
+                        id: 80097
+                        name: ewgdekqxythufswoytuc
+                        type: mjlemqmluysjbhenlfuk
+                      - created_at: '2022-06-25T03:06:57.310Z'
+                        modified_at: '2022-12-24T06:08:24.699Z'
+                        id: 80097
+                        name: ewgdekqxythufswoytuc
+                        type: mjlemqmluysjbhenlfuk
     patch:
       operationId: example_UpdateAllDevice
       tags:
@@ -326,9 +330,11 @@ paths:
               examples:
                 Example1:
                   value:
-                    id: 82776
-                    name: kwyepepbhyjahnafvbmz
-                    type: duxabktuxrqniguywjzn
+                    created_at: '2022-06-25T03:06:57.310Z'
+                    modified_at: '2022-12-24T06:08:24.699Z'
+                    id: 80097
+                    name: ewgdekqxythufswoytuc
+                    type: mjlemqmluysjbhenlfuk
     post:
       operationId: example_CreateDevice
       tags:
@@ -344,9 +350,11 @@ paths:
               examples:
                 Example1:
                   value:
-                    id: 82776
-                    name: kwyepepbhyjahnafvbmz
-                    type: duxabktuxrqniguywjzn
+                    created_at: '2022-06-25T03:06:57.310Z'
+                    modified_at: '2022-12-24T06:08:24.699Z'
+                    id: 80097
+                    name: ewgdekqxythufswoytuc
+                    type: mjlemqmluysjbhenlfuk
     patch:
       operationId: example_UpdateDevice
       tags:
@@ -403,19 +411,19 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Gateway'
+                $ref: '#/components/schemas/GatewayResponse'
               examples:
                 Example1:
                   value:
                     d:
-                      - id: 93907
-                        name: grwlnjidfweccerzvxgo
-                      - id: 93907
-                        name: grwlnjidfweccerzvxgo
+                      - created_at: '2023-03-11T21:19:54.812Z'
+                        modified_at: '2022-07-10T20:17:43.327Z'
+                        id: 68293
+                        name: lxakyatbhgluytsaeyvg
+                      - created_at: '2023-03-11T21:19:54.812Z'
+                        modified_at: '2022-07-10T20:17:43.327Z'
+                        id: 68293
+                        name: lxakyatbhgluytsaeyvg
     patch:
       operationId: example_UpdateAllGateway
       tags:
@@ -504,8 +512,10 @@ paths:
               examples:
                 Example1:
                   value:
-                    id: 93907
-                    name: grwlnjidfweccerzvxgo
+                    created_at: '2023-03-11T21:19:54.812Z'
+                    modified_at: '2022-07-10T20:17:43.327Z'
+                    id: 68293
+                    name: lxakyatbhgluytsaeyvg
     post:
       operationId: example_CreateGateway
       tags:
@@ -521,8 +531,10 @@ paths:
               examples:
                 Example1:
                   value:
-                    id: 93907
-                    name: grwlnjidfweccerzvxgo
+                    created_at: '2023-03-11T21:19:54.812Z'
+                    modified_at: '2022-07-10T20:17:43.327Z'
+                    id: 68293
+                    name: lxakyatbhgluytsaeyvg
     patch:
       operationId: example_UpdateGateway
       tags:
@@ -579,17 +591,17 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Gateway__connects__device'
+                $ref: '#/components/schemas/Gateway__connects__deviceResponse'
               examples:
                 Example1:
                   value:
                     d:
-                      - id: 58529
-                      - id: 58529
+                      - created_at: '2023-03-12T20:55:03.789Z'
+                        modified_at: '2023-01-23T06:09:12.207Z'
+                        id: 49798
+                      - created_at: '2023-03-12T20:55:03.789Z'
+                        modified_at: '2023-01-23T06:09:12.207Z'
+                        id: 49798
     patch:
       operationId: example_UpdateAllGateway__connects__device
       tags:
@@ -678,7 +690,9 @@ paths:
               examples:
                 Example1:
                   value:
-                    id: 58529
+                    created_at: '2023-03-12T20:55:03.789Z'
+                    modified_at: '2023-01-23T06:09:12.207Z'
+                    id: 49798
     post:
       operationId: example_CreateGateway__connects__device
       tags:
@@ -694,7 +708,9 @@ paths:
               examples:
                 Example1:
                   value:
-                    id: 58529
+                    created_at: '2023-03-12T20:55:03.789Z'
+                    modified_at: '2023-01-23T06:09:12.207Z'
+                    id: 49798
     patch:
       operationId: example_UpdateGateway__connects__device
       tags:
@@ -727,17 +743,27 @@ components:
           type: integer
           format: int64
           description: The unique identifier for a Application
-          example: 4667
+          example: 71065
         name:
           type: string
-          example: asazpqprbwfzcgqpwggq
+          example: xrkeejdkpljamasgfarw
         note:
           type: string
-          example: eqydvcitnsirwajnugcd
+          example: eomyvjziulccgbqkfcly
       required:
         - id
         - name
         - note
+    ApplicationResponse:
+      title: ApplicationResponse
+      type: object
+      properties:
+        d:
+          type: array
+          items:
+            $ref: '#/components/schemas/Application'
+      required:
+        - d
     Device:
       title: Device
       type: object
@@ -752,10 +778,10 @@ components:
           type: integer
           format: int64
           description: The unique identifier for a Device
-          example: 82776
+          example: 80097
         name:
           type: string
-          example: kwyepepbhyjahnafvbmz
+          example: ewgdekqxythufswoytuc
         type:
           type: string
         belongs_to__application:
@@ -763,6 +789,16 @@ components:
       required:
         - id
         - name
+    DeviceResponse:
+      title: DeviceResponse
+      type: object
+      properties:
+        d:
+          type: array
+          items:
+            $ref: '#/components/schemas/Device'
+      required:
+        - d
     Gateway:
       title: Gateway
       type: object
@@ -777,11 +813,21 @@ components:
           type: integer
           format: int64
           description: The unique identifier for a Gateway
-          example: 93907
+          example: 68293
         name:
           type: string
       required:
         - id
+    GatewayResponse:
+      title: GatewayResponse
+      type: object
+      properties:
+        d:
+          type: array
+          items:
+            $ref: '#/components/schemas/Gateway'
+      required:
+        - d
     Gateway__connects__device:
       title: Gateway__connects__device
       type: object
@@ -796,11 +842,21 @@ components:
           type: integer
           format: int64
           description: The unique identifier for a Gateway__connects__device
-          example: 58529
+          example: 49798
         gateway:
           $ref: '#/components/schemas/Gateway'
         connects__device:
           $ref: '#/components/schemas/Device'
       required:
         - id
+    Gateway__connects__deviceResponse:
+      title: Gateway__connects__deviceResponse
+      type: object
+      properties:
+        d:
+          type: array
+          items:
+            $ref: '#/components/schemas/Gateway__connects__device'
+      required:
+        - d
   securitySchemes: {}

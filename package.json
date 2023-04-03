@@ -57,7 +57,7 @@
 		"deep-freeze": "^0.0.1",
 		"eventemitter3": "^5.0.0",
 		"express-session": "^1.17.3",
-		"fern-api": "^0.6.4",
+		"fern-api": "^0.6.6",
 		"lodash": "^4.17.21",
 		"memoizee": "^0.4.15",
 		"odata-openapi": "^0.21.5",
