@@ -2,6 +2,7 @@ import type * as Express from 'express';
 import type * as Db from '../database-layer/db';
 import type { Model } from '../config-loader/config-loader';
 import type { AnyObject, RequiredField } from './common-types';
+import * as nodeSchedule from 'node-schedule';
 
 declare global {
 	namespace Express {
@@ -93,8 +94,9 @@ import {
 } from './abstract-sql';
 export { resolveOdataBind } from './abstract-sql';
 import * as odataResponse from './odata-response';
-import { env } from '../server-glue/module';
+import { env, sbvrUtils } from '../server-glue/module';
 import { translateAbstractSqlModel } from './translations';
+import type { ScheduledMigration } from '../migrator/utils';
 
 const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
 const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVersion}`;
@@ -640,6 +642,22 @@ export const executeModels = async (
 							logger[key] = _.noop;
 						}
 					}
+				}
+				if (model.modelName === 'migrations') {
+					sbvrUtils.addPureHook('POST', 'migrations', 'scheduled_migration', {
+						POSTRUN: async ({ api, result, tx }) => {
+							const scheduledMigration = await api.get({
+								resource: 'scheduled_migration',
+								passthrough: {
+									req: permissions.root,
+									tx,
+								},
+								id: result,
+							}) as ScheduledMigration;
+							const callback = eval(`(${scheduledMigration.callback})`) as () => Promise<void>;
+							syncMigrator.schedule(new Date(scheduledMigration.execution_time), scheduledMigration.migration_key, callback);
+						},
+					});
 				}
 				return compiledModel;
 				// Only update the dev models once all models have finished executing.

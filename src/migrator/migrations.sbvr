@@ -64,3 +64,16 @@ Fact Type: migration status is backing off
 
 Fact Type: migration status has converged time 
 	Necessity: each migration status has at most one converged time
+
+Term: execution time
+	Concept Type: Date Time (Type)
+Term: callback
+	Concept Type: Short Text (Type)
+
+Term: scheduled migration
+Fact Type: scheduled migration has migration key
+	Necessity: each scheduled migration has exactly one migration key
+Fact Type: scheduled migration has execution time
+    Necessity: each scheduled migration has exactly one execution time
+Fact Type: scheduled migration has callback
+	Necessity: each scheduled migration has exactly one callback

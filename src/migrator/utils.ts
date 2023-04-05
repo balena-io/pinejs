@@ -108,6 +108,12 @@ export type MigrationStatus = {
 	is_backing_off: boolean;
 };
 
+export type ScheduledMigration = {
+	migration_key: string;
+	execution_time: Date;
+	callback: string;
+}
+
 export const getRunnableAsyncMigrations = (
 	migrations: Migrations,
 ): RunnableAsyncMigrations | undefined => {

@@ -56,8 +56,10 @@
     "express-session": "^1.17.3",
     "lodash": "^4.17.21",
     "memoizee": "^0.4.15",
+    "node-schedule": "^2.1.1",
     "pinejs-client-core": "^6.12.3",
     "randomstring": "^1.2.3",
+    "serialize-javascript": "^6.0.1",
     "typed-error": "^3.2.1"
   },
   "devDependencies": {
@@ -66,6 +68,8 @@
     "@types/chai-as-promised": "^7.1.5",
     "@types/grunt": "^0.4.27",
     "@types/mocha": "^10.0.1",
+    "@types/node-schedule": "^2.1.0",
+    "@types/serialize-javascript": "^5.0.2",
     "@types/supertest": "^2.0.12",
     "@types/terser-webpack-plugin": "^5.2.0",
     "@types/webpack": "^5.28.0",
