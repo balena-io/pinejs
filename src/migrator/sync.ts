@@ -8,13 +8,11 @@ import {
 	RunnableMigrations,
 	filterAndSortPendingMigrations,
 	getRunnableSyncMigrations,
-	Migration,
 } from './utils';
 import type { Tx } from '../database-layer/db';
 import type { Config, Model } from '../config-loader/config-loader';
 
 import * as _ from 'lodash';
-import * as nodeSchedule from 'node-schedule';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 
 type ApiRootModel = Model & { apiRoot: string };
@@ -53,14 +51,6 @@ export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 	const runnableMigrations = getRunnableSyncMigrations(migrations);
 	return $run(tx, model, runnableMigrations);
 };
-
-export const schedule = async (date: Date, key: string, callback: () => Promise<void>): Promise<void> => {
-	nodeSchedule.scheduleJob(key, date, async () => {
-		sbvrUtils.db.transaction(async (tx) => {
-			return executeMigrations(tx, [[key, callback]]);
-		});
-	});
-}
 
 const $run = async (
 	tx: Tx,
@@ -107,7 +97,7 @@ const $run = async (
 	});
 };
 
-const executeMigrations = async (
+export const executeMigrations = async (
 	tx: Tx,
 	migrations: MigrationTuple[] = [],
 ): Promise<string[]> => {
