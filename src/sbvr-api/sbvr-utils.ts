@@ -42,6 +42,7 @@ import { generateODataMetadata } from '../odata-metadata/odata-metadata-generato
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const devModel = require('./dev.sbvr');
+import * as tasks from './tasks';
 import * as permissions from './permissions';
 import {
 	BadRequestError,
@@ -77,6 +78,7 @@ export {
 	addPureHook,
 	addSideEffectHook,
 } from './hooks';
+export { addTaskHandler } from './tasks';
 
 import memoizeWeak = require('memoizee/weak');
 import * as controlFlow from './control-flow';
@@ -1944,6 +1946,7 @@ export const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
 			},
 		});
 		await executeModels(tx, permissions.config.models);
+		await executeModels(tx, tasks.config.models);
 		console.info('Successfully executed standard models.');
 	} catch (err: any) {
 		console.error('Failed to execute standard models.', err);
@@ -1960,6 +1963,7 @@ export const setup = async (
 		await db.transaction(async (tx) => {
 			await executeStandardModels(tx);
 			await permissions.setup();
+			await tasks.setup(tx);
 		});
 	} catch (err: any) {
 		console.error('Could not execute standard models', err);

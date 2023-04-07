@@ -1,0 +1,41 @@
+Vocabulary: tasks
+
+Term: key
+	Concept Type: Short Text (Type)
+Term: handler
+	Concept Type: Short Text (Type)
+Term: actor
+	Concept Type: Integer (Type)
+Term: parameter set
+	Concept Type: JSON (Type)
+Term: start time
+	Concept Type: Date Time (Type)
+Term: retry limit
+	Concept Type: Integer (Type)
+Term: error count
+	Concept Type: Integer (Type)
+Term: last error
+	Concept Type: Short Text (Type)
+Term: status
+	Concept Type: Short Text (Type)
+
+Term: task
+Fact Type: task has key
+	Necessity: each task has exactly one key
+Fact Type: task is executed by actor
+	Necessity: each task is executed by exactly one actor
+Fact Type: task is executed by handler
+	Necessity: each task is executed by exactly one handler
+Fact Type: task is executed with parameter set
+	Necessity: each task is executed with exactly one parameter set
+Fact Type: task has start time
+	Necessity: each task has at most one start time
+Fact Type: task has retry limit
+	Necessity: each task has exactly one retry limit
+Fact Type: task has error count
+	Necessity: each task has at most one error count
+Fact Type: task has last error
+	Necessity: each task has at most one last error
+Fact Type: task has status
+	Necessity: each task has exactly one status
+	Definition: "pending" or "success" or "failed"

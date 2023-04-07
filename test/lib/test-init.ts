@@ -14,6 +14,7 @@ export async function testInit(
 			deleteDb: options.deleteDb ?? boolVar('DELETE_DB', false),
 			configPath: options.configPath,
 			hooksPath: options.hooksPath,
+			taskHandlersPath: options.taskHandlersPath,
 			routesPath: options.routesPath,
 		};
 		const testServer = fork(
