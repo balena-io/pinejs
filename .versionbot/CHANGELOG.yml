@@ -1,4 +1,16 @@
 - commits:
+    - subject: Guard against translations aliasing to a field that does not exist
+      hash: ad7d4cbc5b08df254b086495e1a1bd75239ab8df
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.62.6
+  title: ""
+  date: 2023-04-11T10:50:23.109Z
+- commits:
     - subject: Fix resourceName to resourceName native translation
       hash: 6deffd6681f2d037776f352033867f408d2f9f04
       body: >
