@@ -1,8 +1,8 @@
 import type {
 	AbstractSqlModel,
 	AbstractSqlQuery,
-	AbstractSqlType,
 	AliasNode,
+	AnyTypeNodes,
 	Definition,
 	FieldNode,
 	ReferencedFieldNode,
@@ -657,7 +657,7 @@ const generateConstrainedAbstractSql = (
 	const select = abstractSqlQuery.find(
 		(v): v is SelectNode => v[0] === 'Select',
 	)!;
-	select[1] = select[1].map((selectField): AbstractSqlType => {
+	select[1] = select[1].map((selectField): AnyTypeNodes => {
 		if (selectField[0] === 'Alias') {
 			const sqlName = odataNameToSqlName((selectField as AliasNode<any>)[2]);
 			const maybeField = (
