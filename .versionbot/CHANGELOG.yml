@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update select sql typing
+      hash: 8c04a099dc0739b65b2576a3cb48aa17565d2da2
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Josh Bowling
+      nested: []
+  version: 14.62.7
+  title: ""
+  date: 2023-04-18T07:16:59.301Z
+- commits:
     - subject: Guard against translations aliasing to a field that does not exist
       hash: ad7d4cbc5b08df254b086495e1a1bd75239ab8df
       body: ""
