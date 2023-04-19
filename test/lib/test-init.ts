@@ -1,19 +1,20 @@
 import { ChildProcess, fork } from 'child_process';
-export const testListenPort = 1337;
-export const testLocalServer = `http://localhost:${testListenPort}`;
+import { boolVar } from '@balena/env-parsing';
+import type { PineTestOptions } from './pine-init';
+import { OptionalField } from '../../src/sbvr-api/common-types';
+export const listenPortDefault = 1337;
+export const testLocalServer = `http://localhost:${listenPortDefault}`;
 
 export async function testInit(
-	fixturePath: string,
-	deleteDb: boolean = false,
-	pineListenPort: number = testListenPort,
+	options: OptionalField<PineTestOptions, 'listenPort' | 'deleteDb'>,
 ): Promise<ChildProcess> {
 	try {
-		const processArgs = {
-			fixturePath,
-			testListenPort: pineListenPort,
-			deleteDb: deleteDb || process.env.DELETE_DB,
+		const processArgs: PineTestOptions = {
+			listenPort: options.listenPort ?? listenPortDefault,
+			deleteDb: options.deleteDb ?? boolVar('DELETE_DB', false),
+			configPath: options.configPath,
+			hooksPath: options.hooksPath,
 		};
-
 		const testServer = fork(
 			__dirname + '/pine-in-process.ts',
 			[JSON.stringify(processArgs)],

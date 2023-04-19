@@ -22,10 +22,10 @@ async function executeModelBeforeMigrations(
 ) {
 	// start pine instace with a configuration without migrations to execute the model in the DB once.
 	// model has an initSqlPath declared so that the database gets filled first
-	const executeModelsOnceBeforeTesting: ChildProcess = await testInit(
-		initFixturePath,
-		true,
-	);
+	const executeModelsOnceBeforeTesting: ChildProcess = await testInit({
+		configPath: initFixturePath,
+		deleteDb: true,
+	});
 	try {
 		await testDeInit(executeModelsOnceBeforeTesting);
 	} catch (err: any) {
@@ -101,8 +101,8 @@ describe('03 Async Migrations', async function () {
 
 		before(async function () {
 			await executeModelBeforeMigrations();
-			const fixturePath = fixturesBasePath + '01-migrations';
-			pineFirstInstace = await testInit(fixturePath, false);
+			const configPath = fixturesBasePath + '01-migrations';
+			pineFirstInstace = await testInit({ configPath, deleteDb: false });
 		});
 
 		after(async () => {
@@ -213,9 +213,9 @@ describe('03 Async Migrations', async function () {
 
 		it('should not run async migrators until switch on via SIGUSR2', async function () {
 			await executeModelBeforeMigrations();
-			const fixturePath = fixturesBasePath + '01-migrations';
+			const configPath = fixturesBasePath + '01-migrations';
 			process.env.PINEJS_ASYNC_MIGRATION_ENABLED = 'false';
-			pineFirstInstace = await testInit(fixturePath, false);
+			pineFirstInstace = await testInit({ configPath, deleteDb: false });
 
 			await delay(200); // wait for one to have happened
 			let result: MigrationStatus[] = await getMigrationStatus();
@@ -234,9 +234,9 @@ describe('03 Async Migrations', async function () {
 
 		it('should run async migrators until switched off via SIGUSR2 signal', async function () {
 			await executeModelBeforeMigrations();
-			const fixturePath = fixturesBasePath + '01-migrations';
+			const configPath = fixturesBasePath + '01-migrations';
 			process.env.PINEJS_ASYNC_MIGRATION_ENABLED = 'true';
-			pineFirstInstace = await testInit(fixturePath, false);
+			pineFirstInstace = await testInit({ configPath, deleteDb: false });
 
 			await delay(200); // wait for one to have happened
 			const result: MigrationStatus[] = await getMigrationStatus();
@@ -260,8 +260,8 @@ describe('03 Async Migrations', async function () {
 		let pineFirstInstace: ChildProcess;
 
 		before(async function () {
-			const fixturePath = fixturesBasePath + '01-migrations';
-			pineFirstInstace = await testInit(fixturePath, true);
+			const configPath = fixturesBasePath + '01-migrations';
+			pineFirstInstace = await testInit({ configPath, deleteDb: true });
 		});
 
 		after(async () => {
@@ -290,11 +290,15 @@ describe('03 Async Migrations', async function () {
 		let startTime: number;
 		before(async function () {
 			await executeModelBeforeMigrations();
-			const fixturePath = fixturesBasePath + '/02-parallel-migrations';
-			pineFirstInstace = await testInit(fixturePath, false);
+			const configPath = fixturesBasePath + '/02-parallel-migrations';
+			pineFirstInstace = await testInit({ configPath, deleteDb: false });
 			// capture time of starting the first migrations
 			startTime = Date.now().valueOf();
-			pineSecondInstace = await testInit(fixturePath, false, 1338); // start a parallel instance.
+			pineSecondInstace = await testInit({
+				configPath,
+				deleteDb: false,
+				listenPort: 1338,
+			}); // start a parallel instance.
 		});
 
 		after(async () => {
@@ -385,8 +389,8 @@ describe('03 Async Migrations', async function () {
 		let pineFirstInstace: ChildProcess;
 		before(async function () {
 			await executeModelBeforeMigrations();
-			const fixturePath = fixturesBasePath + '/03-finalize-async';
-			pineFirstInstace = await testInit(fixturePath, false);
+			const configPath = fixturesBasePath + '/03-finalize-async';
+			pineFirstInstace = await testInit({ configPath, deleteDb: false });
 		});
 
 		after(async () => {
@@ -423,8 +427,8 @@ describe('03 Async Migrations', async function () {
 		let pineFirstInstace: ChildProcess;
 		before(async function () {
 			await executeModelBeforeMigrations();
-			const fixturePath = fixturesBasePath + '/04-migration-errors';
-			pineFirstInstace = await testInit(fixturePath, false);
+			const configPath = fixturesBasePath + '/04-migration-errors';
+			pineFirstInstace = await testInit({ configPath, deleteDb: false });
 		});
 
 		after(async () => {
@@ -567,8 +571,8 @@ describe('03 Async Migrations', async function () {
 			await executeModelBeforeMigrations(
 				fixturesBasePath + '/05-massive-data/00-execute-model',
 			);
-			const fixturePath = fixturesBasePath + '/05-massive-data';
-			pineFirstInstace = await testInit(fixturePath, false);
+			const configPath = fixturesBasePath + '/05-massive-data';
+			pineFirstInstace = await testInit({ configPath, deleteDb: false });
 		});
 
 		after(async () => {
@@ -633,8 +637,8 @@ describe('03 Async Migrations', async function () {
 		});
 		it('should fail to start pine instance with wrong async migration file definition', async function () {
 			try {
-				const fixturePath = fixturesBasePath + '/06-setup-errors';
-				pineErrorInstance = await testInit(fixturePath, false);
+				const configPath = fixturesBasePath + '/06-setup-errors';
+				pineErrorInstance = await testInit({ configPath, deleteDb: false });
 				expect(pineErrorInstance).to.not.exist;
 			} catch (err: any) {
 				expect(err).to.equal('exit');
@@ -643,9 +647,9 @@ describe('03 Async Migrations', async function () {
 
 		it('should fail to start pine instance with mixed categorized and non categorized migrations', async function () {
 			try {
-				const fixturePath =
+				const configPath =
 					fixturesBasePath + '/07-setup-error-mixed-migrations';
-				pineErrorInstance = await testInit(fixturePath, true);
+				pineErrorInstance = await testInit({ configPath, deleteDb: true });
 				expect(pineErrorInstance).to.not.exist;
 			} catch (err: any) {
 				expect(err).to.equal('exit');
@@ -662,11 +666,11 @@ describe('03 Async Migrations', async function () {
 			await executeModelBeforeMigrations();
 			for (let port = startPort; port < startPort + 2; port++) {
 				asyncInstaces.push(
-					await testInit(
-						fixturesBasePath + '/08-01-async-lock-taker',
-						false,
-						port,
-					),
+					await testInit({
+						configPath: fixturesBasePath + '/08-01-async-lock-taker',
+						deleteDb: false,
+						listenPort: port,
+					}),
 				);
 			}
 		});
@@ -680,11 +684,11 @@ describe('03 Async Migrations', async function () {
 
 		it('should start a third pine instance with sync migration without starvation', async function () {
 			// timing out the test cases is the error condition represents a potential starvation.
-			syncMigrationInstance = await testInit(
-				fixturesBasePath + '/08-02-sync-lock-starvation',
-				false,
-				1337,
-			);
+			syncMigrationInstance = await testInit({
+				configPath: fixturesBasePath + '/08-02-sync-lock-starvation',
+				deleteDb: false,
+				listenPort: 1337,
+			});
 
 			const countWholeData = await supertest(testLocalServer)
 				.get(`/example/device/$count`)
