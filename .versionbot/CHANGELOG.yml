@@ -1,4 +1,18 @@
 - commits:
+    - subject: Add test cases for native translations
+      hash: 35c1a124be99c9a050a52da1624e23c7216f2fac
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 14.62.8
+  title: ""
+  date: 2023-04-19T16:11:50.941Z
+- commits:
     - subject: Update select sql typing
       hash: 8c04a099dc0739b65b2576a3cb48aa17565d2da2
       body: ""
