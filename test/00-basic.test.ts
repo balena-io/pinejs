@@ -1,12 +1,12 @@
 import * as supertest from 'supertest';
 import { expect } from 'chai';
-const fixturePath = __dirname + '/fixtures/00-basic/config';
+const configPath = __dirname + '/fixtures/00-basic/config';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
 
 describe('00 basic tests', function () {
 	let pineServer: Awaited<ReturnType<typeof testInit>>;
 	before(async () => {
-		pineServer = await testInit(fixturePath);
+		pineServer = await testInit({ configPath });
 	});
 
 	after(async () => {

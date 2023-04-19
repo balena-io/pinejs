@@ -19,10 +19,10 @@ async function executeModelBeforeMigrations(
 ) {
 	// start pine instace with a configuration without migrations to execute the model in the DB once.
 	// model has an initSqlPath declared so that the database gets filled first
-	const executeModelsOnceBeforeTesting: ChildProcess = await testInit(
-		modelFixturePath,
-		true,
-	);
+	const executeModelsOnceBeforeTesting: ChildProcess = await testInit({
+		configPath: modelFixturePath,
+		deleteDb: true,
+	});
 	await testDeInit(executeModelsOnceBeforeTesting);
 }
 
@@ -33,10 +33,10 @@ describe('02 Sync Migrations', async function () {
 		let pineTestInstance: ChildProcess;
 		before(async () => {
 			await executeModelBeforeMigrations();
-			pineTestInstance = await testInit(
-				fixturesBasePath + '01-migrations',
-				false,
-			);
+			pineTestInstance = await testInit({
+				configPath: fixturesBasePath + '01-migrations',
+				deleteDb: false,
+			});
 		});
 		after(async () => {
 			await testDeInit(pineTestInstance);
@@ -70,11 +70,11 @@ describe('02 Sync Migrations', async function () {
 
 		it('Starting pine should fail when migrations fail', async () => {
 			try {
-				pineErrorInstace = await testInit(
-					fixturesBasePath + '02-migrations-error',
-					false,
-					1338,
-				);
+				pineErrorInstace = await testInit({
+					configPath: fixturesBasePath + '02-migrations-error',
+					deleteDb: false,
+					listenPort: 1338,
+				});
 			} catch (err: any) {
 				expect(err).to.equal('exit');
 			}
@@ -82,10 +82,10 @@ describe('02 Sync Migrations', async function () {
 
 		it('Check that failed migrations did not manipulated data', async () => {
 			// get a pineInstance without data manipulations to check data
-			pineTestInstance = await testInit(
-				fixturesBasePath + '00-execute-model',
-				false,
-			);
+			pineTestInstance = await testInit({
+				configPath: fixturesBasePath + '00-execute-model',
+				deleteDb: false,
+			});
 
 			const res = await supertest(testLocalServer)
 				.get('/example/device')
@@ -100,10 +100,10 @@ describe('02 Sync Migrations', async function () {
 	describe('Should not execute migrations for new executed model but run initSql', () => {
 		let pineTestInstance: ChildProcess;
 		before(async () => {
-			pineTestInstance = await testInit(
-				fixturesBasePath + '04-new-model-with-init',
-				true,
-			);
+			pineTestInstance = await testInit({
+				configPath: fixturesBasePath + '04-new-model-with-init',
+				deleteDb: true,
+			});
 		});
 
 		after(async () => {
@@ -133,10 +133,10 @@ describe('02 Sync Migrations', async function () {
 		it('should fail to start pine instance with mixed migration categories', async function () {
 			try {
 				await executeModelBeforeMigrations();
-				pineErrorInstance = await testInit(
-					fixturesBasePath + '03-exclusive-category',
-					false,
-				);
+				pineErrorInstance = await testInit({
+					configPath: fixturesBasePath + '03-exclusive-category',
+					deleteDb: false,
+				});
 				expect(pineErrorInstance).to.not.exist;
 			} catch (err: any) {
 				expect(err).to.equal('exit');
