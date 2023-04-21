@@ -195,8 +195,15 @@ export const setup = (app: Express.Application) => {
 						);
 
 						const apiRoute = `/${model.apiRoot}/*`;
-						app.options(apiRoute, (_req, res) => res.status(200).end());
-						app.all(apiRoute, sbvrUtils.handleODataRequest);
+						app
+							.route(apiRoute)
+							.options((_req, res) => res.status(200).end())
+							.get(sbvrUtils.handleODataRequest)
+							.put(sbvrUtils.handleODataRequest)
+							.post(sbvrUtils.handleODataRequest)
+							.patch(sbvrUtils.handleODataRequest)
+							.merge(sbvrUtils.handleODataRequest)
+							.delete(sbvrUtils.handleODataRequest);
 
 						console.info(
 							'Successfully executed ' + model.modelName + ' model.',
