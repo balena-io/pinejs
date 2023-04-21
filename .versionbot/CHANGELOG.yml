@@ -1,4 +1,21 @@
 - commits:
+    - subject: Narrow the registered express HTTP methods
+      hash: ce5efad6e3ff0c1f1a12c3c0fe15a6f78e14e515
+      body: |
+        app.all registers too many not needed HTTP methods.
+        As documented here:
+        https://expressjs.com/en/4x/api.html#app.METHOD
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+  version: 14.62.9
+  title: ""
+  date: 2023-04-21T07:22:00.375Z
+- commits:
     - subject: Add test cases for native translations
       hash: 35c1a124be99c9a050a52da1624e23c7216f2fac
       body: ""
