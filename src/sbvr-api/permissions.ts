@@ -714,20 +714,20 @@ const onceGetter = <T, U extends keyof T>(
 	});
 };
 
-const deepFreezeExceptDefinition = (obj: AnyObject) => {
-	Object.freeze(obj);
-
+const deepFreeze = (obj: AnyObject) => {
 	for (const prop of Object.getOwnPropertyNames(obj)) {
-		// We skip the definition because we know it's a property we've defined that will throw an error in some cases
+		const value = obj[prop];
 		if (
-			prop !== 'definition' &&
-			obj.hasOwnProperty(prop) &&
-			obj[prop] !== null &&
-			!['object', 'function'].includes(typeof obj[prop])
+			// `synonyms` is changed later on in the constrainedAbstractSqlModel.symbols get proxy
+			// `tables` is changed later on in the constrainedAbstractSqlModel.tables get proxy
+			!['synonyms', 'tables'].includes(prop) &&
+			value !== null &&
+			(typeof value === 'object' || typeof value === 'function')
 		) {
-			deepFreezeExceptDefinition(obj);
+			deepFreeze(value);
 		}
 	}
+	Object.freeze(obj);
 };
 
 const createBypassDefinition = (definition: Definition) =>
@@ -1095,7 +1095,7 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 						},
 					},
 				);
-				deepFreezeExceptDefinition(constrainedAbstractSqlModel);
+				deepFreeze(constrainedAbstractSqlModel);
 				return constrainedAbstractSqlModel;
 			},
 			{
