@@ -136,17 +136,13 @@ const $run = async (
 				migration.asyncBatchSize || migratorEnv.asyncMigrationDefaultBatchSize;
 			if (migration.asyncFn && typeof migration.asyncFn === 'function') {
 				asyncRunnerMigratorFn = async (tx: Tx) => {
-					const result = await migration.asyncFn(
+					return await migration.asyncFn(
 						tx,
 						{
 							batchSize,
 						},
 						sbvrUtils,
 					);
-					if (typeof result === 'number') {
-						return result;
-					}
-					return result.rowsAffected;
 				};
 			} else if (migration.asyncSql && typeof migration.asyncSql === 'string') {
 				const asyncMigrationSqlStatement = migration.asyncSql?.replace(

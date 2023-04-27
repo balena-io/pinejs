@@ -1,7 +1,7 @@
 import { AsyncMigration } from '../../../../../src/migrator/utils';
 
 const migration: AsyncMigration = {
-	asyncFn: async (tx: any, options) => {
+	asyncFn: async (tx, options) => {
 		const staticSql = `\
 		UPDATE "deviceb"
 		SET "note" = "deviceb"."name"
@@ -9,20 +9,18 @@ const migration: AsyncMigration = {
 			SELECT id FROM "deviceb"
 			WHERE  "deviceb"."name" <> "deviceb"."note" OR "deviceb"."note" IS NULL
 			LIMIT ${options.batchSize}
-		);
-        `;
+		);`;
 
-		return await tx.executeSql(staticSql);
+		return (await tx.executeSql(staticSql)).rowsAffected;
 	},
-	syncFn: async (tx: any) => {
+	syncFn: async (tx) => {
 		const staticSql = `\
 		UPDATE "deviceb"
 		SET "note" = "deviceb"."name"
 		WHERE id IN (
 			SELECT id FROM "deviceb"
 			WHERE  "deviceb"."name" <> "deviceb"."note" OR "deviceb"."note" IS NULL
-		);
-        `;
+		);`;
 
 		await tx.executeSql(staticSql);
 	},

@@ -54,22 +54,11 @@ export type MigrationFn = (tx: Tx, sbvrUtils: SbvrUtils) => Resolvable<void>;
 export type RunnableMigrations = { [key: string]: Migration };
 export type RunnableAsyncMigrations = { [key: string]: AsyncMigration };
 export type Migrations = CategorizedMigrations | RunnableMigrations;
-export type AsyncMigrationFn =
-	| ((
-			tx: Tx,
-			options: { batchSize: number },
-			sbvrUtils: SbvrUtils,
-	  ) => Resolvable<number>)
-	| DeprecatedAsyncMigrationFn;
-
-/**
- * @deprecated
- */
-type DeprecatedAsyncMigrationFn = (
+export type AsyncMigrationFn = (
 	tx: Tx,
 	options: { batchSize: number },
 	sbvrUtils: SbvrUtils,
-) => Resolvable<Result>;
+) => Resolvable<number>;
 
 type AddFn<T extends {}, x extends 'sync' | 'async'> = T & {
 	[key in `${x}Fn`]: key extends 'syncFn' ? MigrationFn : AsyncMigrationFn;

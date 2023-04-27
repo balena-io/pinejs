@@ -9,10 +9,9 @@ const migration: AsyncMigration = {
 			SELECT id FROM "device"
 			WHERE  "device"."name" <> "device"."note" OR "device"."note" IS NULL
 			LIMIT ${options.batchSize}
-		);
-        `;
+		);`;
 
-		return await tx.executeSql(staticSql);
+		return (await tx.executeSql(staticSql)).rowsAffected;
 	},
 	syncFn: async (tx) => {
 		const staticSql = `\
@@ -21,8 +20,7 @@ const migration: AsyncMigration = {
 		WHERE id IN (
 			SELECT id FROM "device"
 			WHERE  "device"."name" <> "device"."note" OR "device"."note" IS NULL
-		);
-        `;
+		);`;
 
 		await tx.executeSql(staticSql);
 	},
