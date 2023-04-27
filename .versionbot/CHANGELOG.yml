@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update async migration function typing to also accept `Promise<number>`
+      hash: dc2bd3ac16550009cf9732913ad0cfbb64ad92f2
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 14.64.1
+  title: ""
+  date: 2023-04-27T15:47:13.055Z
+- commits:
     - subject: Update dependencies
       hash: c75f8261660c57f06b0088e73282d830fc9cc662
       body: |
