@@ -30,7 +30,11 @@ export type RunnableMigrations = { [key: string]: Migration };
 export type RunnableAsyncMigrations = { [key: string]: AsyncMigration };
 export type Migrations = CategorizedMigrations | RunnableMigrations;
 export type AsyncMigrationFn =
-	| ((tx: Tx, options: { batchSize: number }, sbvrUtils: SbvrUtils) => number)
+	| ((
+			tx: Tx,
+			options: { batchSize: number },
+			sbvrUtils: SbvrUtils,
+	  ) => Resolvable<number>)
 	| DeprecatedAsyncMigrationFn;
 
 /**
