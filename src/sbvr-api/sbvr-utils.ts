@@ -1707,7 +1707,6 @@ const respondGet = async (
 			request,
 			result,
 			response,
-			data: d,
 			tx,
 		});
 		return response;
