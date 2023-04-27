@@ -1,4 +1,1225 @@
 - commits:
+    - subject: Update dependencies
+      hash: c75f8261660c57f06b0088e73282d830fc9cc662
+      body: |
+        Update @balena/abstract-sql-compiler from 8.0.0 to 8.5.0
+        Update @balena/abstract-sql-to-typescript from 1.4.2 to 1.5.1
+        Update @balena/odata-parser from 2.4.6 to 2.5.0
+        Update @balena/odata-to-abstract-sql from 5.9.2 to 5.9.6
+        Update @balena/sbvr-types from 3.4.18 to 3.5.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Use native `StartsWith` node type for postgres
+              hash: 0e0055782f05eccf3d7d8bf01f2d6810e738c4e6
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+            - subject: Convert `EscapeForLike` into a standalone node type
+              hash: 9732e2e6e678262dfb25c8fbe5d935e4d6201296
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.5.0
+          title: ""
+          date: 2023-04-27T14:11:46.912Z
+        - commits:
+            - subject: Add much finer grained typings for abstract-sql-optimizer
+              hash: 92bc7e93ca1b17401d902d66c68e090e50f70d1a
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.4.1
+          title: ""
+          date: 2023-04-25T10:03:26.380Z
+        - commits:
+            - subject: Add support for using field type nodes with an AggregateJSON node
+              hash: 19c2760ecf76b4097d7d3045c2eefbf74fd7c2da
+              body: |
+                This also deprecates the legacy version
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.4.0
+          title: ""
+          date: 2023-04-24T12:05:48.116Z
+        - commits:
+            - subject: Deprecate `AliasableFromTypeNodes` type as it's redundant
+              hash: 283da4816fe5e6d672e4959b05800861625dda99
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.13
+          title: ""
+          date: 2023-04-24T12:00:41.593Z
+        - commits:
+            - subject: Revert tightening of `OrderBy` to only field nodes
+              hash: 1c25d9b8d011791a9e98a5929ad48cdd9f3bab6b
+              body: |
+                It can in fact be a lot of different things and that is now also
+                reflected in the typing
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.12
+          title: ""
+          date: 2023-04-17T16:53:20.918Z
+        - commits:
+            - subject: Do not allow ON clauses for CROSS JOIN as it is invalid
+              hash: d47bf63d3a14cdbb4cb0aeb7544e41a9288699f4
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Stop accepting `ExtractJSONPathAsText`/`ToJSON` as unknown node types
+              hash: 6fcb2c4257f9fc50f6b4b1070dec86ace9f71237
+              body: >
+                We know what type they return and they should be explicitly
+                accepted as
+
+                those types instead where it is valid to do so
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.11
+          title: ""
+          date: 2023-04-13T11:28:36.049Z
+        - commits:
+            - subject: Fix DateNode/AnyNode typings
+              hash: aab549e8cf4e274a2a8b93814da393451acc4238
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.10
+          title: ""
+          date: 2023-04-13T10:27:14.478Z
+        - commits:
+            - subject: Update dependencies
+              hash: 39058b2dacac51da96158d594b2d72e3238d0cbc
+              body: |
+                Update @balena/sbvr-types from 3.4.18 to 3.5.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Add Big Serial type
+                      hash: 49460ad51fcbc60f81e61329c573a1af5b207a46
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Josh Bowling
+                  version: sbvr-types-3.5.0
+                  title: ""
+                  date: 2023-03-21T11:16:27.398Z
+                - commits:
+                    - subject: "Flowzone: Allow external contributions"
+                      hash: 9f7bb028bbac327e6fe0711491d7c0f2c6464f98
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: Josh Bowling <josh@monarci.com>
+                        signed-off-by: Josh Bowling <josh@monarci.com>
+                      author: Josh Bowling
+                  version: sbvr-types-3.4.19
+                  title: ""
+                  date: 2022-12-08T01:08:35.143Z
+          version: abstract-sql-compiler-8.3.9
+          title: ""
+          date: 2023-04-13T10:09:53.529Z
+        - commits:
+            - subject: Improve typings
+              hash: 43e75ef37de956d1b583bc62b307b04e0f8455c1
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.8
+          title: ""
+          date: 2023-04-12T17:26:10.992Z
+        - commits:
+            - subject: Remove typing for non-existent JSON node
+              hash: 76181d438f0f37463642704d7908c1774040c2c2
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.7
+          title: ""
+          date: 2023-04-12T16:38:07.014Z
+        - commits:
+            - subject: Tighten the `isXValue` function typings
+              hash: 91485cd9c88faaaed9b1280bc34eb3a99628057e
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.6
+          title: ""
+          date: 2023-04-12T16:18:20.829Z
+        - commits:
+            - subject: Correctly treat `Value` nodes as rewritten to `Text` by the optimizer
+              hash: c9dbc4cfb3fa392e87a0775accdd6811b3c273b4
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Add EmbeddedTextNode typing
+              hash: d00ac00ca7af4d17b437c3d5511af8e506615db4
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.5
+          title: ""
+          date: 2023-04-12T16:01:45.643Z
+        - commits:
+            - subject: Enforce the first argument of ExtractJSONPathAsText is a JSON type node
+              hash: 08865295d4cd3ded56d77a30d33c0434e1da52b9
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.4
+          title: ""
+          date: 2023-04-12T15:55:47.432Z
+        - commits:
+            - subject: Improve node typings
+              hash: 2cb83cf242052c581ee5412e3a90ed87cf5fd39e
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.3
+          title: ""
+          date: 2023-04-12T15:43:13.357Z
+        - commits:
+            - subject: Add more node typings
+              hash: db162a8a4d645c2f37c968224d667ed753e534dd
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.2
+          title: ""
+          date: 2023-04-12T15:01:22.252Z
+        - commits:
+            - subject: Add more node typings
+              hash: 047954b6f66abb041bee74373f37c38d71cdc4d7
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.1
+          title: ""
+          date: 2023-04-12T13:14:25.174Z
+        - commits:
+            - subject: Support boolean nodes in a ValuesNode
+              hash: d589fb6cd92a3a7570e3b2ebea14acbb84807d8a
+              body: |
+                This also deprecates the legacy use of direct true/false entries
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.3.0
+          title: ""
+          date: 2023-04-11T14:56:54.403Z
+        - commits:
+            - subject: Add `Between` node type
+              hash: 4880072eeab6af198df47777b6579dcacc3d7fb1
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.2.0
+          title: ""
+          date: 2023-04-11T14:19:22.378Z
+        - commits:
+            - subject: Add `BitwiseAnd`/`BitwiseShiftRight` node types
+              hash: f155d1daca54086b653fa590e3248c5ef805afff
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.1.0
+          title: ""
+          date: 2023-04-11T14:11:01.677Z
+        - commits:
+            - subject: Add `NotInNode` type
+              hash: 9870d746344033db53ec14fddc23a8580b863ad9
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Add `IsDistinctFromNode`/`IsNotDistinctFromNode` types
+              hash: 09887280a6394a61a31c955602ccb2a0fe98c9b8
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Add `CharacterLengthNode` type
+              hash: 1fbab42cee8128025756076dc826dacda4ea1597
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-8.0.2
+          title: ""
+          date: 2023-04-06T18:12:29.893Z
+        - commits:
+            - subject: Adds Cast node type to tree parsing
+              hash: cbdb559bfce3c77f9bce9e07f05777f58965f324
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Otávio Jacobi
+              nested: []
+          version: abstract-sql-compiler-8.0.1
+          title: ""
+          date: 2023-04-06T17:59:29.723Z
+        - commits:
+            - subject: Update dependencies
+              hash: 72ae6d01ce70fbd47056042399c4d07f50e9a636
+              body: |
+                Update @balena/abstract-sql-compiler from 8.0.0 to 8.4.1
+                Update @balena/odata-to-abstract-sql from 5.9.1 to 5.9.6
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Collapse `AliasedFunction` into `FunctionMatch`
+                      hash: 98093a48aa75e5b8bd8eadc25ca37b53cc80ce2c
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: odata-to-abstract-sql-5.9.6
+                  title: ""
+                  date: 2023-04-25T13:27:44.188Z
+                - commits:
+                    - subject: Improve typings
+                      hash: 78d4a48022ac0465c5d2c48db53b8ddd08e6e1bf
+                      body: |
+                        Update @balena/abstract-sql-compiler from 8.4.0 to 8.4.1
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested:
+                        - commits:
+                            - subject: Add much finer grained typings for abstract-sql-optimizer
+                              hash: 92bc7e93ca1b17401d902d66c68e090e50f70d1a
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.4.1
+                          title: ""
+                          date: 2023-04-25T10:03:26.380Z
+                  version: odata-to-abstract-sql-5.9.5
+                  title: ""
+                  date: 2023-04-25T12:16:48.086Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: 5aa3c51cbbfc66cddedebd41dacba5eabbacf709
+                      body: |
+                        Update @balena/abstract-sql-compiler from 8.0.0 to 8.4.0
+                        Update @balena/odata-parser from 2.4.2 to 2.4.6
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested:
+                        - commits:
+                            - subject: Add support for using field type nodes with an AggregateJSON node
+                              hash: 19c2760ecf76b4097d7d3045c2eefbf74fd7c2da
+                              body: |
+                                This also deprecates the legacy version
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.4.0
+                          title: ""
+                          date: 2023-04-24T12:05:48.116Z
+                        - commits:
+                            - subject: Deprecate `AliasableFromTypeNodes` type as it's redundant
+                              hash: 283da4816fe5e6d672e4959b05800861625dda99
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.3.13
+                          title: ""
+                          date: 2023-04-24T12:00:41.593Z
+                        - commits:
+                            - subject: Revert tightening of `OrderBy` to only field nodes
+                              hash: 1c25d9b8d011791a9e98a5929ad48cdd9f3bab6b
+                              body: >
+                                It can in fact be a lot of different things and
+                                that is now also
+
+                                reflected in the typing
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.3.12
+                          title: ""
+                          date: 2023-04-17T16:53:20.918Z
+                        - commits:
+                            - subject: Do not allow ON clauses for CROSS JOIN as it is invalid
+                              hash: d47bf63d3a14cdbb4cb0aeb7544e41a9288699f4
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                            - subject: Stop accepting `ExtractJSONPathAsText`/`ToJSON` as unknown node types
+                              hash: 6fcb2c4257f9fc50f6b4b1070dec86ace9f71237
+                              body: >
+                                We know what type they return and they should be
+                                explicitly accepted as
+
+                                those types instead where it is valid to do so
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.3.11
+                          title: ""
+                          date: 2023-04-13T11:28:36.049Z
+                        - commits:
+                            - subject: Fix DateNode/AnyNode typings
+                              hash: aab549e8cf4e274a2a8b93814da393451acc4238
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.3.10
+                          title: ""
+                          date: 2023-04-13T10:27:14.478Z
+                        - commits:
+                            - subject: Update dependencies
+                              hash: 39058b2dacac51da96158d594b2d72e3238d0cbc
+                              body: |
+                                Update @balena/sbvr-types from 3.4.18 to 3.5.0
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested:
+                                - commits:
+                                    - subject: Add Big Serial type
+                                      hash: 49460ad51fcbc60f81e61329c573a1af5b207a46
+                                      body: ""
+                                      footer:
+                                        Change-type: minor
+                                        change-type: minor
+                                      author: Josh Bowling
+                                  version: sbvr-types-3.5.0
+                                  title: ""
+                                  date: 2023-03-21T11:16:27.398Z
+                                - commits:
+                                    - subject: "Flowzone: Allow external contributions"
+                                      hash: 9f7bb028bbac327e6fe0711491d7c0f2c6464f98
+                                      body: ""
+                                      footer:
+                                        Change-type: patch
+                                        change-type: patch
+                                        Signed-off-by: Josh Bowling <josh@monarci.com>
+                                        signed-off-by: Josh Bowling <josh@monarci.com>
+                                      author: Josh Bowling
+                                  version: sbvr-types-3.4.19
+                                  title: ""
+                                  date: 2022-12-08T01:08:35.143Z
+                          version: abstract-sql-compiler-8.3.9
+                          title: ""
+                          date: 2023-04-13T10:09:53.529Z
+                        - commits:
+                            - subject: Improve typings
+                              hash: 43e75ef37de956d1b583bc62b307b04e0f8455c1
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.3.8
+                          title: ""
+                          date: 2023-04-12T17:26:10.992Z
+                        - commits:
+                            - subject: Remove typing for non-existent JSON node
+                              hash: 76181d438f0f37463642704d7908c1774040c2c2
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.3.7
+                          title: ""
+                          date: 2023-04-12T16:38:07.014Z
+                        - commits:
+                            - subject: Tighten the `isXValue` function typings
+                              hash: 91485cd9c88faaaed9b1280bc34eb3a99628057e
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.3.6
+                          title: ""
+                          date: 2023-04-12T16:18:20.829Z
+                        - commits:
+                            - subject: Correctly treat `Value` nodes as rewritten to `Text` by the optimizer
+                              hash: c9dbc4cfb3fa392e87a0775accdd6811b3c273b4
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                            - subject: Add EmbeddedTextNode typing
+                              hash: d00ac00ca7af4d17b437c3d5511af8e506615db4
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.3.5
+                          title: ""
+                          date: 2023-04-12T16:01:45.643Z
+                        - commits:
+                            - subject: Enforce the first argument of ExtractJSONPathAsText is a JSON type node
+                              hash: 08865295d4cd3ded56d77a30d33c0434e1da52b9
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.3.4
+                          title: ""
+                          date: 2023-04-12T15:55:47.432Z
+                        - commits:
+                            - subject: Improve node typings
+                              hash: 2cb83cf242052c581ee5412e3a90ed87cf5fd39e
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.3.3
+                          title: ""
+                          date: 2023-04-12T15:43:13.357Z
+                        - commits:
+                            - subject: Add more node typings
+                              hash: db162a8a4d645c2f37c968224d667ed753e534dd
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.3.2
+                          title: ""
+                          date: 2023-04-12T15:01:22.252Z
+                        - commits:
+                            - subject: Add more node typings
+                              hash: 047954b6f66abb041bee74373f37c38d71cdc4d7
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.3.1
+                          title: ""
+                          date: 2023-04-12T13:14:25.174Z
+                        - commits:
+                            - subject: Support boolean nodes in a ValuesNode
+                              hash: d589fb6cd92a3a7570e3b2ebea14acbb84807d8a
+                              body: >
+                                This also deprecates the legacy use of direct
+                                true/false entries
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.3.0
+                          title: ""
+                          date: 2023-04-11T14:56:54.403Z
+                        - commits:
+                            - subject: Add `Between` node type
+                              hash: 4880072eeab6af198df47777b6579dcacc3d7fb1
+                              body: ""
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.2.0
+                          title: ""
+                          date: 2023-04-11T14:19:22.378Z
+                        - commits:
+                            - subject: Add `BitwiseAnd`/`BitwiseShiftRight` node types
+                              hash: f155d1daca54086b653fa590e3248c5ef805afff
+                              body: ""
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.1.0
+                          title: ""
+                          date: 2023-04-11T14:11:01.677Z
+                        - commits:
+                            - subject: Add `NotInNode` type
+                              hash: 9870d746344033db53ec14fddc23a8580b863ad9
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                            - subject: Add `IsDistinctFromNode`/`IsNotDistinctFromNode` types
+                              hash: 09887280a6394a61a31c955602ccb2a0fe98c9b8
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                            - subject: Add `CharacterLengthNode` type
+                              hash: 1fbab42cee8128025756076dc826dacda4ea1597
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-8.0.2
+                          title: ""
+                          date: 2023-04-06T18:12:29.893Z
+                        - commits:
+                            - subject: Adds Cast node type to tree parsing
+                              hash: cbdb559bfce3c77f9bce9e07f05777f58965f324
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Otávio Jacobi
+                              nested: []
+                          version: abstract-sql-compiler-8.0.1
+                          title: ""
+                          date: 2023-04-06T17:59:29.723Z
+                        - commits:
+                            - subject: Improve typings
+                              hash: ed5fa5675021485a775eb777f2358d8041b93ce1
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: odata-parser-2.4.6
+                          title: ""
+                          date: 2023-02-24T17:02:58.272Z
+                        - commits:
+                            - subject: Use const/let as appropriate
+                              hash: 0824fe7d85eeb97941319749fc802f9bae3c9fb6
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: odata-parser-2.4.5
+                          title: ""
+                          date: 2023-02-23T16:31:08.299Z
+                        - commits:
+                            - subject: Use shorthand object notation
+                              hash: 611c0480681965c7af06302264eac79fea18bded
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: odata-parser-2.4.4
+                          title: ""
+                          date: 2023-02-23T16:26:30.639Z
+                        - commits:
+                            - subject: Update dependencies
+                              hash: 25b153aca258347c6742cb8b4efe54c0ae199695
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: odata-parser-2.4.3
+                          title: ""
+                          date: 2023-02-23T16:14:13.013Z
+                  version: odata-to-abstract-sql-5.9.4
+                  title: ""
+                  date: 2023-04-24T16:26:44.367Z
+                - commits:
+                    - subject: Fixes ODataBindings imported types
+                      hash: 07224c40f6c11a849939dcca456d18677b159991
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Otávio Jacobi
+                      nested: []
+                  version: odata-to-abstract-sql-5.9.3
+                  title: ""
+                  date: 2023-03-08T22:00:01.264Z
+                - commits:
+                    - subject: Update typings to the minimal subset of the abstract sql model we need
+                      hash: 2b95fdd826b153b7cbc0ad9ae6440d5788062ee3
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: odata-to-abstract-sql-5.9.2
+                  title: ""
+                  date: 2023-02-15T13:59:28.133Z
+          version: abstract-sql-to-typescript-1.5.1
+          title: ""
+          date: 2023-04-27T08:55:14.149Z
+        - commits:
+            - subject: Adds native SQL Date type
+              hash: f19cd38aa79cb820f663b73da96c15bcfd41778d
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Otávio Jacobi
+              nested: []
+          version: abstract-sql-to-typescript-1.5.0
+          title: ""
+          date: 2023-03-01T17:29:25.983Z
+        - commits:
+            - subject: Update to peggy 3 and make us of the repetition operator
+              hash: 3d091133ca54dfba71c2bc0d17e60780fb1bda22
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: odata-parser-2.5.0
+          title: ""
+          date: 2023-04-26T11:09:24.513Z
+        - commits:
+            - subject: Collapse `AliasedFunction` into `FunctionMatch`
+              hash: 98093a48aa75e5b8bd8eadc25ca37b53cc80ce2c
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-5.9.6
+          title: ""
+          date: 2023-04-25T13:27:44.188Z
+        - commits:
+            - subject: Improve typings
+              hash: 78d4a48022ac0465c5d2c48db53b8ddd08e6e1bf
+              body: |
+                Update @balena/abstract-sql-compiler from 8.4.0 to 8.4.1
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Add much finer grained typings for abstract-sql-optimizer
+                      hash: 92bc7e93ca1b17401d902d66c68e090e50f70d1a
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.4.1
+                  title: ""
+                  date: 2023-04-25T10:03:26.380Z
+          version: odata-to-abstract-sql-5.9.5
+          title: ""
+          date: 2023-04-25T12:16:48.086Z
+        - commits:
+            - subject: Update dependencies
+              hash: 5aa3c51cbbfc66cddedebd41dacba5eabbacf709
+              body: |
+                Update @balena/abstract-sql-compiler from 8.0.0 to 8.4.0
+                Update @balena/odata-parser from 2.4.2 to 2.4.6
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Add support for using field type nodes with an AggregateJSON node
+                      hash: 19c2760ecf76b4097d7d3045c2eefbf74fd7c2da
+                      body: |
+                        This also deprecates the legacy version
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.4.0
+                  title: ""
+                  date: 2023-04-24T12:05:48.116Z
+                - commits:
+                    - subject: Deprecate `AliasableFromTypeNodes` type as it's redundant
+                      hash: 283da4816fe5e6d672e4959b05800861625dda99
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.3.13
+                  title: ""
+                  date: 2023-04-24T12:00:41.593Z
+                - commits:
+                    - subject: Revert tightening of `OrderBy` to only field nodes
+                      hash: 1c25d9b8d011791a9e98a5929ad48cdd9f3bab6b
+                      body: >
+                        It can in fact be a lot of different things and that is
+                        now also
+
+                        reflected in the typing
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.3.12
+                  title: ""
+                  date: 2023-04-17T16:53:20.918Z
+                - commits:
+                    - subject: Do not allow ON clauses for CROSS JOIN as it is invalid
+                      hash: d47bf63d3a14cdbb4cb0aeb7544e41a9288699f4
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                    - subject: Stop accepting `ExtractJSONPathAsText`/`ToJSON` as unknown node types
+                      hash: 6fcb2c4257f9fc50f6b4b1070dec86ace9f71237
+                      body: >
+                        We know what type they return and they should be
+                        explicitly accepted as
+
+                        those types instead where it is valid to do so
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.3.11
+                  title: ""
+                  date: 2023-04-13T11:28:36.049Z
+                - commits:
+                    - subject: Fix DateNode/AnyNode typings
+                      hash: aab549e8cf4e274a2a8b93814da393451acc4238
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.3.10
+                  title: ""
+                  date: 2023-04-13T10:27:14.478Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: 39058b2dacac51da96158d594b2d72e3238d0cbc
+                      body: |
+                        Update @balena/sbvr-types from 3.4.18 to 3.5.0
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested:
+                        - commits:
+                            - subject: Add Big Serial type
+                              hash: 49460ad51fcbc60f81e61329c573a1af5b207a46
+                              body: ""
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                              author: Josh Bowling
+                          version: sbvr-types-3.5.0
+                          title: ""
+                          date: 2023-03-21T11:16:27.398Z
+                        - commits:
+                            - subject: "Flowzone: Allow external contributions"
+                              hash: 9f7bb028bbac327e6fe0711491d7c0f2c6464f98
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                                Signed-off-by: Josh Bowling <josh@monarci.com>
+                                signed-off-by: Josh Bowling <josh@monarci.com>
+                              author: Josh Bowling
+                          version: sbvr-types-3.4.19
+                          title: ""
+                          date: 2022-12-08T01:08:35.143Z
+                  version: abstract-sql-compiler-8.3.9
+                  title: ""
+                  date: 2023-04-13T10:09:53.529Z
+                - commits:
+                    - subject: Improve typings
+                      hash: 43e75ef37de956d1b583bc62b307b04e0f8455c1
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.3.8
+                  title: ""
+                  date: 2023-04-12T17:26:10.992Z
+                - commits:
+                    - subject: Remove typing for non-existent JSON node
+                      hash: 76181d438f0f37463642704d7908c1774040c2c2
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.3.7
+                  title: ""
+                  date: 2023-04-12T16:38:07.014Z
+                - commits:
+                    - subject: Tighten the `isXValue` function typings
+                      hash: 91485cd9c88faaaed9b1280bc34eb3a99628057e
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.3.6
+                  title: ""
+                  date: 2023-04-12T16:18:20.829Z
+                - commits:
+                    - subject: Correctly treat `Value` nodes as rewritten to `Text` by the optimizer
+                      hash: c9dbc4cfb3fa392e87a0775accdd6811b3c273b4
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                    - subject: Add EmbeddedTextNode typing
+                      hash: d00ac00ca7af4d17b437c3d5511af8e506615db4
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.3.5
+                  title: ""
+                  date: 2023-04-12T16:01:45.643Z
+                - commits:
+                    - subject: Enforce the first argument of ExtractJSONPathAsText is a JSON type node
+                      hash: 08865295d4cd3ded56d77a30d33c0434e1da52b9
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.3.4
+                  title: ""
+                  date: 2023-04-12T15:55:47.432Z
+                - commits:
+                    - subject: Improve node typings
+                      hash: 2cb83cf242052c581ee5412e3a90ed87cf5fd39e
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.3.3
+                  title: ""
+                  date: 2023-04-12T15:43:13.357Z
+                - commits:
+                    - subject: Add more node typings
+                      hash: db162a8a4d645c2f37c968224d667ed753e534dd
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.3.2
+                  title: ""
+                  date: 2023-04-12T15:01:22.252Z
+                - commits:
+                    - subject: Add more node typings
+                      hash: 047954b6f66abb041bee74373f37c38d71cdc4d7
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.3.1
+                  title: ""
+                  date: 2023-04-12T13:14:25.174Z
+                - commits:
+                    - subject: Support boolean nodes in a ValuesNode
+                      hash: d589fb6cd92a3a7570e3b2ebea14acbb84807d8a
+                      body: >
+                        This also deprecates the legacy use of direct true/false
+                        entries
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.3.0
+                  title: ""
+                  date: 2023-04-11T14:56:54.403Z
+                - commits:
+                    - subject: Add `Between` node type
+                      hash: 4880072eeab6af198df47777b6579dcacc3d7fb1
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.2.0
+                  title: ""
+                  date: 2023-04-11T14:19:22.378Z
+                - commits:
+                    - subject: Add `BitwiseAnd`/`BitwiseShiftRight` node types
+                      hash: f155d1daca54086b653fa590e3248c5ef805afff
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.1.0
+                  title: ""
+                  date: 2023-04-11T14:11:01.677Z
+                - commits:
+                    - subject: Add `NotInNode` type
+                      hash: 9870d746344033db53ec14fddc23a8580b863ad9
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                    - subject: Add `IsDistinctFromNode`/`IsNotDistinctFromNode` types
+                      hash: 09887280a6394a61a31c955602ccb2a0fe98c9b8
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                    - subject: Add `CharacterLengthNode` type
+                      hash: 1fbab42cee8128025756076dc826dacda4ea1597
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested: []
+                  version: abstract-sql-compiler-8.0.2
+                  title: ""
+                  date: 2023-04-06T18:12:29.893Z
+                - commits:
+                    - subject: Adds Cast node type to tree parsing
+                      hash: cbdb559bfce3c77f9bce9e07f05777f58965f324
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Otávio Jacobi
+                      nested: []
+                  version: abstract-sql-compiler-8.0.1
+                  title: ""
+                  date: 2023-04-06T17:59:29.723Z
+                - commits:
+                    - subject: Improve typings
+                      hash: ed5fa5675021485a775eb777f2358d8041b93ce1
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: odata-parser-2.4.6
+                  title: ""
+                  date: 2023-02-24T17:02:58.272Z
+                - commits:
+                    - subject: Use const/let as appropriate
+                      hash: 0824fe7d85eeb97941319749fc802f9bae3c9fb6
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: odata-parser-2.4.5
+                  title: ""
+                  date: 2023-02-23T16:31:08.299Z
+                - commits:
+                    - subject: Use shorthand object notation
+                      hash: 611c0480681965c7af06302264eac79fea18bded
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: odata-parser-2.4.4
+                  title: ""
+                  date: 2023-02-23T16:26:30.639Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: 25b153aca258347c6742cb8b4efe54c0ae199695
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: odata-parser-2.4.3
+                  title: ""
+                  date: 2023-02-23T16:14:13.013Z
+          version: odata-to-abstract-sql-5.9.4
+          title: ""
+          date: 2023-04-24T16:26:44.367Z
+        - commits:
+            - subject: Fixes ODataBindings imported types
+              hash: 07224c40f6c11a849939dcca456d18677b159991
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Otávio Jacobi
+              nested: []
+          version: odata-to-abstract-sql-5.9.3
+          title: ""
+          date: 2023-03-08T22:00:01.264Z
+        - commits:
+            - subject: Add Big Serial type
+              hash: 49460ad51fcbc60f81e61329c573a1af5b207a46
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Josh Bowling
+          version: sbvr-types-3.5.0
+          title: ""
+          date: 2023-03-21T11:16:27.398Z
+        - commits:
+            - subject: "Flowzone: Allow external contributions"
+              hash: 9f7bb028bbac327e6fe0711491d7c0f2c6464f98
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Josh Bowling <josh@monarci.com>
+                signed-off-by: Josh Bowling <josh@monarci.com>
+              author: Josh Bowling
+          version: sbvr-types-3.4.19
+          title: ""
+          date: 2022-12-08T01:08:35.143Z
+  version: 14.64.0
+  title: ""
+  date: 2023-04-27T15:21:38.281Z
+- commits:
     - subject: Support returning a number from async migrations rather than db result
       hash: 58d0a4e8c026531d8b172e7d715373b9afba708a
       body: |
