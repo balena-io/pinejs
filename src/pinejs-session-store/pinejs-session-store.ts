@@ -146,7 +146,6 @@ export class PinejsSessionStore extends Store {
 				},
 				options: {
 					$count: {
-						$select: 'session_id',
 						$filter: {
 							expiry_time: {
 								$ge: Date.now(),
