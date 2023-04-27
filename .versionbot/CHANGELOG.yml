@@ -1,4 +1,17 @@
 - commits:
+    - subject: Support returning a number from async migrations rather than db result
+      hash: 58d0a4e8c026531d8b172e7d715373b9afba708a
+      body: |
+        This also deprecates the form of returning a db result
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 14.63.0
+  title: ""
+  date: 2023-04-27T09:57:49.259Z
+- commits:
     - subject: Narrow the registered express HTTP methods
       hash: ce5efad6e3ff0c1f1a12c3c0fe15a6f78e14e515
       body: |
@@ -379,7 +392,8 @@
                     - subject: Add binds for affected IDs in compiled rules
                       hash: 7d4bfac3b0dbcc6f916c90837398aff1e84588bc
                       body: >
-                        After every write, pine has to rerun all rules from the model to ensure
+                        After every write, pine has to rerun all rules from the
+                        model to ensure
 
                         consistency. These rules run over the entire database, sometimes causing
 
@@ -453,7 +467,8 @@
             - subject: Cache the `ResourceMapping` result to avoid unnecessary work
               hash: 8f6051cd762950d903658c88ff0f072425229463
               body: >
-                This function can get called a lot so caching it should provide a
+                This function can get called a lot so caching it should provide
+                a
 
                 noticeable performance improvement and linking it to the resource makes
 
@@ -623,7 +638,8 @@
                 `ARRAY_TO_JSON`+`ARRAY_AGG`
               hash: 360bbd95352d96be7ec0ce83521cd6e155b7da88
               body: >
-                This increases the minimum postgres version for AggregateJSON from 9.2
+                This increases the minimum postgres version for AggregateJSON
+                from 9.2
 
                 to 9.3 but it is likely that other places already require postgres
 
@@ -707,7 +723,8 @@
             - subject: Add `modifyFields`/`modifyName` to table definition
               hash: 174c07b3923bb41fe50b413829b4268c1b28172e
               body: >
-                This is intended to be used to target tables differently for reads vs
+                This is intended to be used to target tables differently for
+                reads vs
 
                 writes, eg where you might read from a view/definition but want to
 
@@ -767,7 +784,8 @@
             - subject: Respect `modifyFields`/`modifyName` in the table definition
               hash: af5233c9c312ab23fbe6fa7bbcc20f5007c80dc2
               body: >
-                This is intended to be used to target tables differently for reads vs
+                This is intended to be used to target tables differently for
+                reads vs
 
                 writes, eg where you might read from a view/definition but want to
 
@@ -784,7 +802,8 @@
                     - subject: Add `modifyFields`/`modifyName` to table definition
                       hash: 174c07b3923bb41fe50b413829b4268c1b28172e
                       body: >
-                        This is intended to be used to target tables differently for reads vs
+                        This is intended to be used to target tables differently
+                        for reads vs
 
                         writes, eg where you might read from a view/definition but want to
 
@@ -910,7 +929,8 @@
                 aliases
               hash: 253fdae228cf1edd5e9137819b1bbe783c0e72b0
               body: >
-                This avoids issues where the aliases may not map up, particularly if
+                This avoids issues where the aliases may not map up,
+                particularly if
 
                 the definition was generated and may have automatic aliases, eg if
 
@@ -1711,7 +1731,8 @@
                     - subject: Update dependencies
                       hash: aec2d59610504bcc670d1af913c05805aabd312a
                       body: >
-                        Update @balena/abstract-sql-compiler from 7.21.0 to 7.22.0
+                        Update @balena/abstract-sql-compiler from 7.21.0 to
+                        7.22.0
                       footer:
                         Change-type: minor
                         change-type: minor
@@ -1723,7 +1744,8 @@
                             - subject: Fix date fields used inside arithmetic expressions
                               hash: 3368afd1e908890e79691372f9c496665a329e6a
                               body: >
-                                isNumericValue is evaluated in arithmetic expressions
+                                isNumericValue is evaluated in arithmetic
+                                expressions
 
                                 if operands in expression can be used as numericValues.
 
@@ -1895,7 +1917,8 @@
                     - subject: Use `SELECT *, $computedFields` for adding computed fields
                       hash: b6ed24d0a4ad0a4d8aa71db00dc58280590ce9dd
                       body: >
-                        This reduces the size of the generated SQL when computed fields are
+                        This reduces the size of the generated SQL when computed
+                        fields are
 
                         included and as such helps to make it more readable
                       footer:
@@ -1934,7 +1957,8 @@
                     - subject: Update dependencies
                       hash: 19c112c863b63bdd8d86a04b704fb136077d01a9
                       body: >
-                        Update @balena/abstract-sql-compiler from 7.19.0 to 7.20.0
+                        Update @balena/abstract-sql-compiler from 7.19.0 to
+                        7.20.0
                       footer:
                         Change-type: patch
                         change-type: patch
@@ -3191,7 +3215,8 @@
                     - subject: Update dependencies
                       hash: a80855150955d687b565a33633fe69b4e5e10ebd
                       body: >
-                        Update @balena/abstract-sql-compiler from 7.17.0 to 7.19.0
+                        Update @balena/abstract-sql-compiler from 7.17.0 to
+                        7.19.0
 
                         Update @balena/odata-parser from 2.2.8 to 2.2.9
                       footer:
@@ -3225,7 +3250,8 @@
                             - subject: Add reference property type
                               hash: d28e2456dff10b18bcc97b7232479fe78efd5eb3
                               body: >
-                                Property type describes if the reference is 'strict' or 'informative'.
+                                Property type describes if the reference is
+                                'strict' or 'informative'.
 
 
                                 Behaviour change only if type is informative otherwise default 'strict'.
@@ -3250,7 +3276,8 @@
                             - subject: Avoid the operation type optimization for HAVING clauses
                               hash: 3fcf08bc02c21d9f49b78787ed516fa9a403f021
                               body: >
-                                Since it's possible for them to behave in a way that violates the
+                                Since it's possible for them to behave in a way
+                                that violates the
 
                                 safety checks we'll disable them until we can add specific checks
 
@@ -3295,7 +3322,8 @@
                     - subject: Use the full alias for the prefix hash
                       hash: d60132e2eed1408735c1ee6dae12d69548cb1796
                       body: >
-                        This simplifies the code and also avoids an issue where we not using
+                        This simplifies the code and also avoids an issue where
+                        we not using
 
                         enough of the prefix for the hash
                       footer:
@@ -3309,7 +3337,8 @@
                     - subject: Use a hash instead of random str when it's necessary to shorten aliases
                       hash: cb05ec69fe0e08fc4619b38a99272c3a7ea42e21
                       body: >
-                        This means the prefix will be stable/reliable across runs and make it
+                        This means the prefix will be stable/reliable across
+                        runs and make it
 
                         easier to compare the output generating from different runs
 
@@ -3485,7 +3514,8 @@
                             - subject: Revert "Remove now unnecessary hack for casting SERIAL types"
                               hash: 60a56423de9262b5b454ff4cd83c1d1fd39d071e
                               body: >
-                                This reverts commit 187bc075d237a2ced731d0a026ca25aa3e0f5540.
+                                This reverts commit
+                                187bc075d237a2ced731d0a026ca25aa3e0f5540.
                               footer:
                                 Change-type: patch
                                 change-type: patch
@@ -3497,7 +3527,8 @@
                             - subject: Remove now unnecessary hack for casting SERIAL types
                               hash: 187bc075d237a2ced731d0a026ca25aa3e0f5540
                               body: >
-                                This became unnecessary when @balena/sbvr-types added the concept of
+                                This became unnecessary when @balena/sbvr-types
+                                added the concept of
 
                                 cast types since that now specifies how to cast a SERIAL type
                               footer:
@@ -3661,7 +3692,8 @@
                             - subject: Add a `getRuleReferencedFields` which is tailored for rules
                               hash: 256c36de4a1efb7a46eb9833e1c3228d17194015
                               body: >
-                                This works on the assumption that it is a rule query that should always
+                                This works on the assumption that it is a rule
+                                query that should always
 
                                 return true and allows ignoring more modification cases where they
 
@@ -3873,7 +3905,8 @@
                     - subject: Add reference property type
                       hash: d28e2456dff10b18bcc97b7232479fe78efd5eb3
                       body: >
-                        Property type describes if the reference is 'strict' or 'informative'.
+                        Property type describes if the reference is 'strict' or
+                        'informative'.
 
 
                         Behaviour change only if type is informative otherwise default 'strict'.
@@ -3898,7 +3931,8 @@
                     - subject: Avoid the operation type optimization for HAVING clauses
                       hash: 3fcf08bc02c21d9f49b78787ed516fa9a403f021
                       body: >
-                        Since it's possible for them to behave in a way that violates the
+                        Since it's possible for them to behave in a way that
+                        violates the
 
                         safety checks we'll disable them until we can add specific checks
 
@@ -4137,7 +4171,8 @@
             - subject: Add reference property type
               hash: d28e2456dff10b18bcc97b7232479fe78efd5eb3
               body: >
-                Property type describes if the reference is 'strict' or 'informative'.
+                Property type describes if the reference is 'strict' or
+                'informative'.
 
 
                 Behaviour change only if type is informative otherwise default 'strict'.
@@ -4280,7 +4315,8 @@
             - subject: Avoid the operation type optimization for HAVING clauses
               hash: 3fcf08bc02c21d9f49b78787ed516fa9a403f021
               body: >
-                Since it's possible for them to behave in a way that violates the
+                Since it's possible for them to behave in a way that violates
+                the
 
                 safety checks we'll disable them until we can add specific checks
 
@@ -4939,7 +4975,8 @@
                     - subject: Revert "Remove now unnecessary hack for casting SERIAL types"
                       hash: 60a56423de9262b5b454ff4cd83c1d1fd39d071e
                       body: >
-                        This reverts commit 187bc075d237a2ced731d0a026ca25aa3e0f5540.
+                        This reverts commit
+                        187bc075d237a2ced731d0a026ca25aa3e0f5540.
                       footer:
                         Change-type: patch
                         change-type: patch
@@ -4951,7 +4988,8 @@
                     - subject: Remove now unnecessary hack for casting SERIAL types
                       hash: 187bc075d237a2ced731d0a026ca25aa3e0f5540
                       body: >
-                        This became unnecessary when @balena/sbvr-types added the concept of
+                        This became unnecessary when @balena/sbvr-types added
+                        the concept of
 
                         cast types since that now specifies how to cast a SERIAL type
                       footer:
@@ -5115,7 +5153,8 @@
                     - subject: Add a `getRuleReferencedFields` which is tailored for rules
                       hash: 256c36de4a1efb7a46eb9833e1c3228d17194015
                       body: >
-                        This works on the assumption that it is a rule query that should always
+                        This works on the assumption that it is a rule query
+                        that should always
 
                         return true and allows ignoring more modification cases where they
 
@@ -5650,7 +5689,8 @@
             - subject: Remove now unnecessary hack for casting SERIAL types
               hash: 187bc075d237a2ced731d0a026ca25aa3e0f5540
               body: >
-                This became unnecessary when @balena/sbvr-types added the concept of
+                This became unnecessary when @balena/sbvr-types added the
+                concept of
 
                 cast types since that now specifies how to cast a SERIAL type
               footer:
@@ -6221,7 +6261,8 @@
             - subject: Add a `getRuleReferencedFields` which is tailored for rules
               hash: 256c36de4a1efb7a46eb9833e1c3228d17194015
               body: >
-                This works on the assumption that it is a rule query that should always
+                This works on the assumption that it is a rule query that should
+                always
 
                 return true and allows ignoring more modification cases where they
 
@@ -6736,7 +6777,8 @@
             - subject: Add support for table definitions
               hash: 2939656834c374e35af8867d6337b119b58cd198
               body: >
-                Static definitions will be converted to views and dynamic definitions
+                Static definitions will be converted to views and dynamic
+                definitions
 
                 will be ignored
               footer:
@@ -6782,7 +6824,8 @@
                     - subject: Add support for table definitions
                       hash: 2939656834c374e35af8867d6337b119b58cd198
                       body: >
-                        Static definitions will be converted to views and dynamic definitions
+                        Static definitions will be converted to views and
+                        dynamic definitions
 
                         will be ignored
                       footer:
@@ -6818,7 +6861,8 @@
                     - subject: Add an `optimizeSchema` function
                       hash: 43a3c0eac0ed0c57a79fbc62d025c058ab8dbb1c
                       body: >
-                        Currently this can optimize certain rules into check constraints
+                        Currently this can optimize certain rules into check
+                        constraints
                       footer:
                         Change-type: minor
                         change-type: minor
@@ -7037,7 +7081,8 @@
                     - subject: Add a `castType` property to type functions
                       hash: 409077eb9d6c0315779ddd877220280c251b4eb5
                       body: >
-                        This allows specifying the correct type to cast to when necessary
+                        This allows specifying the correct type to cast to when
+                        necessary
 
                         rather than relying on the fact the currently all type functions happen
 
@@ -7095,7 +7140,8 @@
                     - subject: Add a `castType` property to type functions
                       hash: 409077eb9d6c0315779ddd877220280c251b4eb5
                       body: >
-                        This allows specifying the correct type to cast to when necessary
+                        This allows specifying the correct type to cast to when
+                        necessary
 
                         rather than relying on the fact the currently all type functions happen
 
@@ -7163,7 +7209,8 @@
                             - subject: Add a `castType` property to type functions
                               hash: 409077eb9d6c0315779ddd877220280c251b4eb5
                               body: >
-                                This allows specifying the correct type to cast to when necessary
+                                This allows specifying the correct type to cast
+                                to when necessary
 
                                 rather than relying on the fact the currently all type functions happen
 
@@ -7243,7 +7290,8 @@
             - subject: Add a `castType` property to type functions
               hash: 409077eb9d6c0315779ddd877220280c251b4eb5
               body: >
-                This allows specifying the correct type to cast to when necessary
+                This allows specifying the correct type to cast to when
+                necessary
 
                 rather than relying on the fact the currently all type functions happen
 
@@ -9128,7 +9176,8 @@
                             - subject: Only add the destination of a link table if it's actually necessary
                               hash: 463870590602492accc12ed53753f66862d42cd6
                               body: >
-                                This can significantly speed up queries by avoiding a join when the
+                                This can significantly speed up queries by
+                                avoiding a join when the
 
                                 result is unused
                               footer:
@@ -9284,7 +9333,8 @@
                                     - subject: Improve aliased from handling in `getReferencedFields`
                                       hash: dcfff55b813d38434208a9e07c818d1d32f521ef
                                       body: >
-                                        We do this by using basic scope info to prune aliased table references
+                                        We do this by using basic scope info to
+                                        prune aliased table references
 
                                         which also allows us to handle aliased select queries in the from
                                       footer:
@@ -10412,7 +10462,8 @@
                     - subject: Only add the destination of a link table if it's actually necessary
                       hash: 463870590602492accc12ed53753f66862d42cd6
                       body: >
-                        This can significantly speed up queries by avoiding a join when the
+                        This can significantly speed up queries by avoiding a
+                        join when the
 
                         result is unused
                       footer:
@@ -10568,7 +10619,8 @@
                             - subject: Improve aliased from handling in `getReferencedFields`
                               hash: dcfff55b813d38434208a9e07c818d1d32f521ef
                               body: >
-                                We do this by using basic scope info to prune aliased table references
+                                We do this by using basic scope info to prune
+                                aliased table references
 
                                 which also allows us to handle aliased select queries in the from
                               footer:
@@ -11391,7 +11443,8 @@
                     - subject: Only add the destination of a link table if it's actually necessary
                       hash: 463870590602492accc12ed53753f66862d42cd6
                       body: >
-                        This can significantly speed up queries by avoiding a join when the
+                        This can significantly speed up queries by avoiding a
+                        join when the
 
                         result is unused
                       footer:
@@ -12577,7 +12630,8 @@
                             - subject: "✨: Add support for canAccess method call on resource"
                               hash: bf99443b20616fef6344e3262832002d0d3909fd
                               body: >
-                                Add support for `canAccess` method call on resource
+                                Add support for `canAccess` method call on
+                                resource
                               footer:
                                 Change-type: minor
                                 change-type: minor
@@ -12840,7 +12894,8 @@
             - subject: Only add the destination of a link table if it's actually necessary
               hash: 463870590602492accc12ed53753f66862d42cd6
               body: >
-                This can significantly speed up queries by avoiding a join when the
+                This can significantly speed up queries by avoiding a join when
+                the
 
                 result is unused
               footer:
@@ -12993,7 +13048,8 @@
                     - subject: Only create functions if they don't already exist
                       hash: 6d828438a0d54ab7a611d4620ade9bac8ec3fc3e
                       body: >
-                        This matches how we handle table/trigger creation and avoids issues
+                        This matches how we handle table/trigger creation and
+                        avoids issues
 
                         with running create schema statements concurrently
                       footer:
@@ -13620,7 +13676,8 @@
             - subject: Only create functions if they don't already exist
               hash: 6d828438a0d54ab7a611d4620ade9bac8ec3fc3e
               body: >
-                This matches how we handle table/trigger creation and avoids issues
+                This matches how we handle table/trigger creation and avoids
+                issues
 
                 with running create schema statements concurrently
               footer:
@@ -13661,7 +13718,8 @@
             - subject: Only create functions if they don't already exist
               hash: 6d828438a0d54ab7a611d4620ade9bac8ec3fc3e
               body: >
-                This matches how we handle table/trigger creation and avoids issues
+                This matches how we handle table/trigger creation and avoids
+                issues
 
                 with running create schema statements concurrently
               footer:
@@ -14710,7 +14768,8 @@
             - subject: Prioritise collapsing nested ANDs over converting them to an NOT IN
               hash: 4791d63ed6124a340b8a1df3301f95600f2768a6
               body: >
-                This means the NOT IN conversion can include the nested ANDs when
+                This means the NOT IN conversion can include the nested ANDs
+                when
 
                 possible
               footer:
@@ -14720,7 +14779,8 @@
             - subject: Prioritise collapsing nested ORs over converting them to an IN
               hash: 50ee760cc6d82a7a0db8a25e77a5897c120abcef
               body: >
-                This means the IN conversion can include the nested ORs when possible
+                This means the IN conversion can include the nested ORs when
+                possible
               footer:
                 Change-type: patch
                 change-type: patch
@@ -15243,7 +15303,8 @@
                     - subject: Improve aliased from handling in `getReferencedFields`
                       hash: dcfff55b813d38434208a9e07c818d1d32f521ef
                       body: >
-                        We do this by using basic scope info to prune aliased table references
+                        We do this by using basic scope info to prune aliased
+                        table references
 
                         which also allows us to handle aliased select queries in the from
                       footer:
@@ -15477,7 +15538,8 @@
             - subject: Improve aliased from handling in `getReferencedFields`
               hash: dcfff55b813d38434208a9e07c818d1d32f521ef
               body: >
-                We do this by using basic scope info to prune aliased table references
+                We do this by using basic scope info to prune aliased table
+                references
 
                 which also allows us to handle aliased select queries in the from
               footer:
