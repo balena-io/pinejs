@@ -1627,7 +1627,7 @@ const runQuery = async (
 	tx: Db.Tx,
 	request: uriParser.ODataRequest,
 	queryIndex?: number,
-	returningIdField?: string,
+	addReturning: boolean = false,
 ): Promise<Db.Result> => {
 	const { vocabulary } = request;
 	let { sqlQuery } = request;
@@ -1656,7 +1656,10 @@ const runQuery = async (
 		api[vocabulary].logger.log(query, values);
 	}
 
-	// TODO-MAJOR: Omit the returning clause altogether if `affectedIds` has already been populated
+	// We only add the returning clause if it's been requested and `affectedIds` hasn't been populated yet
+	const returningIdField =
+		addReturning && request.affectedIds == null ? getIdField(request) : false;
+
 	const sqlResult = await tx.executeSql(query, values, returningIdField);
 
 	if (returningIdField) {
@@ -1735,7 +1738,7 @@ const runPost = async (
 		tx,
 		request,
 		undefined,
-		getIdField(request),
+		true,
 	);
 	if (rowsAffected === 0) {
 		throw new PermissionError();
@@ -1799,19 +1802,17 @@ const runPut = async (
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
 ): Promise<undefined> => {
-	const idField = getIdField(request);
-
 	let rowsAffected: number;
 	// If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
 	if (Array.isArray(request.sqlQuery)) {
 		// Run the update query first
-		({ rowsAffected } = await runQuery(tx, request, 1, idField));
+		({ rowsAffected } = await runQuery(tx, request, 1, true));
 		if (rowsAffected === 0) {
 			// Then run the insert query if nothing was updated
-			({ rowsAffected } = await runQuery(tx, request, 0, idField));
+			({ rowsAffected } = await runQuery(tx, request, 0, true));
 		}
 	} else {
-		({ rowsAffected } = await runQuery(tx, request, undefined, idField));
+		({ rowsAffected } = await runQuery(tx, request, undefined, true));
 	}
 	if (rowsAffected > 0) {
 		await validateModel(tx, _.last(request.translateVersions)!, request);
@@ -1845,12 +1846,7 @@ const runDelete = async (
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
 ): Promise<undefined> => {
-	const { rowsAffected } = await runQuery(
-		tx,
-		request,
-		undefined,
-		getIdField(request),
-	);
+	const { rowsAffected } = await runQuery(tx, request, undefined, true);
 	if (rowsAffected > 0) {
 		await validateModel(tx, _.last(request.translateVersions)!, request);
 	}
