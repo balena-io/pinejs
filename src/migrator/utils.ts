@@ -29,7 +29,14 @@ export type MigrationFn = (tx: Tx, sbvrUtils: SbvrUtils) => Resolvable<void>;
 export type RunnableMigrations = { [key: string]: Migration };
 export type RunnableAsyncMigrations = { [key: string]: AsyncMigration };
 export type Migrations = CategorizedMigrations | RunnableMigrations;
-export type AsyncMigrationFn = (
+export type AsyncMigrationFn =
+	| ((tx: Tx, options: { batchSize: number }, sbvrUtils: SbvrUtils) => number)
+	| DeprecatedAsyncMigrationFn;
+
+/**
+ * @deprecated
+ */
+type DeprecatedAsyncMigrationFn = (
 	tx: Tx,
 	options: { batchSize: number },
 	sbvrUtils: SbvrUtils,

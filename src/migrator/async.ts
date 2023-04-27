@@ -13,7 +13,6 @@ type InitialMigrationStatus = MigrationStatus &
 
 import {
 	MigrationTuple,
-	AsyncMigrationFn,
 	getExecutedMigrations,
 	migratorEnv,
 	lockMigrations,
@@ -136,16 +135,19 @@ const $run = async (
 			const batchSize =
 				migration.asyncBatchSize || migratorEnv.asyncMigrationDefaultBatchSize;
 			if (migration.asyncFn && typeof migration.asyncFn === 'function') {
-				asyncRunnerMigratorFn = async (tx: Tx) =>
-					(
-						await (migration.asyncFn as AsyncMigrationFn)(
-							tx,
-							{
-								batchSize,
-							},
-							sbvrUtils,
-						)
-					).rowsAffected;
+				asyncRunnerMigratorFn = async (tx: Tx) => {
+					const result = await migration.asyncFn(
+						tx,
+						{
+							batchSize,
+						},
+						sbvrUtils,
+					);
+					if (typeof result === 'number') {
+						return result;
+					}
+					return result.rowsAffected;
+				};
 			} else if (migration.asyncSql && typeof migration.asyncSql === 'string') {
 				const asyncMigrationSqlStatement = migration.asyncSql?.replace(
 					'%%ASYNC_BATCH_SIZE%%',
