@@ -58,6 +58,7 @@ import {
 	UnauthorizedError,
 } from './errors';
 import * as uriParser from './uri-parser';
+export { ODataRequest } from './uri-parser';
 import {
 	HookReq,
 	HookArgs,
@@ -74,8 +75,6 @@ export {
 	addPureHook,
 	addSideEffectHook,
 } from './hooks';
-// TODO-MAJOR: Remove
-export type HookRequest = uriParser.ODataRequest;
 
 import memoizeWeak = require('memoizee/weak');
 import * as controlFlow from './control-flow';
