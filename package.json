@@ -29,7 +29,7 @@
     "@balena/env-parsing": "^1.1.5",
     "@balena/lf-to-abstract-sql": "^5.0.0",
     "@balena/odata-parser": "^2.4.6",
-    "@balena/odata-to-abstract-sql": "^5.9.2",
+    "@balena/odata-to-abstract-sql": "6.1.0-build-fisehara-optimize-computed-fields-c17cc9096f8a1fd2640c768bd29e39bf978391a9-1",
     "@balena/sbvr-parser": "^1.4.3",
     "@balena/sbvr-types": "^3.4.18",
     "@types/body-parser": "^1.19.2",
@@ -113,8 +113,8 @@
     "serve-static": "^1.15.0"
   },
   "engines": {
-    "node": ">=12.0.0",
-    "npm": ">=6.0.0"
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
   },
   "lint-staged": {
     "*.js": [
