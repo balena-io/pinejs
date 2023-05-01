@@ -28,7 +28,7 @@
     "@balena/abstract-sql-to-typescript": "^1.5.1",
     "@balena/env-parsing": "^1.1.5",
     "@balena/lf-to-abstract-sql": "^5.0.0",
-    "@balena/odata-parser": "^2.5.0",
+    "@balena/odata-parser": "^3.0.0",
     "@balena/odata-to-abstract-sql": "^5.9.6",
     "@balena/sbvr-parser": "^1.4.3",
     "@balena/sbvr-types": "^3.5.0",
