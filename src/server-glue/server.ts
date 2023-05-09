@@ -16,6 +16,7 @@ export { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser
 import * as passportPinejs from '../passport-pinejs/passport-pinejs';
 
 import * as express from 'express';
+import { intVar, boolVar } from '@balena/env-parsing';
 
 const app = express();
 
@@ -89,7 +90,7 @@ export const initialised = Pinejs.init(app)
 		if (
 			typeof process === 'undefined' ||
 			process == null ||
-			!process.env.DISABLE_DEFAULT_AUTH
+			!boolVar('DISABLE_DEFAULT_AUTH')
 		) {
 			app.post(
 				'/login',
@@ -118,7 +119,7 @@ export const initialised = Pinejs.init(app)
 			});
 		}
 
-		app.listen(process.env.PORT || 1337, () => {
+		app.listen(intVar('PORT', 1337), () => {
 			console.info('Server started');
 		});
 	})

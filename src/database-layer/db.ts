@@ -10,6 +10,7 @@ import * as _ from 'lodash';
 import { TypedError } from 'typed-error';
 import * as env from '../config-loader/env';
 import { fromCallback, timeout } from '../sbvr-api/control-flow';
+import { optionalVar } from '@balena/env-parsing';
 
 export const metrics = new EventEmitter();
 
@@ -483,7 +484,7 @@ if (maybePg != null) {
 		const PG_CHECK_CONSTRAINT_VIOLATION = '23514';
 		const PG_EXCLUSION_CONSTRAINT_VIOLATION = '23P01';
 
-		const { PG_SCHEMA } = process.env;
+		const PG_SCHEMA = optionalVar('PG_SCHEMA', undefined);
 		const initPool = (config: Pg.PoolConfig) => {
 			config.max ??= env.db.poolSize;
 			config.idleTimeoutMillis ??= env.db.idleTimeoutMillis;

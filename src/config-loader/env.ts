@@ -53,7 +53,7 @@ export const cache = {
 	apiKeyActorId: false as CacheOpts,
 };
 
-import { boolVar } from '@balena/env-parsing';
+import { boolVar, intVar } from '@balena/env-parsing';
 import * as memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
 export const createCache = <T extends (...args: any[]) => any>(
@@ -82,17 +82,7 @@ export const createCache = <T extends (...args: any[]) => any>(
 	});
 };
 
-let timeoutMS: number;
-if (process.env.TRANSACTION_TIMEOUT_MS) {
-	timeoutMS = parseInt(process.env.TRANSACTION_TIMEOUT_MS, 10);
-	if (Number.isNaN(timeoutMS) || timeoutMS <= 0) {
-		throw new Error(
-			`Invalid valid for TRANSACTION_TIMEOUT_MS: ${process.env.TRANSACTION_TIMEOUT_MS}`,
-		);
-	}
-} else {
-	timeoutMS = 10000;
-}
+const timeoutMS = intVar('TRANSACTION_TIMEOUT_MS', 10000);
 
 export const db = {
 	poolSize: 50,
