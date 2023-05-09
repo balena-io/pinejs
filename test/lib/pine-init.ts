@@ -1,6 +1,7 @@
 import * as express from 'express';
 import { exit } from 'process';
 import * as pine from '../../src/server-glue/module';
+import { basicUserPasswordAuthorizationMiddleware } from '../../src/sbvr-api/permissions';
 
 export type PineTestOptions = {
 	configPath: string;
@@ -34,13 +35,15 @@ export async function init(
 
 	try {
 		await cleanInit(deleteDb);
+		app.use(basicUserPasswordAuthorizationMiddleware());
 		await pine.init(app, initConfig);
+
+		// register default auth middleware for bearer token
 		await new Promise((resolve) => {
 			app.listen(initPort, () => {
 				resolve('server started');
 			});
 		});
-		return app;
 	} catch (e) {
 		console.log(`pineInit ${e}`);
 		exit(1);
