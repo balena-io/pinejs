@@ -51,8 +51,6 @@ export interface Hooks {
 			result: any;
 			/** This can be mutated to modify the response sent to the client */
 			response: Response;
-			/** @deprecated Use the response object instead */
-			data?: any;
 		},
 	) => HookResponse;
 	/** These are run in reverse translation order from newest to oldest */

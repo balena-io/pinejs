@@ -3,16 +3,14 @@ import { AsyncMigration } from '../../../../../src/migrator/utils';
 const migration: AsyncMigration = {
 	asyncFn: async (tx, _options) => {
 		const staticSql = `\
-		SELECT 1;
-        `;
+		SELECT 1;`;
 
-		return await tx.executeSql(staticSql);
+		return (await tx.executeSql(staticSql)).rowsAffected;
 	},
 	asyncBatchSize: 1,
 	syncFn: async (tx) => {
 		const staticSql = `\
-		SELECT 1;
-        `;
+		SELECT 1;`;
 		await tx.executeSql(staticSql);
 	},
 	delayMS: 50,

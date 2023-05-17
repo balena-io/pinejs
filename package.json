@@ -24,14 +24,14 @@
     "prettify": "balena-lint -e js -e ts --fix src build typings Gruntfile.ts"
   },
   "dependencies": {
-    "@balena/abstract-sql-compiler": "^8.5.0",
-    "@balena/abstract-sql-to-typescript": "^1.5.1",
+    "@balena/abstract-sql-compiler": "^9.0.2",
+    "@balena/abstract-sql-to-typescript": "^2.0.0",
     "@balena/env-parsing": "^1.1.5",
     "@balena/lf-to-abstract-sql": "^5.0.0",
-    "@balena/odata-parser": "^2.5.0",
-    "@balena/odata-to-abstract-sql": "^5.9.6",
+    "@balena/odata-parser": "^3.0.0",
+    "@balena/odata-to-abstract-sql": "^6.0.1",
     "@balena/sbvr-parser": "^1.4.3",
-    "@balena/sbvr-types": "^3.5.0",
+    "@balena/sbvr-types": "^5.0.0",
     "@types/body-parser": "^1.19.2",
     "@types/compression": "^1.7.2",
     "@types/cookie-parser": "^1.4.3",
@@ -71,7 +71,7 @@
     "@types/terser-webpack-plugin": "^5.2.0",
     "@types/webpack": "^5.28.1",
     "chai": "^4.3.7",
-    "grunt": "1.6.1",
+    "grunt": "^1.6.1",
     "grunt-check-dependencies": "^1.0.0",
     "grunt-cli": "^1.4.3",
     "grunt-contrib-clean": "^2.0.1",
@@ -113,8 +113,8 @@
     "serve-static": "^1.15.0"
   },
   "engines": {
-    "node": ">=12.0.0",
-    "npm": ">=6.0.0"
+    "node": ">=16.13.0",
+    "npm": ">=8.0.0"
   },
   "lint-staged": {
     "*.js": [

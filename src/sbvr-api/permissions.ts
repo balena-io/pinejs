@@ -862,9 +862,7 @@ const rewriteRelationship = memoizeWeak(
 								foundCanAccessLink = true;
 							}
 							// return a true expression to not select the relationship, which might be virtual
-							// this should be a boolean expression, but needs to be a subquery in case it
-							// is wrapped in an `or` or `and`
-							return ['Equals', ['Boolean', true], ['Boolean', true]];
+							return ['Boolean', true];
 						};
 
 						try {
@@ -1449,26 +1447,13 @@ const checkApiKey = async (
 	apiKey: string,
 	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
-	let permissions: string[];
-	try {
-		permissions = await getApiKeyPermissions(apiKey, tx);
-	} catch (err: any) {
-		console.warn('Error with API key:', err);
-		// Ignore errors getting the api key and just use an empty permissions object.
-		permissions = [];
-	}
-	let actor;
-	if (permissions.length > 0) {
-		actor = await getApiKeyActorId(apiKey, tx);
-	}
-	const resolvedApiKey: PermissionReq['apiKey'] = {
+	const permissions = await getApiKeyPermissions(apiKey, tx);
+	const actor = await getApiKeyActorId(apiKey, tx);
+	return {
 		key: apiKey,
 		permissions,
+		actor,
 	};
-	if (actor != null) {
-		resolvedApiKey.actor = actor;
-	}
-	return resolvedApiKey;
 };
 
 export const resolveAuthHeader = async (
@@ -1477,11 +1462,6 @@ export const resolveAuthHeader = async (
 	// TODO: Consider making tx the second argument in the next major
 	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
-	// TODO-MAJOR: remove this check
-	if (req.apiKey != null) {
-		return;
-	}
-
 	const auth = req.header('Authorization');
 	if (!auth) {
 		return;
@@ -1527,11 +1507,6 @@ export const resolveApiKey = async (
 	// TODO: Consider making tx the second argument in the next major
 	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
-	// TODO-MAJOR: remove this check
-	if (req.apiKey != null) {
-		return;
-	}
-
 	const apiKey =
 		req.params[paramName] ?? req.body[paramName] ?? req.query[paramName];
 	if (apiKey == null) {
@@ -1541,9 +1516,6 @@ export const resolveApiKey = async (
 };
 
 export const customApiKeyMiddleware = (paramName = 'apikey') => {
-	if (paramName == null) {
-		paramName = 'apikey';
-	}
 	return async (
 		req: HookReq | Express.Request,
 		_res?: Express.Response,
@@ -1635,32 +1607,18 @@ const getReqPermissions = async (
 	req: PermissionReq,
 	odataBinds: ODataBinds = [] as any as ODataBinds,
 ) => {
-	const [guestPermissions] = await Promise.all([
-		(async () => {
-			if (
-				guestPermissionsInitialized === false &&
-				(req.user === root.user || req.user === rootRead.user)
-			) {
-				// In the case that guest permissions are not initialized yet and the query is being made with root permissions
-				// then we need to bypass `getGuestPermissions` as it will cause an infinite loop back to here.
-				// Therefore to break that loop we just ignore guest permissions.
-				return [];
-			}
-			return await getGuestPermissions();
-		})(),
-		(async () => {
-			// TODO: Remove this extra actor ID lookup making actor non-optional and updating open-balena-api.
-			if (
-				req.apiKey != null &&
-				req.apiKey.actor == null &&
-				req.apiKey.permissions != null &&
-				req.apiKey.permissions.length > 0
-			) {
-				const actorId = await getApiKeyActorId(req.apiKey.key);
-				req.apiKey!.actor = actorId;
-			}
-		})(),
-	]);
+	const guestPermissions = await (async () => {
+		if (
+			guestPermissionsInitialized === false &&
+			(req.user === root.user || req.user === rootRead.user)
+		) {
+			// In the case that guest permissions are not initialized yet and the query is being made with root permissions
+			// then we need to bypass `getGuestPermissions` as it will cause an infinite loop back to here.
+			// Therefore to break that loop we just ignore guest permissions.
+			return [];
+		}
+		return await getGuestPermissions();
+	})();
 
 	let actorPermissions: string[] = [];
 	const addActorPermissions = (actorId: number, perms: string[]) => {

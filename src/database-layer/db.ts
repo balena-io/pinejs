@@ -718,7 +718,7 @@ if (maybeMysql != null) {
 		const MYSQL_CHECK_CONSTRAINT_VIOLATION = 'ER_CHECK_CONSTRAINT_VIOLATED';
 		const pool = mysql.createPool(options);
 		pool.on('connection', (db) => {
-			db.query("SET sql_mode='ANSI_QUOTES';");
+			db.query("SET sql_mode='ANSI';");
 		});
 		const getConnectionAsync = () =>
 			fromCallback<Mysql.PoolConnection>((callback) => {

@@ -3,7 +3,7 @@ import type {
 	AbstractSqlTable,
 } from '@balena/abstract-sql-compiler';
 
-import * as sbvrTypes from '@balena/sbvr-types';
+import sbvrTypes, { SbvrType } from '@balena/sbvr-types';
 
 // tslint:disable-next-line:no-var-requires
 const { version }: { version: string } = require('../../package.json');
@@ -39,12 +39,12 @@ export const generateODataMetadata = (
 	abstractSqlModel: AbstractSqlModel,
 ) => {
 	const complexTypes: { [fieldType: string]: string } = {};
-	const resolveDataType = (fieldType: string): string => {
+	const resolveDataType = (fieldType: keyof typeof sbvrTypes): string => {
 		if (sbvrTypes[fieldType] == null) {
 			console.error('Could not resolve type', fieldType);
 			throw new Error('Could not resolve type' + fieldType);
 		}
-		const { complexType } = sbvrTypes[fieldType].types.odata;
+		const { complexType } = (sbvrTypes[fieldType] as SbvrType).types.odata;
 		if (complexType != null) {
 			complexTypes[fieldType] = complexType;
 		}
@@ -101,7 +101,7 @@ export const generateODataMetadata = (
 					fields
 						.filter(({ dataType }) => dataType !== 'ForeignKey')
 						.map(({ dataType, fieldName, required }) => {
-							dataType = resolveDataType(dataType);
+							dataType = resolveDataType(dataType as keyof typeof sbvrTypes);
 							fieldName = getResourceName(fieldName);
 							return `<Property Name="${fieldName}" Type="${dataType}" Nullable="${!required}" />`;
 						})

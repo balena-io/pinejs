@@ -28,7 +28,7 @@ import {
 	sqlNameToODataName,
 	SupportedMethod,
 } from '@balena/odata-to-abstract-sql';
-import * as sbvrTypes from '@balena/sbvr-types';
+import sbvrTypes from '@balena/sbvr-types';
 import deepFreeze = require('deep-freeze');
 import { PinejsClientCore, PromiseResultTypes } from 'pinejs-client-core';
 
@@ -58,6 +58,7 @@ import {
 	UnauthorizedError,
 } from './errors';
 import * as uriParser from './uri-parser';
+export { ODataRequest } from './uri-parser';
 import {
 	HookReq,
 	HookArgs,
@@ -74,8 +75,6 @@ export {
 	addPureHook,
 	addSideEffectHook,
 } from './hooks';
-// TODO-MAJOR: Remove
-export type HookRequest = uriParser.ODataRequest;
 
 import memoizeWeak = require('memoizee/weak');
 import * as controlFlow from './control-flow';
@@ -130,7 +129,7 @@ export interface User extends Actor {
 
 export interface ApiKey extends Actor {
 	key: string;
-	actor?: number;
+	actor: number;
 }
 
 export interface Response {
@@ -682,7 +681,10 @@ export const executeModels = async (
 					let uri = '/dev/model';
 					const body: AnyObject = {
 						is_of__vocabulary: model.vocab,
-						model_value: model[modelType],
+						model_value:
+							typeof model[modelType] === 'string'
+								? { value: model[modelType] }
+								: model[modelType],
 						model_type: modelType,
 					};
 					const id = result?.[0]?.id;
@@ -1624,7 +1626,7 @@ const runQuery = async (
 	tx: Db.Tx,
 	request: uriParser.ODataRequest,
 	queryIndex?: number,
-	returningIdField?: string,
+	addReturning: boolean = false,
 ): Promise<Db.Result> => {
 	const { vocabulary } = request;
 	let { sqlQuery } = request;
@@ -1653,7 +1655,10 @@ const runQuery = async (
 		api[vocabulary].logger.log(query, values);
 	}
 
-	// TODO-MAJOR: Omit the returning clause altogether if `affectedIds` has already been populated
+	// We only add the returning clause if it's been requested and `affectedIds` hasn't been populated yet
+	const returningIdField =
+		addReturning && request.affectedIds == null ? getIdField(request) : false;
+
 	const sqlResult = await tx.executeSql(query, values, returningIdField);
 
 	if (returningIdField) {
@@ -1704,7 +1709,6 @@ const respondGet = async (
 			request,
 			result,
 			response,
-			data: d,
 			tx,
 		});
 		return response;
@@ -1733,7 +1737,7 @@ const runPost = async (
 		tx,
 		request,
 		undefined,
-		getIdField(request),
+		true,
 	);
 	if (rowsAffected === 0) {
 		throw new PermissionError();
@@ -1797,19 +1801,17 @@ const runPut = async (
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
 ): Promise<undefined> => {
-	const idField = getIdField(request);
-
 	let rowsAffected: number;
 	// If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
 	if (Array.isArray(request.sqlQuery)) {
 		// Run the update query first
-		({ rowsAffected } = await runQuery(tx, request, 1, idField));
+		({ rowsAffected } = await runQuery(tx, request, 1, true));
 		if (rowsAffected === 0) {
 			// Then run the insert query if nothing was updated
-			({ rowsAffected } = await runQuery(tx, request, 0, idField));
+			({ rowsAffected } = await runQuery(tx, request, 0, true));
 		}
 	} else {
-		({ rowsAffected } = await runQuery(tx, request, undefined, idField));
+		({ rowsAffected } = await runQuery(tx, request, undefined, true));
 	}
 	if (rowsAffected > 0) {
 		await validateModel(tx, _.last(request.translateVersions)!, request);
@@ -1843,12 +1845,7 @@ const runDelete = async (
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
 ): Promise<undefined> => {
-	const { rowsAffected } = await runQuery(
-		tx,
-		request,
-		undefined,
-		getIdField(request),
-	);
+	const { rowsAffected } = await runQuery(tx, request, undefined, true);
 	if (rowsAffected > 0) {
 		await validateModel(tx, _.last(request.translateVersions)!, request);
 	}
@@ -1870,6 +1867,31 @@ export const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
 					ALTER TABLE "model"
 					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
 				`,
+				'15.0.0-data-types': async ($tx, sbvrUtils) => {
+					switch (sbvrUtils.db.engine) {
+						case 'mysql':
+							await $tx.executeSql(`\
+								ALTER TABLE "model"
+								MODIFY "model value" JSON NOT NULL;
+
+								UPDATE "model"
+								SET "model value" = CAST('{"value":' || CAST("model value" AS CHAR) || '}' AS JSON)
+								WHERE "model type" IN ('se', 'odataMetadata')
+								AND CAST("model value" AS CHAR) LIKE '"%';`);
+							break;
+						case 'postgres':
+							await $tx.executeSql(`\
+								ALTER TABLE "model"
+								ALTER COLUMN "model value" SET DATA TYPE JSONB USING "model value"::JSONB;
+
+								UPDATE "model"
+								SET "model value" = CAST('{"value":' || CAST("model value" AS TEXT) || '}' AS JSON)
+								WHERE "model type" IN ('se', 'odataMetadata')
+								AND CAST("model value" AS TEXT) LIKE '"%';`);
+							break;
+						// No need to migrate for websql
+					}
+				},
 			},
 		});
 		await executeModels(tx, permissions.config.models);
