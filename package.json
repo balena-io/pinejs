@@ -62,7 +62,7 @@
   },
   "devDependencies": {
     "@balena/lint": "^6.2.2",
-    "@faker-js/faker": "^7.6.0",
+    "@faker-js/faker": "^8.0.0",
     "@types/chai": "^4.3.4",
     "@types/chai-as-promised": "^7.1.5",
     "@types/grunt": "^0.4.27",
