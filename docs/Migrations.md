@@ -67,20 +67,20 @@ The async migration query must have a `LIMIT` statement to limit the maximum num
 
 ### Async migration procedure
 * Deployment 1
-    - Add new column (with independent sync migration) to contain new data and add code accessing the new column.
-    - Update the service's implementation to set both the old & new column on each write.
-    - The service's implementation should only read the old column since the async migration still migrates data from old column to new column.
-    - Async migrator runs forever.
+	- Add new column (with independent sync migration) to contain new data and add code accessing the new column.
+	- Update the service's implementation to set both the old & new column on each write.
+	- The service's implementation should only read the old column since the async migration still migrates data from old column to new column.
+	- Async migrator runs forever.
 * Deployment 2
-    - Finalize async migration => only sync migration part gets executed.
-    - Sync migration migrates all left over data from old column to new column.
-    - Update the service's implementation to only read the new column, but still write the old one as well.
+	- Finalize async migration => only sync migration part gets executed.
+	- Sync migration migrates all left over data from old column to new column.
+	- Update the service's implementation to only read the new column, but still write the old one as well.
+	- Mark the old field as optional in the sbvr if it isn't, or set a default value for it.
 * Deployment 3
-    - Update the service's implementation to stop settings the old column and remove it from the sbvr.
-    - Make the old field NULLable if it isn't.
+	- Update the service's implementation to stop settings the old column and remove it from the sbvr.
+	- Make the old field NULLable if it isn't.
 * Deployment 4
-    - Delete the old column with a sync migration.
-    - 
+	- Delete the old column with a sync migration.
 
 ### TS migration file format with SQL query string
 
@@ -125,7 +125,7 @@ export = {
 			WHERE  "device"."name" <> "device"."note" OR "device"."note" IS NULL
 			LIMIT ${options.batchSize}
 		);
-        `;
+		`;
 
 		return await tx.executeSql(staticSql);
 	},
@@ -134,7 +134,7 @@ export = {
 		UPDATE "device"
 		SET "note" = "device"."name"
 		WHERE  "device"."name" <> "device"."note" OR "device"."note" IS NULL;
-        `;
+		`;
 
 		await tx.executeSql(staticSql);
 	},
