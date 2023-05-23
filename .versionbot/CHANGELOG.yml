@@ -1,4 +1,16 @@
 - commits:
+    - subject: "Migrations.md: Add marking the sbvr field as optional on the 2nd deploy"
+      hash: d6d0ded8eccc6eadb2492f4697918cf0afd00215
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 15.0.1
+  title: ""
+  date: 2023-05-23T09:41:23.575Z
+- commits:
     - subject: Stop re-exporting `ODataRequest` as `HookRequest`
       hash: 8df1d5c94bd19f5f347c1bf3e91cb5c8ac95f5f0
       body: ""
