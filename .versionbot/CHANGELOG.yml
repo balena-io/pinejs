@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update TypeScript to 5.1.3
+      hash: 67487ebc958401c7b20dc3b4052f2374b36548c4
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 15.0.2
+  title: ""
+  date: 2023-06-02T14:43:20.273Z
+- commits:
     - subject: "Migrations.md: Add marking the sbvr field as optional on the 2nd deploy"
       hash: d6d0ded8eccc6eadb2492f4697918cf0afd00215
       body: ""
