@@ -184,7 +184,8 @@ export const filterAndSortPendingMigrations = (
 	$migrations: NonNullable<RunnableMigrations | RunnableAsyncMigrations>,
 	executedMigrations: string[],
 ): MigrationTuple[] =>
-	(_($migrations).omit(executedMigrations) as _.Object<typeof $migrations>)
+	_($migrations)
+		.omit(executedMigrations)
 		.toPairs()
 		.sortBy(([migrationKey]) => migrationKey)
 		.value();
