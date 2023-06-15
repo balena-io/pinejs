@@ -1,5 +1,4 @@
 import {
-	modelText,
 	MigrationTuple,
 	MigrationError,
 	setExecutedMigrations,
@@ -14,6 +13,9 @@ import type { Config, Model } from '../config-loader/config-loader';
 
 import * as _ from 'lodash';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+
+// tslint:disable-next-line:no-var-requires
+const modelText = require('./migrations.sbvr');
 
 type ApiRootModel = Model & { apiRoot: string };
 
@@ -146,6 +148,29 @@ export const config: Config = {
 					ALTER TABLE "migration lock"
 					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
 				`,
+				'15.0.0-data-types': async (tx, { db }) => {
+					switch (db.engine) {
+						case 'mysql':
+							await tx.executeSql(`\
+								ALTER TABLE "migration"
+								MODIFY "executed migrations" JSON NOT NULL;`);
+							await tx.executeSql(`\
+								ALTER TABLE "migration status"
+								MODIFY "is backing off" BOOLEAN NOT NULL;`);
+							break;
+						case 'postgres':
+							await tx.executeSql(`\
+								ALTER TABLE "migration"
+								ALTER COLUMN "executed migrations" SET DATA TYPE JSONB USING "executed migrations"::JSONB;`);
+							await tx.executeSql(`\
+								ALTER TABLE "migration status"
+								ALTER COLUMN "is backing off" DROP DEFAULT,
+								ALTER COLUMN "is backing off" SET DATA TYPE BOOLEAN USING "is backing off"::BOOLEAN,
+								ALTER COLUMN "is backing off" SET DEFAULT FALSE;`);
+							break;
+						// No need to migrate for websql
+					}
+				},
 			},
 		},
 	],

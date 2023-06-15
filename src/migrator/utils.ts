@@ -10,34 +10,6 @@ export { migrator as migratorEnv } from '../config-loader/env';
 import { PINEJS_ADVISORY_LOCK } from '../config-loader/env';
 import { delay } from '../sbvr-api/control-flow';
 
-// tslint:disable-next-line:no-var-requires
-export const modelText = require('./migrations.sbvr');
-export const migrations: Migrations = {
-	'15.0.0-data-types': async (tx, { db }) => {
-		switch (db.engine) {
-			case 'mysql':
-				await tx.executeSql(`\
-					ALTER TABLE "migration"
-					MODIFY "executed migrations" JSON NOT NULL;`);
-				await tx.executeSql(`\
-					ALTER TABLE "migration status"
-					MODIFY "is backing off" BOOLEAN NOT NULL;`);
-				break;
-			case 'postgres':
-				await tx.executeSql(`\
-					ALTER TABLE "migration"
-					ALTER COLUMN "executed migrations" SET DATA TYPE JSONB USING "executed migrations"::JSONB;`);
-				await tx.executeSql(`\
-					ALTER TABLE "migration status"
-					ALTER COLUMN "is backing off" DROP DEFAULT,
-					ALTER COLUMN "is backing off" SET DATA TYPE BOOLEAN USING "is backing off"::BOOLEAN,
-					ALTER COLUMN "is backing off" SET DEFAULT FALSE;`);
-				break;
-			// No need to migrate for websql
-		}
-	},
-};
-
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 export enum MigrationCategories {
 	'sync' = 'sync',
