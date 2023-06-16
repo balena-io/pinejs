@@ -30,7 +30,12 @@ import {
 } from '@balena/odata-to-abstract-sql';
 import sbvrTypes from '@balena/sbvr-types';
 import deepFreeze = require('deep-freeze');
-import { PinejsClientCore, PromiseResultTypes } from 'pinejs-client-core';
+import {
+	Params,
+	PinejsClientCore,
+	PromiseResultTypes,
+	UpsertParams,
+} from 'pinejs-client-core';
 
 import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
 
@@ -953,6 +958,67 @@ export class PinejsClient extends PinejsClientCore<PinejsClient> {
 		custom?: AnyObject;
 	}) {
 		return (await runURI(method, url, body, tx, req, custom)) as {};
+	}
+
+	public async upsert(params: UpsertParams): Promise<undefined | AnyObject> {
+		if (this.passthrough.tx == null && params.passthrough?.tx == null) {
+			return await super.upsert(params);
+		}
+
+		const { id, body, ...restParams } = params;
+
+		if (id == null || typeof id !== 'object') {
+			throw new Error('The id property must be an object');
+		}
+
+		const naturalKeyProps = Object.keys(params.id);
+		if (naturalKeyProps.length === 0) {
+			throw new Error(
+				'The id property must be an object with the natural key of the model',
+			);
+		}
+
+		if (body == null) {
+			throw new Error('The body property is missing');
+		}
+
+		const naturalKey = id as NonNullable<Params['id']>;
+		const currentRecord = await this.get({
+			...restParams,
+			id: naturalKey,
+			options: {
+				$select: 'id',
+			},
+		});
+
+		if (currentRecord == null) {
+			return await this.post({
+				...restParams,
+				body: {
+					...body,
+					...id,
+				},
+			});
+		}
+
+		const { options } = restParams;
+		const differentBody$filter = {
+			$not: body,
+		};
+		const $filter =
+			options?.$filter == null
+				? differentBody$filter
+				: { $and: [options.$filter, differentBody$filter] };
+
+		await this.patch({
+			...restParams,
+			id: naturalKey,
+			options: {
+				...options,
+				$filter,
+			},
+			body,
+		});
 	}
 }
 
