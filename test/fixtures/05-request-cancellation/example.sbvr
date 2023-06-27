@@ -1,0 +1,22 @@
+Vocabulary: example
+
+Term: name
+	Concept Type: Short Text (Type)
+
+Term: note
+	Concept Type: Text (Type)
+
+Term: content
+	Concept Type: Text (Type)
+
+Term: slow resource
+
+Fact Type: slow resource has name
+	Necessity: each slow resource has at most one name.
+Fact Type: slow resource has note
+	Necessity: each slow resource has at most one note.
+
+Term: log
+
+Fact Type: log has content
+	Necessity: each log has exactly one content.
