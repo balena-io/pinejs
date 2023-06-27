@@ -8,7 +8,7 @@ export async function forkInit() {
 		const processArgs: PineTestOptions = JSON.parse(process.argv[2]);
 		const initConfig = await import(processArgs.configPath);
 		console.info(`listenPort: ${processArgs.listenPort}`);
-		await init(
+		const app = await init(
 			initConfig.default,
 			processArgs.listenPort,
 			processArgs.deleteDb,
@@ -17,6 +17,11 @@ export async function forkInit() {
 		// load hooks
 		if (processArgs.hooksPath) {
 			await import(processArgs.hooksPath);
+		}
+
+		if (processArgs.routesPath) {
+			const { initRoutes } = await import(processArgs.routesPath);
+			initRoutes(app);
 		}
 
 		if (process.send) {

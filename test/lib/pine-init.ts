@@ -5,6 +5,7 @@ import * as pine from '../../src/server-glue/module';
 export type PineTestOptions = {
 	configPath: string;
 	hooksPath?: string;
+	routesPath?: string;
 	deleteDb: boolean;
 	listenPort: number;
 };
