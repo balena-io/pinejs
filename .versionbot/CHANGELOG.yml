@@ -1,4 +1,24 @@
 - commits:
+    - subject: Add transaction cancelation tests for properly hooked custom endpoints
+      hash: dfe17f5933b2da276633ee713de5c2a0d714b656
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Add OData request transaction cancelation tests
+      hash: e6a3cb5d9b6b0be45ae77f6217d4112b6c5fa0a7
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 15.0.4
+  title: ""
+  date: 2023-06-27T15:50:39.665Z
+- commits:
     - subject: Fix pinejs 15 migrations for the migrations model
       hash: 2705ae109fdef70777a38aa1000d117c32b84d2f
       body: ""
