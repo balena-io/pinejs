@@ -25,19 +25,22 @@ import {
 	TranslationError,
 } from './errors';
 import * as sbvrUtils from './sbvr-utils';
+import { IncomingHttpHeaders } from 'http';
 
 export type OdataBinds = ODataBinds;
 
 export interface UnparsedRequest {
+	id?: string;
 	method: string;
 	url: string;
-	data?: any;
-	headers?: { [header: string]: string };
+	body?: any;
+	headers?: IncomingHttpHeaders;
 	changeSet?: UnparsedRequest[];
 	_isChangeSet?: boolean;
 }
 
 export interface ParsedODataRequest {
+	headers?: IncomingHttpHeaders;
 	method: SupportedMethod;
 	url: string;
 	vocabulary: string;
@@ -48,6 +51,7 @@ export interface ParsedODataRequest {
 	odataBinds: OdataBinds;
 	custom: AnyObject;
 	id?: number | undefined;
+	batchRequestId?: string;
 	_defer?: boolean;
 }
 export interface ODataRequest extends ParsedODataRequest {
@@ -263,15 +267,19 @@ export const metadataEndpoints = ['$metadata', '$serviceroot'];
 
 export async function parseOData(
 	b: UnparsedRequest & { _isChangeSet?: false },
+	headers?: IncomingHttpHeaders,
 ): Promise<ParsedODataRequest>;
 export async function parseOData(
 	b: UnparsedRequest & { _isChangeSet: true },
+	headers?: IncomingHttpHeaders,
 ): Promise<ParsedODataRequest[]>;
 export async function parseOData(
 	b: UnparsedRequest,
+	headers?: IncomingHttpHeaders,
 ): Promise<ParsedODataRequest | ParsedODataRequest[]>;
 export async function parseOData(
 	b: UnparsedRequest,
+	batchHeaders?: IncomingHttpHeaders,
 ): Promise<ParsedODataRequest | ParsedODataRequest[]> {
 	try {
 		if (b._isChangeSet && b.changeSet != null) {
@@ -292,12 +300,14 @@ export async function parseOData(
 			const odata = memoizedParseOdata(url);
 
 			return {
+				batchRequestId: b.id,
+				headers: { ...batchHeaders, ...b.headers },
 				method: b.method as SupportedMethod,
 				url,
 				vocabulary: apiRoot,
 				resourceName: odata.tree.resource,
 				originalResourceName: odata.tree.resource,
-				values: b.data ?? {},
+				values: b.body ?? {},
 				odataQuery: odata.tree,
 				odataBinds: odata.binds,
 				custom: {},
@@ -362,7 +372,7 @@ const parseODataChangeset = (
 		originalResourceName: odata.tree.resource,
 		odataBinds: odata.binds,
 		odataQuery: odata.tree,
-		values: b.data ?? {},
+		values: b.body ?? {},
 		custom: {},
 		id: contentId,
 		_defer: defer,
@@ -379,7 +389,7 @@ const splitApiRoot = (url: string) => {
 };
 
 const mustExtractHeader = (
-	body: { headers?: { [header: string]: string } },
+	body: { headers?: IncomingHttpHeaders },
 	header: string,
 ) => {
 	const h: any = body.headers?.[header]?.[0];

@@ -101,6 +101,8 @@ import {
 	setExecutedMigrations,
 } from '../migrator/utils';
 
+const validBatchMethods = new Set(['PUT', 'POST', 'PATCH', 'DELETE', 'GET']);
+
 const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
 const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVersion}`;
 
@@ -140,6 +142,7 @@ export interface ApiKey extends Actor {
 }
 
 export interface Response {
+	id?: string;
 	status: number;
 	headers?:
 		| {
@@ -1143,6 +1146,7 @@ const $getAffectedIds = async ({
 	const parsedRequest: uriParser.ParsedODataRequest &
 		Partial<Pick<uriParser.ODataRequest, 'engine' | 'translateVersions'>> =
 		await uriParser.parseOData({
+			id: request.batchRequestId,
 			method: request.method,
 			url: `/${request.vocabulary}${request.url}`,
 		});
@@ -1192,9 +1196,99 @@ export const getModel = (vocabulary: string) => {
 	return models[vocabulary];
 };
 
+const validateBatch = (req: Express.Request) => {
+	const { requests } = req.body as { requests: uriParser.UnparsedRequest[] };
+	if (!Array.isArray(requests)) {
+		throw new BadRequestError(
+			'Batch requests must include an array of requests in the body via the "requests" property',
+		);
+	}
+	if (req.headers != null && req.headers['content-type'] == null) {
+		throw new BadRequestError(
+			'Headers in a batch request must include a "content-type" header if they are provided',
+		);
+	}
+	if (
+		requests.find(
+			(request) =>
+				request.headers?.authorization != null ||
+				request.url?.includes('apikey='),
+		) != null
+	) {
+		throw new BadRequestError(
+			'Authorization may only be passed to the main batch request',
+		);
+	}
+	const ids = new Set<string>(
+		requests
+			.map((request) => request.id)
+			.filter((id) => typeof id === 'string') as string[],
+	);
+	if (ids.size !== requests.length) {
+		throw new BadRequestError(
+			'All requests in a batch request must have unique string ids',
+		);
+	}
+
+	for (const request of requests) {
+		if (
+			request.headers != null &&
+			request.headers['content-type'] == null &&
+			(req.headers == null || req.headers['content-type'] == null)
+		) {
+			throw new BadRequestError(
+				'Requests of a batch request that have headers must include a "content-type" header',
+			);
+		}
+		if (request.method == null) {
+			throw new BadRequestError(
+				'Requests of a batch request must have a "method"',
+			);
+		}
+		const upperCaseMethod = request.method.toUpperCase();
+		if (!validBatchMethods.has(upperCaseMethod)) {
+			throw new BadRequestError(
+				`Requests of a batch request must have a method matching one of the following: ${Array.from(
+					validBatchMethods,
+				).join(', ')}`,
+			);
+		}
+		if (
+			request.body !== undefined &&
+			(upperCaseMethod === 'GET' || upperCaseMethod === 'DELETE')
+		) {
+			throw new BadRequestError(
+				'GET and DELETE requests of a batch request must not have a body',
+			);
+		}
+	}
+
+	const urls = new Set<string | undefined>(
+		requests.map((request) => request.url),
+	);
+	if (urls.has(undefined)) {
+		throw new BadRequestError('Requests of a batch request must have a "url"');
+	}
+	if (urls.has('/university/$batch')) {
+		throw new BadRequestError('Batch requests cannot contain batch requests');
+	}
+	const urlModels = new Set(
+		Array.from(urls.values()).map((url: string) => url.split('/')[1]),
+	);
+	if (urlModels.size > 1) {
+		throw new BadRequestError(
+			'Batch requests must consist of requests for only one model',
+		);
+	}
+};
+
 const runODataRequest = (req: Express.Request, vocabulary: string) => {
 	if (env.DEBUG) {
 		api[vocabulary].logger.log('Parsing', req.method, req.url);
+	}
+
+	if (req.url.startsWith(`/${vocabulary}/$batch`)) {
+		validateBatch(req);
 	}
 
 	// Get the hooks for the current method/vocabulary as we know it,
@@ -1244,11 +1338,20 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 			await runHooks('PREPARSE', reqHooks, { req, tx: req.tx });
 			let requests: uriParser.UnparsedRequest[];
 			// Check if it is a single request or a batch
-			if (req.batch != null && req.batch.length > 0) {
-				requests = req.batch;
+			if (req.url.startsWith(`/${vocabulary}/$batch`)) {
+				await Promise.all(
+					req.body.requests.map(
+						async (request: HookReq) =>
+							await runHooks('PREPARSE', reqHooks, {
+								req: request,
+								tx: req.tx,
+							}),
+					),
+				);
+				requests = req.body.requests;
 			} else {
 				const { method, url, body } = req;
-				requests = [{ method, url, data: body }];
+				requests = [{ method, url, body }];
 			}
 
 			const prepareRequest = async (
@@ -1312,7 +1415,13 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 
 			// Parse the OData requests
 			const results = await mappingFn(requests, async (requestPart) => {
-				const parsedRequest = await uriParser.parseOData(requestPart);
+				const parsedRequest = await uriParser.parseOData(
+					requestPart,
+					req.url.startsWith(`/${vocabulary}/$batch`) &&
+						!requestPart.url.includes(`/${vocabulary}/$batch`)
+						? req.headers
+						: undefined,
+				);
 
 				let request: uriParser.ODataRequest | uriParser.ODataRequest[];
 				if (Array.isArray(parsedRequest)) {
@@ -1392,7 +1501,10 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 
 		res.set('Cache-Control', 'no-cache');
 		// If we are dealing with a single request unpack the response and respond normally
-		if (req.batch == null || req.batch.length === 0) {
+		if (
+			!req.url.startsWith(`/${apiRoot}/$batch`) ||
+			req.body.requests?.length === 0
+		) {
 			let [response] = responses;
 			if (response instanceof HttpError) {
 				response = httpErrorToResponse(response);
@@ -1401,15 +1513,15 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 
 			// Otherwise its a multipart request and we reply with the appropriate multipart response
 		} else {
-			(res.status(200) as any).sendMulti(
-				responses.map((response) => {
+			res.status(200).json({
+				responses: responses.map((response) => {
 					if (response instanceof HttpError) {
 						return httpErrorToResponse(response);
 					} else {
 						return response;
 					}
 				}),
-			);
+			});
 		}
 	} catch (e: any) {
 		if (handleHttpErrors(req, res, e)) {
@@ -1436,7 +1548,7 @@ export const handleHttpErrors = (
 		for (const handleErrorFn of handleErrorFns) {
 			handleErrorFn(req, err);
 		}
-		const response = httpErrorToResponse(err);
+		const response = httpErrorToResponse(err, req);
 		handleResponse(res, response);
 		return true;
 	}
@@ -1455,10 +1567,12 @@ const handleResponse = (res: Express.Response, response: Response): void => {
 
 const httpErrorToResponse = (
 	err: HttpError,
+	req?: Express.Request,
 ): RequiredField<Response, 'status'> => {
+	const message = err.getResponseBody();
 	return {
 		status: err.status,
-		body: err.getResponseBody(),
+		body: req != null && 'batch' in req ? { responses: [], message } : message,
 		headers: err.headers,
 	};
 };
@@ -1572,7 +1686,8 @@ const runChangeSet =
 			throw new Error('No request id');
 		}
 		result.headers ??= {};
-		result.headers['content-id'] = request.id;
+		result.headers['content-id'] = request.batchRequestId;
+		result.id = request.batchRequestId;
 		changeSetResults.set(request.id, result);
 	};
 
@@ -1611,22 +1726,29 @@ const prepareResponse = async (
 	result: any,
 	tx: Db.Tx,
 ): Promise<Response> => {
+	let response: Response;
 	switch (request.method) {
 		case 'GET':
-			return await respondGet(req, request, result, tx);
+			response = await respondGet(req, request, result, tx);
+			break;
 		case 'POST':
-			return await respondPost(req, request, result, tx);
+			response = await respondPost(req, request, result, tx);
+			break;
 		case 'PUT':
 		case 'PATCH':
 		case 'MERGE':
-			return await respondPut(req, request, result, tx);
+			response = await respondPut(req, request, result, tx);
+			break;
 		case 'DELETE':
-			return await respondDelete(req, request, result, tx);
+			response = await respondDelete(req, request, result, tx);
+			break;
 		case 'OPTIONS':
-			return await respondOptions(req, request, result, tx);
+			response = await respondOptions(req, request, result, tx);
+			break;
 		default:
 			throw new MethodNotAllowedError();
 	}
+	return { ...response, id: request.batchRequestId };
 };
 
 const checkReadOnlyRequests = (request: uriParser.ODataRequest) => {

@@ -1,0 +1,28 @@
+Vocabulary: university
+
+Term: name
+	Concept Type: Short Text (Type)
+
+Term: last name
+	Concept Type: Short Text (Type)
+
+Term: matrix number
+	Concept Type: Integer (Type)
+
+Term: campus
+	Concept Type: Short Text (Type)
+
+Term: student
+
+Fact Type: student has matrix number
+	Necessity: each student has exactly one matrix number
+	Necessity: each matrix number is of exactly one student
+
+Fact Type: student has name
+	Necessity: each student has exactly one name
+
+Fact Type: student has last name
+	Necessity: each student has exactly one last name
+
+Fact Type: student studies at campus
+	Necessity: each student studies at exactly one campus
