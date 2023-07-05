@@ -140,7 +140,7 @@ export interface ApiKey extends Actor {
 }
 
 export interface Response {
-	statusCode: number;
+	status: number;
 	headers?:
 		| {
 				[headerName: string]: any;
@@ -1057,15 +1057,15 @@ export const runURI = async (
 		throw response;
 	}
 
-	const { body: responseBody, statusCode, headers } = response as Response;
+	const { body: responseBody, status, headers } = response as Response;
 
-	if (statusCode != null && statusCode >= 400) {
+	if (status != null && status >= 400) {
 		const ErrorClass =
-			statusCodeToError[statusCode as keyof typeof statusCodeToError];
+			statusCodeToError[status as keyof typeof statusCodeToError];
 		if (ErrorClass != null) {
 			throw new ErrorClass(undefined, responseBody, headers);
 		}
-		throw new HttpError(statusCode, undefined, responseBody, headers);
+		throw new HttpError(status, undefined, responseBody, headers);
 	}
 
 	return responseBody as AnyObject | undefined;
@@ -1358,7 +1358,7 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 						if (
 							!Array.isArray(result) &&
 							result.body == null &&
-							result.statusCode == null
+							result.status == null
 						) {
 							console.error('No status or body set', req.url, responses);
 							return new InternalRequestError();
@@ -1443,9 +1443,9 @@ export const handleHttpErrors = (
 	return false;
 };
 const handleResponse = (res: Express.Response, response: Response): void => {
-	const { body, headers, statusCode } = response as Response;
+	const { body, headers, status } = response as Response;
 	res.set(headers);
-	res.status(statusCode);
+	res.status(status);
 	if (!body) {
 		res.end();
 	} else {
@@ -1455,9 +1455,9 @@ const handleResponse = (res: Express.Response, response: Response): void => {
 
 const httpErrorToResponse = (
 	err: HttpError,
-): RequiredField<Response, 'statusCode'> => {
+): RequiredField<Response, 'status'> => {
 	return {
-		statusCode: err.status,
+		status: err.status,
 		body: err.getResponseBody(),
 		headers: err.headers,
 	};
@@ -1749,7 +1749,7 @@ const respondGet = async (
 		);
 
 		const response = {
-			statusCode: 200,
+			status: 200,
 			body: { d },
 			headers: { 'content-type': 'application/json' },
 		};
@@ -1764,14 +1764,14 @@ const respondGet = async (
 	} else {
 		if (request.resourceName === '$metadata') {
 			return {
-				statusCode: 200,
+				status: 200,
 				body: models[vocab].odataMetadata,
 				headers: { 'content-type': 'xml' },
 			};
 		} else {
 			// TODO: request.resourceName can be '$serviceroot' or a resource and we should return an odata xml document based on that
 			return {
-				statusCode: 404,
+				status: 404,
 			};
 		}
 	}
@@ -1827,7 +1827,7 @@ const respondPost = async (
 	}
 
 	const response = {
-		statusCode: 201,
+		status: 201,
 		body: result.d[0],
 		headers: {
 			'content-type': 'application/json',
@@ -1875,7 +1875,7 @@ const respondPut = async (
 	tx: Db.Tx,
 ): Promise<Response> => {
 	const response = {
-		statusCode: 200,
+		status: 200,
 	};
 	await runHooks('PRERESPOND', request.hooks, {
 		req,
