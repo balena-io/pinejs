@@ -1,4 +1,16 @@
 - commits:
+    - subject: Mark the bin scripts as executable
+      hash: b530c6d4f5c599e517345084f2db3c544118186e
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 15.0.5
+  title: ""
+  date: 2023-07-07T15:40:24.029Z
+- commits:
     - subject: Add transaction cancelation tests for properly hooked custom endpoints
       hash: dfe17f5933b2da276633ee713de5c2a0d714b656
       body: ""
