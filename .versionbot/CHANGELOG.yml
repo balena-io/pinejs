@@ -1,4 +1,41 @@
 - commits:
+    - subject: Update pinejs-client-core to 6.13.0
+      hash: 9757808e1422074b805c57fd5b629f5b3ef6f779
+      body: |
+        Update pinejs-client-core from 6.12.3 to 6.13.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Add support for $duration
+              hash: 05edeeea86147ac49dd864ae6e0b46ffc73f6fc4
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Thodoris Greasidis
+              nested: []
+          version: pinejs-client-js-6.13.0
+          title: ""
+          date: 2023-07-11T13:16:05.245Z
+        - commits:
+            - subject: Avoid an unnecessary function creation on each get() call
+              hash: 782e43ef40a22fa4c8e0f3d64917b03e07c77522
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested: []
+          version: pinejs-client-js-6.12.4
+          title: ""
+          date: 2023-05-09T13:11:13.136Z
+  version: 15.1.0
+  title: ""
+  date: 2023-07-11T14:03:07.450Z
+- commits:
     - subject: Mark the bin scripts as executable
       hash: b530c6d4f5c599e517345084f2db3c544118186e
       body: ""
