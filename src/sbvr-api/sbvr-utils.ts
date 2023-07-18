@@ -1360,7 +1360,7 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 			(res.status(200) as any).sendMulti(
 				responses.map((response) => {
 					if (response instanceof HttpError) {
-						response = httpErrorToResponse(response);
+						return httpErrorToResponse(response);
 					} else {
 						return response;
 					}
