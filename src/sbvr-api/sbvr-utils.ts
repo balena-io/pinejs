@@ -1216,6 +1216,11 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 				parsedRequest: uriParser.ParsedODataRequest &
 					Partial<Pick<uriParser.ODataRequest, 'engine' | 'translateVersions'>>,
 			): Promise<uriParser.ODataRequest> => {
+				if (models[parsedRequest.vocabulary] == null) {
+					throw new BadRequestError(
+						'Unknown vocabulary: ' + parsedRequest.vocabulary,
+					);
+				}
 				parsedRequest.engine = db.engine;
 				parsedRequest.translateVersions = [...versions];
 				// Mark that the engine/translateVersions is required now that we've set it
