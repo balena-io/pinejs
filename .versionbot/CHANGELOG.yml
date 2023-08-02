@@ -1,4 +1,16 @@
 - commits:
+    - subject: Return a response even when the request resolves to an HTTP error
+      hash: d1d68a068778a617d7b14b12a2657fb44511ee52
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: myarmolinsky
+      nested: []
+  version: 15.2.0
+  title: ""
+  date: 2023-08-02T12:11:45.279Z
+- commits:
     - subject: Throw a Bad Request error when passing unknown vocabulary in a request
       hash: 1fb238a13d68d881a8c541845f6432480acfae9d
       body: ""
