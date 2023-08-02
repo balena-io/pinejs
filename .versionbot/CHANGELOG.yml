@@ -1,4 +1,16 @@
 - commits:
+    - subject: Throw a Bad Request error when passing unknown vocabulary in a request
+      hash: 1fb238a13d68d881a8c541845f6432480acfae9d
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: myarmolinsky
+      nested: []
+  version: 15.1.1
+  title: ""
+  date: 2023-08-02T12:00:01.570Z
+- commits:
     - subject: Update pinejs-client-core to 6.13.0
       hash: 9757808e1422074b805c57fd5b629f5b3ef6f779
       body: |
