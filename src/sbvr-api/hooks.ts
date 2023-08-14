@@ -55,7 +55,7 @@ export interface Hooks {
 	) => HookResponse;
 	/** These are run in reverse translation order from newest to oldest */
 	'POSTRUN-ERROR'?: (
-		options: HookArgs & { error: TypedError | any },
+		options: HookArgs & { tx: Tx; error: TypedError | any },
 	) => HookResponse;
 }
 export type HookBlueprints = {
