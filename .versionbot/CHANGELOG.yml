@@ -1,4 +1,16 @@
 - commits:
+    - subject: Mark that `tx` is always passed to `POSTRUN-ERROR` hooks
+      hash: 29982a40eddb816f25c61ae47b1e6a7433c2f583
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 15.2.1
+  title: ""
+  date: 2023-08-14T15:07:28.239Z
+- commits:
     - subject: Return a response even when the request resolves to an HTTP error
       hash: d1d68a068778a617d7b14b12a2657fb44511ee52
       body: ""
