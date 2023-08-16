@@ -1,0 +1,26 @@
+Vocabulary: example
+
+Term: name
+	Concept Type: Short Text (Type)
+
+Term: other image
+	Concept Type: WebResource (Type)
+
+Term: not translated webresource
+	Concept Type: WebResource (Type)
+
+Term: organization
+
+Fact Type: organization has name
+	Necessity: each organization has exactly one name
+	Necessity: each organization that has a name, has a name that has a Length (Type) that is greater than 0 and is less than or equal to 5
+
+Fact Type: organization has not translated webresource
+	Necessity: each organization has at most one not translated webresource
+	Necessity: each not translated webresource is of exactly one organization.
+	Necessity: each organization that has a not translated webresource, has a not translated webresource that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.
+
+Fact Type: organization has other image
+	Necessity: each organization has at most one other image
+	Necessity: each other image is of exactly one organization.
+	Necessity: each organization that has a other image, has a other image that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.

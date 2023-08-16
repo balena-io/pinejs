@@ -3,7 +3,6 @@ import type * as Compression from 'compression';
 import type * as CookieParser from 'cookie-parser';
 import type * as ExpressSession from 'express-session';
 import type * as MethodOverride from 'method-override';
-import type * as Multer from 'multer';
 import type * as Passport from 'passport';
 import type * as Path from 'path';
 import type * as ServeStatic from 'serve-static';
@@ -35,7 +34,6 @@ if (!process.browser) {
 	const serveStatic: typeof ServeStatic = require('serve-static');
 	const cookieParser: typeof CookieParser = require('cookie-parser');
 	const bodyParser: typeof BodyParser = require('body-parser');
-	const multer: typeof Multer = require('multer');
 	const methodOverride: typeof MethodOverride = require('method-override');
 	const expressSession: typeof ExpressSession = require('express-session');
 	// tslint:enable:no-var-requires
@@ -47,7 +45,6 @@ if (!process.browser) {
 
 	app.use(cookieParser());
 	app.use(bodyParser());
-	app.use(multer().any());
 	app.use(methodOverride());
 	app.use(
 		expressSession({

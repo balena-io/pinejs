@@ -27,6 +27,12 @@ import * as path from 'path';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 
 import * as permissions from '../sbvr-api/permissions';
+import {
+	getDefaultHandler,
+	getUploaderMiddlware,
+	WebResourceHandler,
+	setupUploadHooks,
+} from '../webresource-handler';
 import { AliasValidNodeType } from '../sbvr-api/translations';
 
 export type SetupFunction = (
@@ -64,6 +70,7 @@ export interface User {
 export interface Config {
 	models: Model[];
 	users?: User[];
+	webResourceHandler?: WebResourceHandler;
 }
 
 const getOrCreate = async (
@@ -195,15 +202,35 @@ export const setup = (app: Express.Application) => {
 						);
 
 						const apiRoute = `/${model.apiRoot}/*`;
+						const webResourceHandler =
+							data.webResourceHandler ?? getDefaultHandler();
+
+						const fileUploadMiddleware =
+							getUploaderMiddlware(webResourceHandler);
 						app
 							.route(apiRoute)
 							.options((_req, res) => res.status(200).end())
 							.get(sbvrUtils.handleODataRequest)
 							.put(sbvrUtils.handleODataRequest)
-							.post(sbvrUtils.handleODataRequest)
-							.patch(sbvrUtils.handleODataRequest)
+							.post(fileUploadMiddleware, sbvrUtils.handleODataRequest)
+							.patch(fileUploadMiddleware, sbvrUtils.handleODataRequest)
 							.merge(sbvrUtils.handleODataRequest)
 							.delete(sbvrUtils.handleODataRequest);
+
+						const loadedModel = sbvrUtils.getModel(model.apiRoot!);
+						if (translateTo == null) {
+							const resourceNames = Object.values(
+								loadedModel.abstractSql.tables,
+							)
+								.filter((table) =>
+									table.fields.some((f) => f.dataType === 'WebResource'),
+								)
+								.map((table) => table.name);
+
+							for (const resource of new Set(resourceNames)) {
+								setupUploadHooks(webResourceHandler, model.apiRoot!, resource);
+							}
+						}
 
 						console.info(
 							'Successfully executed ' + model.modelName + ' model.',
