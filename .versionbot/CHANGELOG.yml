@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add support to WebResrouce type
+      hash: 9d17553b52bd105211d6c2619ccf7eeabfe4da01
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Otávio Jacobi
+      nested: []
+  version: 15.3.0
+  title: ""
+  date: 2023-08-16T21:54:26.306Z
+- commits:
     - subject: Mark that `tx` is always passed to `POSTRUN-ERROR` hooks
       hash: 29982a40eddb816f25c61ae47b1e6a7433c2f583
       body: ""
