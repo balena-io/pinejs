@@ -175,22 +175,26 @@ const isAnd = <T>(x: any): x is NestedCheckAnd<T> =>
 	typeof x === 'object' && 'and' in x;
 const isOr = <T>(x: any): x is NestedCheckOr<T> =>
 	typeof x === 'object' && 'or' in x;
-export function nestedCheck<I extends {}, O>(
-	check: string,
+export function nestedCheck<I extends string, O>(
+	check: I,
 	stringCallback: (s: string) => O,
 ): O;
-export function nestedCheck<I extends {}, O>(
-	check: boolean,
+export function nestedCheck<I extends boolean, O>(
+	check: I,
 	stringCallback: (s: string) => O,
 ): boolean;
-export function nestedCheck<I extends {}, O>(
+export function nestedCheck<I extends NonNullable<unknown>, O>(
 	check: NestedCheck<I>,
 	stringCallback: (s: string) => O,
 ): Exclude<I, string> | O | MappedNestedCheck<typeof check, I, O>;
-export function nestedCheck<I extends {}, O>(
-	check: NestedCheck<I>,
+export function nestedCheck<I extends object, O>(
+	check: NestedCheck<I> | string | boolean,
 	stringCallback: (s: string) => O,
-): boolean | Exclude<I, string> | O | MappedNestedCheck<typeof check, I, O> {
+):
+	| boolean
+	| Exclude<I, string>
+	| O
+	| MappedNestedCheck<Exclude<typeof check, string | boolean>, I, O> {
 	if (typeof check === 'string') {
 		return stringCallback(check);
 	}

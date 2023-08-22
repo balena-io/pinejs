@@ -983,7 +983,7 @@ export class PinejsClient extends PinejsClientCore<PinejsClient> {
 		req?: permissions.PermissionReq;
 		custom?: AnyObject;
 	}) {
-		return (await runURI(method, url, body, tx, req, custom)) as {};
+		return (await runURI(method, url, body, tx, req, custom)) as object;
 	}
 }
 

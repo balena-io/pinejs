@@ -10,7 +10,7 @@ import * as permissions from '../sbvr-api/permissions';
 export let login: (
 	fn: (
 		err: any,
-		user: {} | null | false | undefined,
+		user: object | null | false | undefined,
 		req: Express.Request,
 		res: Express.Response,
 		next: Express.NextFunction,

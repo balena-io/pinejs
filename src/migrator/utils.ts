@@ -32,12 +32,12 @@ export type AsyncMigrationFn = (
 	sbvrUtils: SbvrUtils,
 ) => Resolvable<number>;
 
-type AddFn<T extends {}, x extends 'sync' | 'async'> = T & {
+type AddFn<T extends object, x extends 'sync' | 'async'> = T & {
 	[key in `${x}Fn`]: key extends 'syncFn' ? MigrationFn : AsyncMigrationFn;
 } & {
 	[key in `${x}Sql`]?: undefined;
 };
-type AddSql<T extends {}, x extends 'sync' | 'async'> = T & {
+type AddSql<T extends object, x extends 'sync' | 'async'> = T & {
 	[key in `${x}Fn`]?: undefined;
 } & {
 	[key in `${x}Sql`]: string;

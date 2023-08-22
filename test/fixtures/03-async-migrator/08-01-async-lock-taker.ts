@@ -26,7 +26,7 @@ const asyncSpammer = {
 	type: 'async',
 };
 
-const asyncSpammers: { [key: string]: {} } = {};
+const asyncSpammers: { [key: string]: object } = {};
 
 for (let spammerKey = 2; spammerKey < 20; spammerKey++) {
 	const key: string = spammerKey.toString().padStart(4, '0') + '-async-spammer';
