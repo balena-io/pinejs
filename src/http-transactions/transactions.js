@@ -131,7 +131,12 @@ WHERE "conditional field"."conditional resource" = ?;`,
 								modelField.dataType === 'ForeignKey' &&
 								Number.isNaN(Number(fieldValue))
 							) {
-								if (!placeholders.hasOwnProperty(fieldValue)) {
+								if (
+									!Object.prototype.hasOwnProperty.call(
+										placeholders,
+										fieldValue,
+									)
+								) {
 									throw new Error('Cannot resolve placeholder' + fieldValue);
 								} else {
 									try {

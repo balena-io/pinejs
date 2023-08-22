@@ -416,7 +416,7 @@ export const translateUri = <
 		request = { ...request };
 		request.values = new Proxy(request.values, {
 			set: (obj: ODataRequest['values'], prop: string, value) => {
-				if (!obj.hasOwnProperty(prop)) {
+				if (!Object.prototype.hasOwnProperty.call(obj, prop)) {
 					sbvrUtils.api[request.vocabulary].logger.warn(
 						`Assigning a new request.values property '${prop}' however it will be ignored`,
 					);

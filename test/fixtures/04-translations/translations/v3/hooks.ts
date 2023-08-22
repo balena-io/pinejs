@@ -16,7 +16,9 @@ addHook(['PUT', 'POST', 'PATCH'], 'student', {
 			passthrough: api.passthrough,
 		});
 
-		if (request.values.hasOwnProperty('studies_at__campus')) {
+		if (
+			Object.prototype.hasOwnProperty.call(request.values, 'studies_at__campus')
+		) {
 			const faculty = await resinApi.get({
 				resource: 'faculty',
 				id: campusId,

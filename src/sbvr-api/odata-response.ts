@@ -144,14 +144,15 @@ export const process = async (
 
 	const fetchProcessingFields = getFetchProcessingFields(table);
 	const processedFields = fieldNames.filter((fieldName) =>
-		fetchProcessingFields.hasOwnProperty(fieldName),
+		Object.prototype.hasOwnProperty.call(fetchProcessingFields, fieldName),
 	);
 
 	const localFields = getLocalFields(table);
 	// We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
 	// and hence not known to this resource
 	const expandableFields = fieldNames.filter(
-		(fieldName) => !localFields.hasOwnProperty(fieldName),
+		(fieldName) =>
+			!Object.prototype.hasOwnProperty.call(localFields, fieldName),
 	);
 
 	const odataIdField = sqlNameToODataName(table.idField);
