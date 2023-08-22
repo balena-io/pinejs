@@ -1,4 +1,4 @@
-declare var nodeRequire: NodeRequire;
+declare let nodeRequire: NodeRequire;
 /* tslint:disable-next-line:no-namespace */
 declare namespace NodeJS {
 	export interface Process {

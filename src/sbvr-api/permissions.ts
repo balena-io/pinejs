@@ -87,7 +87,7 @@ interface NestedCheckOr<T> {
 interface NestedCheckAnd<T> {
 	and: NestedCheckArray<T>;
 }
-interface NestedCheckArray<T> extends Array<NestedCheck<T>> {}
+type NestedCheckArray<T> = Array<NestedCheck<T>>;
 type NestedCheck<T> =
 	| NestedCheckOr<T>
 	| NestedCheckAnd<T>

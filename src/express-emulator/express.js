@@ -34,7 +34,7 @@ const app = (function () {
 		/** @type {string} */ match,
 		/** @type import('express').Handler[] */ ...middleware
 	) {
-		//Strip wildcard
+		// Strip wildcard
 		let paramName;
 		match = match.toLowerCase();
 		const newMatch = match.replace(/[\/\*]*$/, '');

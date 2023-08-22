@@ -215,7 +215,10 @@ class AutomaticClose {
 	private automaticCloseTimeout: ReturnType<typeof setTimeout>;
 	private automaticClose: () => void;
 	private pending: false | number = 0;
-	constructor(tx: Tx, private stackTraceErr?: Error) {
+	constructor(
+		tx: Tx,
+		private stackTraceErr?: Error,
+	) {
 		this.automaticClose = () => {
 			console.error(
 				`Transaction still open after ${env.db.timeoutMS}ms without an execute call.`,
