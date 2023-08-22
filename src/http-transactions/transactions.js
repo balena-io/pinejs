@@ -4,7 +4,7 @@ import { odataNameToSqlName } from '@balena/odata-to-abstract-sql';
 const transactionModel = require('./transaction.sbvr');
 
 /** @type {import('../config-loader/config-loader').Config} */
-export let config = {
+export const config = {
 	models: [
 		{
 			apiRoot: 'transaction',

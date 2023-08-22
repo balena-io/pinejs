@@ -48,7 +48,7 @@ const serverIsOnAir = async (_req, _res, next) => {
 };
 
 /** @type {import('../config-loader/config-loader').Config} */
-export let config = {
+export const config = {
 	models: [
 		{
 			modelName: 'ui',
