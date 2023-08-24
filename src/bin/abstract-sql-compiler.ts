@@ -5,22 +5,20 @@ import {
 	writeSqlModel,
 } from './utils';
 
-import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
-
 import { program } from 'commander';
 
-const runCompile = (inputFile: string, outputFile?: string) => {
-	const { generateSqlModel } =
-		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
+const runCompile = async (inputFile: string, outputFile?: string) => {
+	const { generateSqlModel } = await import('../sbvr-api/sbvr-utils');
 	const abstractSql = getAbstractSqlModelFromFile(inputFile);
 	const sqlModel = generateSqlModel(abstractSql, program.opts().engine);
 
 	writeSqlModel(sqlModel, outputFile);
 };
 
-const generateTypes = (inputFile: string, outputFile?: string) => {
-	const { abstractSqlToTypescriptTypes } =
-		require('@balena/abstract-sql-to-typescript') as typeof import('@balena/abstract-sql-to-typescript');
+const generateTypes = async (inputFile: string, outputFile?: string) => {
+	const { abstractSqlToTypescriptTypes } = await import(
+		'@balena/abstract-sql-to-typescript'
+	);
 	const abstractSql = getAbstractSqlModelFromFile(inputFile);
 	const types = abstractSqlToTypescriptTypes(abstractSql);
 
@@ -62,4 +60,4 @@ if (process.argv.length === 2) {
 	program.help();
 }
 
-program.parse(process.argv);
+program.parseAsync(process.argv);
