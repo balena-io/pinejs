@@ -277,13 +277,20 @@ export const normalizeHref = (href: string) => {
 	return href.split('?')[0];
 };
 
+const getWebResourcesKeysFromRequest = (
+	webResourceFields: string[],
+	{ values }: uriParser.ODataRequest,
+): string[] => {
+	return webResourceFields.map((field) => values[field].href);
+};
+
 const getRemoveWebResourceHooks = (
 	webResourceHandler: WebResourceHandler,
 ): sbvrUtils.Hooks => {
 	return {
 		PRERUN: async (args) => {
 			const { api, request, tx } = args;
-			let fields = getWebResourceFields(request);
+			let webResourceFields = getWebResourceFields(request);
 
 			// Request failed on DB roundtrip (e.g. DB constraint) and pending files need to be deleted
 			tx.on('rollback', () => {
@@ -291,12 +298,17 @@ const getRemoveWebResourceHooks = (
 			});
 
 			if (request.method === 'PATCH') {
-				fields = Object.entries(request.values)
-					.filter(([key, value]) => value !== undefined && fields.includes(key))
+				webResourceFields = Object.entries(request.values)
+					.filter(
+						([key, value]) =>
+							value !== undefined && webResourceFields.includes(key),
+					)
 					.map(([key]) => key);
 			}
 
-			if (fields.length === 0) {
+			if (webResourceFields.length === 0) {
+				// No need to delete anything as no file is in the wire
+				// As there are no webresource fields in this request
 				return;
 			}
 
@@ -304,7 +316,10 @@ const getRemoveWebResourceHooks = (
 			// request is actually modifying a webresource before erroring out
 			if (request.method === 'PATCH' && request.odataQuery?.key == null) {
 				// When we get here, files have already been uploaded. We need to mark them for deletion.
-				const keysToDelete = fields.map((field) => request.values[field].href);
+				const keysToDelete = getWebResourcesKeysFromRequest(
+					webResourceFields,
+					request,
+				);
 
 				// Set deletion of files on the wire as request will throw
 				tx.on('end', () => {
@@ -319,6 +334,12 @@ const getRemoveWebResourceHooks = (
 			// This will only be > 1 in a DELETE. In PATCH requests, the request should have exited before
 			const ids = await sbvrUtils.getAffectedIds(args);
 			if (ids.length === 0) {
+				// Set deletion of files on the wire as no resource was affected
+				const keysToDelete = getWebResourcesKeysFromRequest(
+					webResourceFields,
+					request,
+				);
+				deletePendingFiles(keysToDelete, request, webResourceHandler);
 				return;
 			}
 
@@ -329,7 +350,7 @@ const getRemoveWebResourceHooks = (
 					req: permissions.root,
 				},
 				options: {
-					$select: fields,
+					$select: webResourceFields,
 					$filter: {
 						id: {
 							$in: ids,
