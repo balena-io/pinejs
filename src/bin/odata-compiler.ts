@@ -1,13 +1,12 @@
 import { getAbstractSqlModelFromFile, version, writeAll } from './utils';
-import type * as AbstractSql from '../sbvr-api/abstract-sql';
-import type * as UriParser from '../sbvr-api/uri-parser';
 import type { SqlResult } from '@balena/abstract-sql-compiler';
 
 import { program } from 'commander';
 
-const generateAbstractSqlQuery = (modelFile: string, odata: string) => {
-	const { memoizedParseOdata, translateUri } =
-		require('../sbvr-api/uri-parser') as typeof UriParser;
+const generateAbstractSqlQuery = async (modelFile: string, odata: string) => {
+	const { memoizedParseOdata, translateUri } = await import(
+		'../sbvr-api/uri-parser'
+	);
 	const odataAST = memoizedParseOdata(odata);
 	const vocabulary = '';
 	return translateUri({
@@ -26,20 +25,19 @@ const generateAbstractSqlQuery = (modelFile: string, odata: string) => {
 	});
 };
 
-const parseOData = (odata: string, outputFile?: string) => {
-	const { memoizedParseOdata } =
-		require('../sbvr-api/uri-parser') as typeof UriParser;
+const parseOData = async (odata: string, outputFile?: string) => {
+	const { memoizedParseOdata } = await import('../sbvr-api/uri-parser');
 	const result = memoizedParseOdata(odata);
 	const json = JSON.stringify(result, null, 2);
 	writeAll(json, outputFile);
 };
 
-const translateOData = (
+const translateOData = async (
 	modelFile: string,
 	odata: string,
 	outputFile?: string,
 ) => {
-	const request = generateAbstractSqlQuery(modelFile, odata);
+	const request = await generateAbstractSqlQuery(modelFile, odata);
 	const json = JSON.stringify(request.abstractSqlQuery, null, 2);
 	writeAll(json, outputFile);
 };
@@ -55,14 +53,13 @@ Bindings: ${JSON.stringify(sqlQuery.bindings, null, 2)}
 	}
 };
 
-const compileOData = (
+const compileOData = async (
 	modelFile: string,
 	odata: string,
 	outputFile?: string,
 ) => {
-	const translatedRequest = generateAbstractSqlQuery(modelFile, odata);
-	const { compileRequest } =
-		require('../sbvr-api/abstract-sql') as typeof AbstractSql;
+	const translatedRequest = await generateAbstractSqlQuery(modelFile, odata);
+	const { compileRequest } = await import('../sbvr-api/abstract-sql');
 	const compiledRequest = compileRequest(translatedRequest);
 	let output;
 	if (program.opts().json) {
@@ -109,4 +106,4 @@ if (process.argv.length === 2) {
 	program.help();
 }
 
-program.parse(process.argv);
+program.parseAsync(process.argv);

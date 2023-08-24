@@ -1,24 +1,21 @@
 import { version, writeAll, writeSqlModel } from './utils';
-
-import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
-
 import { program } from 'commander';
 import * as fs from 'fs';
 
 const getSE = (inputFile: string) => fs.readFileSync(inputFile, 'utf8');
 
-const parse = (inputFile: string, outputFile?: string) => {
-	const { generateLfModel } =
-		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
+const parse = async (inputFile: string, outputFile?: string) => {
+	const { generateLfModel } = await import('../sbvr-api/sbvr-utils');
 	const seModel = getSE(inputFile);
 	const result = generateLfModel(seModel);
 	const json = JSON.stringify(result, null, 2);
 	writeAll(json, outputFile);
 };
 
-const transform = (inputFile: string, outputFile?: string) => {
-	const { generateLfModel, generateAbstractSqlModel } =
-		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
+const transform = async (inputFile: string, outputFile?: string) => {
+	const { generateLfModel, generateAbstractSqlModel } = await import(
+		'../sbvr-api/sbvr-utils'
+	);
 	const seModel = getSE(inputFile);
 	const lfModel = generateLfModel(seModel);
 	const result = generateAbstractSqlModel(lfModel);
@@ -26,9 +23,8 @@ const transform = (inputFile: string, outputFile?: string) => {
 	writeAll(json, outputFile);
 };
 
-const runCompile = (inputFile: string, outputFile?: string) => {
-	const { generateModels } =
-		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
+const runCompile = async (inputFile: string, outputFile?: string) => {
+	const { generateModels } = await import('../sbvr-api/sbvr-utils');
 	const seModel = getSE(inputFile);
 	const models = generateModels(
 		{ apiRoot: 'sbvr-compiler', modelText: seModel },
@@ -38,16 +34,16 @@ const runCompile = (inputFile: string, outputFile?: string) => {
 	writeSqlModel(models.sql, outputFile);
 };
 
-const generateTypes = (inputFile: string, outputFile?: string) => {
-	const { generateModels } =
-		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
+const generateTypes = async (inputFile: string, outputFile?: string) => {
+	const { generateModels } = await import('../sbvr-api/sbvr-utils');
 	const seModel = getSE(inputFile);
 	const models = generateModels(
 		{ apiRoot: 'sbvr-compiler', modelText: seModel },
 		program.opts().engine,
 	);
-	const { abstractSqlToTypescriptTypes } =
-		require('@balena/abstract-sql-to-typescript') as typeof import('@balena/abstract-sql-to-typescript');
+	const { abstractSqlToTypescriptTypes } = await import(
+		'@balena/abstract-sql-to-typescript'
+	);
 	const types = abstractSqlToTypescriptTypes(models.abstractSql);
 
 	writeAll(types, outputFile);
@@ -93,4 +89,4 @@ if (process.argv.length === 2) {
 	program.help();
 }
 
-program.parse(process.argv);
+program.parseAsync(process.argv);
