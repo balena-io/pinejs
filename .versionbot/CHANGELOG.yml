@@ -1,4 +1,16 @@
 - commits:
+    - subject: Fix webresource patch on not accessible/inexistent key
+      hash: de01723cf88ec09b422578a5ca76437fe10fdabb
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otávio Jacobi
+      nested: []
+  version: 15.3.2
+  title: ""
+  date: 2023-08-24T20:20:55.423Z
+- commits:
     - subject: "bin: Use async imports in the cli commands"
       hash: 2bf7de6c60589f0b33575b7ab6f4309011fc8062
       body: ""
