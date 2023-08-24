@@ -212,6 +212,21 @@ describe('06 webresources tests', function () {
 					expect(await isEventuallyDeleted(otherUniqueFilename)).to.be.true;
 				});
 
+				it(`removes uploaded file if patch on ${resourcePath} has no affected ids`, async () => {
+					const uniqueFilename = `${randomUUID()}_${filename}`;
+
+					await supertest(testLocalServer)
+						.patch(`/${resourceName}/organization(42)`)
+						.field('name', 'john')
+						.attach(resourcePath, newFilePath, {
+							filename: uniqueFilename,
+							contentType,
+						})
+						.expect(200);
+
+					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
+				});
+
 				it(`fails to update multiple entities with same ${resourcePath}`, async () => {
 					const uniqueFilename = `${randomUUID()}_other-image.png`;
 
