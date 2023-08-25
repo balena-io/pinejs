@@ -14,6 +14,7 @@ import {
 import { errors, permissions } from '../server-glue/module';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 import { TypedError } from 'typed-error';
+import { intVar } from '@balena/env-parsing';
 
 export * from './handlers';
 
@@ -103,6 +104,8 @@ export const getUploaderMiddlware = (
 		if (!is(req, ['multipart'])) {
 			return next();
 		}
+
+		res.setTimeout(intVar('PINEJS_WEBRESOURCE_REQUEST_TIMEOUT', 1800000));
 		const uploadedFilePaths: string[] = [];
 		const completeUploads: Array<Promise<void>> = [];
 
