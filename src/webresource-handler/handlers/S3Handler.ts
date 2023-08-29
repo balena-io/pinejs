@@ -36,8 +36,9 @@ export class S3Handler implements WebResourceHandler {
 	private readonly bucket: string;
 	private readonly maxFileSize: number;
 
-	private readonly signedUrlExpireTimeSeconds: number;
-	private readonly signedUrlCacheExpireTimeSeconds: number;
+	protected readonly signedUrlExpireTimeSeconds: number;
+	protected readonly signedUrlCacheExpireTimeSeconds: number;
+	protected cachedGetSignedUrl: (fileKey: string) => Promise<string>;
 
 	private client: S3Client;
 
@@ -119,8 +120,6 @@ export class S3Handler implements WebResourceHandler {
 		webResource.href = await this.cachedGetSignedUrl(fileKey);
 		return webResource;
 	}
-
-	private cachedGetSignedUrl: (fileKey: string) => Promise<string>;
 
 	private s3SignUrl(fileKey: string): Promise<string> {
 		const command = new GetObjectCommand({
