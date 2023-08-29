@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import { odataNameToSqlName } from '@balena/odata-to-abstract-sql';
 // @ts-expect-error b/c TS doesn't know what the result of requiring an sbvr file would be
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -176,7 +175,7 @@ WHERE "conditional resource"."transaction" = ?;\
 							resolve = $resolve;
 							reject = $reject;
 						});
-						// @ts-ignore
+						// @ts-expect-error we use resolve & reject before they are assigned b/c we treat them as a deferred.
 						placeholders[placeholder] = { promise, resolve, reject };
 					}
 				}

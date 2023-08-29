@@ -232,10 +232,11 @@ export function nestedCheck<I extends object, O>(
 		}
 		const checkType = checkTypes[0];
 		switch (checkType.toUpperCase()) {
-			case 'AND':
+			case 'AND': {
 				const and = (check as NestedCheckAnd<I>)[checkType as 'and'];
 				return nestedCheck(and, stringCallback);
-			case 'OR':
+			}
+			case 'OR': {
 				const or = (check as NestedCheckOr<I>)[checkType as 'or'];
 				let results: any[] = [];
 				for (const subcheck of or) {
@@ -259,6 +260,7 @@ export function nestedCheck<I extends object, O>(
 					};
 				}
 				return false;
+			}
 			default:
 				throw new Error('Cannot parse required checking logic: ' + checkType);
 		}

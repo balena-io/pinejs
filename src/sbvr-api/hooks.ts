@@ -391,8 +391,7 @@ const getReadOnlyArgs = <T extends keyof Hooks>(
 		// If we don't have a tx then read-only/writable is irrelevant
 		return args;
 	}
-	let readOnlyArgs: typeof args;
-	readOnlyArgs = { ...args, tx: args.tx.asReadOnly() };
+	const readOnlyArgs: typeof args = { ...args, tx: args.tx.asReadOnly() };
 	if ((args as HookArgs).request != null) {
 		defineApi(modelName, readOnlyArgs as HookArgs);
 	}

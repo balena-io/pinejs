@@ -11,7 +11,7 @@ export class NoopHandler implements WebResourceHandler {
 		};
 	}
 
-	public async removeFile(_fileReference: string): Promise<void> {
+	public async removeFile(): Promise<void> {
 		return;
 	}
 

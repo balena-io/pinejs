@@ -37,7 +37,7 @@ const app = (function () {
 		// Strip wildcard
 		let paramName;
 		match = match.toLowerCase();
-		const newMatch = match.replace(/[\/\*]*$/, '');
+		const newMatch = match.replace(/[/*]*$/, '');
 		if (newMatch !== match) {
 			match = newMatch;
 			paramName = '*';
@@ -59,6 +59,8 @@ const app = (function () {
 		/** @type any */ body = '',
 	) {
 		if (!handlers[method]) {
+			// TODO: Consider changing this to a custom Error
+			// eslint-disable-next-line no-throw-literal
 			throw [404, null, null];
 		}
 		const req = {

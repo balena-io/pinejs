@@ -377,7 +377,7 @@ export const setup = (app: Express.Application) => {
 								switch (fileExtension) {
 									case '.coffee':
 									case '.ts':
-									case '.js':
+									case '.js': {
 										const loadeMigration = nodeRequire(filePath);
 										const migration = loadeMigration.default ?? loadeMigration;
 
@@ -392,6 +392,7 @@ export const setup = (app: Express.Application) => {
 
 										assignMigrationWithCategory(migrationKey, migration);
 										break;
+									}
 									case '.sql':
 										if (migrationCategory === MigrationCategories.async) {
 											console.error(

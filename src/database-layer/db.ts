@@ -403,10 +403,13 @@ export abstract class Tx {
 	protected abstract _rollback(): Promise<void>;
 	protected abstract _commit(): Promise<void>;
 
+	// TODO: Re-enable the lint rule once eslint properly supports abstract class base implementations
 	public async getTxLevelLock(
+		/* eslint-disable @typescript-eslint/no-unused-vars */
 		_namespaceKey: string,
 		_key: number,
 		_blocking: boolean = true,
+		/* eslint-enable @typescript-eslint/no-unused-vars */
 	): Promise<boolean> {
 		throw new Error(
 			'The getTxLevelLock method is not implemented for the current engine.',
@@ -620,9 +623,9 @@ if (maybePg != null) {
 					);
 					this.db.release();
 				} catch (err: any) {
-					err = wrapDatabaseError(err);
-					this.db.release(err);
-					throw err;
+					const errorToReturn = wrapDatabaseError(err);
+					this.db.release(errorToReturn);
+					throw errorToReturn;
 				}
 			}
 
@@ -937,7 +940,6 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			// allowing us to use async calls within the API.
 			private asyncRecurse = () => {
 				let args: AsyncQuery | undefined;
-				// tslint:disable-next-line no-conditional-assignment
 				while ((args = this.queue.pop())) {
 					console.debug('Running', args[0]);
 					this.tx.executeSql(args[0], args[1], args[2], args[3]);

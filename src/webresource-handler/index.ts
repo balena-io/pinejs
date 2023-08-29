@@ -156,7 +156,7 @@ export const getUploaderMiddlware = (
 		// multipart requests will have two main parts, the file contents and the form fields
 		// This receives the form fields and transforms them into a standard JSON body
 		// This is a similar behavior as previous multer library did
-		bb.on('field', (name, val, _info) => {
+		bb.on('field', (name, val) => {
 			req.body[name] = val;
 		});
 

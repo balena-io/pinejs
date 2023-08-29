@@ -1,5 +1,11 @@
+import type {
+	AbstractSqlModel,
+	AbstractSqlTable,
+} from '@balena/abstract-sql-compiler';
+
+// Augment express.js with pinejs-specific attributes via declaration merging.
 declare module '@balena/abstract-sql-compiler' {
-	interface AbstractSqlTable {
+	export interface AbstractSqlTable {
 		fetchProcessingFields?: {
 			[field: string]: NonNullable<SbvrType['fetchProcessing']>;
 		};
@@ -9,10 +15,6 @@ declare module '@balena/abstract-sql-compiler' {
 	}
 }
 
-import type {
-	AbstractSqlModel,
-	AbstractSqlTable,
-} from '@balena/abstract-sql-compiler';
 import type { Result, Row } from '../database-layer/db';
 
 import { sqlNameToODataName } from '@balena/odata-to-abstract-sql';

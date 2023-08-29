@@ -267,6 +267,8 @@ export async function setup(app, sbvrUtils, db) {
 							try {
 								await tx.executeSql(query);
 							} catch (err) {
+								// TODO: Consider changing this to a custom Error
+								// eslint-disable-next-line no-throw-literal
 								throw [query, err];
 							}
 						}
