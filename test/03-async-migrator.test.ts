@@ -272,7 +272,7 @@ describe('03 Async Migrations', async function () {
 			// should only mark async migrations as executed when they are finalized.
 			// 0002 is not finalized, thus should not be marked as executed.
 			const res = await supertest(testLocalServer)
-				.get('/migrations/migration')
+				.get(`/migrations/migration?$filter=model_name eq 'example'`)
 				.expect(200);
 			expect(res.body)
 				.to.be.an('object')
