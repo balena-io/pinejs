@@ -281,7 +281,9 @@ const getWebResourcesKeysFromRequest = (
 	webResourceFields: string[],
 	{ values }: uriParser.ODataRequest,
 ): string[] => {
-	return webResourceFields.map((field) => values[field].href);
+	return webResourceFields
+		.map((field) => values[field]?.href)
+		.filter(isDefined);
 };
 
 const getRemoveWebResourceHooks = (
@@ -331,10 +333,11 @@ const getRemoveWebResourceHooks = (
 				);
 			}
 
-			// This will only be > 1 in a DELETE. In PATCH requests, the request should have exited before
+			// This can be > 1 in both DELETE requests or PATCH requests to not accessible IDs.
 			const ids = await sbvrUtils.getAffectedIds(args);
 			if (ids.length === 0) {
 				// Set deletion of files on the wire as no resource was affected
+				// Note that for DELETE requests it should not find any request on the wire
 				const keysToDelete = getWebResourcesKeysFromRequest(
 					webResourceFields,
 					request,
@@ -381,10 +384,7 @@ const deleteRollbackPendingFields = async (
 		return;
 	}
 
-	const keysToDelete: string[] = fields
-		.map((f) => request.values[f]?.href)
-		.filter(isDefined);
-
+	const keysToDelete = getWebResourcesKeysFromRequest(fields, request);
 	await deleteFiles(keysToDelete, webResourceHandler);
 };
 
