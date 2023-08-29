@@ -15,7 +15,7 @@ if (!process.browser) {
 		global.nodeRequire = require;
 	}
 	// Register a .sbvr loader
-	// tslint:disable-next-line:no-var-requires
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	const fs: typeof Fs = require('fs');
 	nodeRequire.extensions['.sbvr'] = (module: NodeModule, filename: string) =>
 		(module.exports = fs.readFileSync(filename, 'utf8'));

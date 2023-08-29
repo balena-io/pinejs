@@ -10,7 +10,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import '../server-glue/sbvr-loader';
 
-// tslint:disable:no-var-requires
 export const { version } = JSON.parse(
 	fs.readFileSync(require.resolve('../../package.json'), 'utf8'),
 );
@@ -83,6 +82,7 @@ export const getAbstractSqlModelFromFile = (
 		throw new Error('Unrecognised config file');
 	}
 	const { generateLfModel, generateAbstractSqlModel } =
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
 	let lfModel;
 	try {

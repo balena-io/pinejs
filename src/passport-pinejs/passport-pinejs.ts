@@ -35,12 +35,13 @@ export const checkPassword: PassportLocal.VerifyFunction = async (
 
 const setup: ConfigLoader.SetupFunction = async (app: Express.Application) => {
 	if (!process.browser) {
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const passport: typeof Passport = require('passport');
 		app.use(passport.initialize());
 		app.use(passport.session());
 
 		const {
-			Strategy: LocalStrategy,
+			Strategy: LocalStrategy, // eslint-disable-next-line @typescript-eslint/no-var-requires
 		}: typeof PassportLocal = require('passport-local');
 
 		passport.serializeUser((user, done) => {

@@ -1,5 +1,5 @@
 import { SBVRParser } from '@balena/sbvr-parser';
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const Types: string = require('@balena/sbvr-types/Type.sbvr');
 import { version as sbvrParserVersion } from '@balena/sbvr-parser/package.json';
 import { version } from '@balena/sbvr-parser/package.json';

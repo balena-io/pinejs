@@ -12,7 +12,6 @@ let cache: null | {
 } = null;
 let fs: undefined | typeof Fs;
 try {
-	// tslint:disable-next-line:no-var-requires
 	fs = require('fs');
 } catch (e) {
 	// Ignore error

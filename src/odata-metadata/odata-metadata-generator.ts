@@ -5,7 +5,7 @@ import type {
 
 import sbvrTypes, { SbvrType } from '@balena/sbvr-types';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version }: { version: string } = require('../../package.json');
 
 const getResourceName = (resourceName: string): string =>

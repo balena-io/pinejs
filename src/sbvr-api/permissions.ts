@@ -52,7 +52,7 @@ import {
 } from './uri-parser';
 import memoizeWeak = require('memoizee/weak');
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const userModel: string = require('./user.sbvr');
 
 const DEFAULT_ACTOR_BIND = '@__ACTOR_ID';

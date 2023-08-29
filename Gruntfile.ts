@@ -149,6 +149,7 @@ export = (grunt: typeof Grunt) => {
 		},
 	});
 
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	require('load-grunt-tasks')(grunt);
 
 	if (!grunt.option('target')) {

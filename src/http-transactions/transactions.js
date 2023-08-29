@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 import { odataNameToSqlName } from '@balena/odata-to-abstract-sql';
-// @ts-ignore
+// @ts-expect-error b/c TS doesn't know what the result of requiring an sbvr file would be
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const transactionModel = require('./transaction.sbvr');
 
 /** @type {import('../config-loader/config-loader').Config} */

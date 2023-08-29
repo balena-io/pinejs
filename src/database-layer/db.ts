@@ -465,7 +465,7 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 
 let maybePg: typeof Pg | undefined;
 try {
-	// tslint:disable-next-line:no-var-requires
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	maybePg = require('pg');
 } catch (e) {
 	// Ignore errors
@@ -522,6 +522,7 @@ if (maybePg != null) {
 		let pool: Pg.Pool;
 		let replica: Pg.Pool;
 		if (typeof connectString === 'string') {
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const pgConnectionString: typeof PgConnectionString = require('pg-connection-string');
 			// We have to cast because of the use of null vs undefined
 			const config = pgConnectionString.parse(connectString) as Pg.PoolConfig;
@@ -705,7 +706,7 @@ if (maybePg != null) {
 
 let maybeMysql: typeof Mysql | undefined;
 try {
-	// tslint:disable-next-line:no-var-requires
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	maybeMysql = require('mysql');
 } catch (e) {
 	// Ignore errors
