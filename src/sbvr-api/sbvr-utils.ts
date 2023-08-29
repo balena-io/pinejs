@@ -94,6 +94,10 @@ export { resolveOdataBind } from './abstract-sql';
 import * as odataResponse from './odata-response';
 import { env } from '../server-glue/module';
 import { translateAbstractSqlModel } from './translations';
+import {
+	MigrationExecutionResult,
+	setExecutedMigrations,
+} from '../migrator/utils';
 
 const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
 const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVersion}`;
@@ -115,6 +119,7 @@ interface CompiledModel {
 const models: {
 	[vocabulary: string]: CompiledModel & {
 		versions: string[];
+		modelExecutionResult?: ModelExecutionResult;
 	};
 } = {};
 
@@ -141,6 +146,12 @@ export interface Response {
 		| undefined;
 	body?: AnyObject | string;
 }
+
+export type ModelExecutionResult =
+	| undefined
+	| {
+			migrationExecutionResult?: MigrationExecutionResult;
+	  };
 
 const memoizedResolvedSynonym = memoizeWeak(
 	(
@@ -583,7 +594,7 @@ export const executeModels = async (
 			execModels.map(async (model) => {
 				const { apiRoot } = model;
 
-				await syncMigrator.run(tx, model);
+				const migrationExecutionResult = await syncMigrator.run(tx, model);
 				const compiledModel = generateModels(model, db.engine);
 
 				if (compiledModel.sql) {
@@ -614,6 +625,9 @@ export const executeModels = async (
 				models[apiRoot] = {
 					...compiledModel,
 					versions,
+					modelExecutionResult: {
+						migrationExecutionResult,
+					},
 				};
 
 				// Validate the [empty] model according to the rules.
@@ -717,6 +731,23 @@ export const executeModels = async (
 			}),
 		);
 		throw err;
+	}
+};
+
+export const postExecuteModels = async (tx: Db.Tx): Promise<void> => {
+	// Executing the `migrations` model takes place after other models have been executed.
+	// Hence, skipped migrations from earlier models are not set as executed as the `migration` table is missing
+	// Here the skipped migrations that haven't been set properly are covered
+	// This is mostly an edge case when running on an empty database schema and migrations model hasn't been executed, yet.
+	// One specifc case are tests to run tests against migrated and unmigrated database states
+
+	for (const modelKey of Object.keys(models)) {
+		const pendingToSetExecutedMigrations =
+			models[modelKey]?.modelExecutionResult?.migrationExecutionResult
+				?.pendingUnsetMigrations;
+		if (pendingToSetExecutedMigrations != null) {
+			await setExecutedMigrations(tx, modelKey, pendingToSetExecutedMigrations);
+		}
 	}
 };
 
@@ -1936,5 +1967,20 @@ export const setup = async (
 		);
 	} catch {
 		// we can't use IF NOT EXISTS on all dbs, so we have to ignore the error raised if this index already exists
+	}
+};
+
+export const postSetup = async (
+	_app: Express.Application,
+	$db: Db.Database,
+): Promise<void> => {
+	exports.db = db = $db;
+	try {
+		await db.transaction(async (tx) => {
+			await postExecuteModels(tx);
+		});
+	} catch (err: any) {
+		console.error('Could not post execute models', err);
+		process.exit(1);
 	}
 };

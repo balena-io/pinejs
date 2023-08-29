@@ -105,6 +105,12 @@ export type MigrationStatus = {
 	is_backing_off: boolean;
 };
 
+export type MigrationExecutionResult =
+	| undefined
+	| {
+			pendingUnsetMigrations: string[];
+	  };
+
 export const getRunnableAsyncMigrations = (
 	$migrations: Migrations,
 ): RunnableAsyncMigrations | undefined => {
@@ -270,9 +276,9 @@ export const setExecutedMigrations = async (
 	tx: Tx,
 	modelName: string,
 	executedMigrations: string[],
-): Promise<void> => {
+): Promise<MigrationExecutionResult> => {
 	if (!(await migrationTablesExist(tx))) {
-		return;
+		return { pendingUnsetMigrations: executedMigrations };
 	}
 
 	const stringifiedMigrations = await sbvrUtils.sbvrTypes.JSON.validate(

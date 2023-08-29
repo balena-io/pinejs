@@ -78,6 +78,9 @@ export const init = async <T extends string>(
 			promises.push(cfgLoader.loadApplicationConfig(config));
 		}
 		await Promise.all(promises);
+		// Execute it after all other promises have resolved. Execution of promises is not neccessarily
+		// guaranteed to be sequentially resolving them with Promise.all
+		await sbvrUtils.postSetup(app, db);
 
 		return cfgLoader;
 	} catch (err: any) {

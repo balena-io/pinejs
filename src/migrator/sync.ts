@@ -1,6 +1,7 @@
 import {
 	MigrationTuple,
 	MigrationError,
+	MigrationExecutionResult,
 	setExecutedMigrations,
 	getExecutedMigrations,
 	lockMigrations,
@@ -45,7 +46,10 @@ export const postRun = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 	}
 };
 
-export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
+export const run = async (
+	tx: Tx,
+	model: ApiRootModel,
+): Promise<MigrationExecutionResult> => {
 	const { migrations } = model;
 	if (migrations == null || _.isEmpty(migrations)) {
 		return;
@@ -58,7 +62,7 @@ const $run = async (
 	tx: Tx,
 	model: ApiRootModel,
 	migrations: RunnableMigrations,
-): Promise<void> => {
+): Promise<MigrationExecutionResult> => {
 	const modelName = model.apiRoot;
 
 	// migrations only run if the model has been executed before,
@@ -68,7 +72,6 @@ const $run = async (
 		(sbvrUtils.api.migrations?.logger.info ?? console.info)(
 			`First time model '${modelName}' has executed, skipping migrations`,
 		);
-
 		return await setExecutedMigrations(tx, modelName, Object.keys(migrations));
 	}
 	await lockMigrations({ tx, modelName, blocking: true }, async () => {
