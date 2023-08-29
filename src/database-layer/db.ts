@@ -168,7 +168,7 @@ const atomicExecuteSql: Database['executeSql'] = async function (
 };
 
 const asyncTryFn = (fn: () => any) => {
-	Promise.resolve().then(fn);
+	void Promise.resolve().then(fn);
 };
 
 type RejectedFunctions = (message: string) => {
@@ -226,7 +226,7 @@ class AutomaticClose {
 			if (this.stackTraceErr) {
 				console.error(this.stackTraceErr.stack);
 			}
-			tx.rollback();
+			void tx.rollback();
 		};
 		this.automaticCloseTimeout = setTimeout(
 			this.automaticClose,
@@ -465,7 +465,6 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 
 let maybePg: typeof Pg | undefined;
 try {
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	maybePg = require('pg');
 } catch (e) {
 	// Ignore errors
@@ -500,7 +499,7 @@ if (maybePg != null) {
 			const p = new pg.Pool(config);
 			if (PG_SCHEMA != null) {
 				p.on('connect', (client) => {
-					client.query({ text: `SET search_path TO "${PG_SCHEMA}"` });
+					void client.query({ text: `SET search_path TO "${PG_SCHEMA}"` });
 				});
 			}
 			p.on('connect', (client) => {
@@ -690,13 +689,13 @@ if (maybePg != null) {
 			transaction: createTransaction(async (stackTraceErr) => {
 				const client = await pool.connect();
 				const tx = new PostgresTx(client, false, stackTraceErr);
-				tx.executeSql('START TRANSACTION;');
+				void tx.executeSql('START TRANSACTION;');
 				return tx;
 			}),
 			readTransaction: createTransaction(async (stackTraceErr) => {
 				const client = await replica.connect();
 				const tx = new PostgresTx(client, false, stackTraceErr);
-				tx.executeSql('START TRANSACTION READ ONLY;');
+				void tx.executeSql('START TRANSACTION READ ONLY;');
 				return tx.asReadOnly();
 			}),
 			...alwaysExport,
@@ -706,7 +705,6 @@ if (maybePg != null) {
 
 let maybeMysql: typeof Mysql | undefined;
 try {
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	maybeMysql = require('mysql');
 } catch (e) {
 	// Ignore errors
@@ -813,14 +811,14 @@ if (maybeMysql != null) {
 				const client = await getConnectionAsync();
 				const close = () => client.release();
 				const tx = new MySqlTx(client, close, false, stackTraceErr);
-				tx.executeSql('START TRANSACTION;');
+				void tx.executeSql('START TRANSACTION;');
 				return tx;
 			}),
 			readTransaction: createTransaction(async (stackTraceErr) => {
 				const client = await getConnectionAsync();
 				const close = () => client.release();
 				const tx = new MySqlTx(client, close, false, stackTraceErr);
-				tx.executeSql('START TRANSACTION READ ONLY;');
+				void tx.executeSql('START TRANSACTION READ ONLY;');
 				return tx.asReadOnly();
 			}),
 			...alwaysExport,

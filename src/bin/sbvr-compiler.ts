@@ -89,4 +89,4 @@ if (process.argv.length === 2) {
 	program.help();
 }
 
-program.parseAsync(process.argv);
+void program.parseAsync(process.argv);

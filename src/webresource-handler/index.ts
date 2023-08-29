@@ -223,7 +223,7 @@ const getCreateWebResourceHooks = (
 	return {
 		'POSTRUN-ERROR': async ({ tx, request }) => {
 			tx?.on('rollback', () => {
-				deleteRollbackPendingFields(request, webResourceHandler);
+				void deleteRollbackPendingFields(request, webResourceHandler);
 			});
 		},
 	};
@@ -296,7 +296,7 @@ const getRemoveWebResourceHooks = (
 
 			// Request failed on DB roundtrip (e.g. DB constraint) and pending files need to be deleted
 			tx.on('rollback', () => {
-				deleteRollbackPendingFields(request, webResourceHandler);
+				void deleteRollbackPendingFields(request, webResourceHandler);
 			});
 
 			if (request.method === 'PATCH') {
@@ -395,7 +395,7 @@ const deletePendingFiles = (
 ): void => {
 	// on purpose does not await for this promise to resolve
 	try {
-		deleteFiles(keysToDelete, webResourceHandler);
+		void deleteFiles(keysToDelete, webResourceHandler);
 	} catch (err) {
 		getLogger(request.vocabulary).error(`Failed to delete pending files`, err);
 	}
