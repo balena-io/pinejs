@@ -1,4 +1,23 @@
 - commits:
+    - subject: Fix skipped migrations on empty database schema
+      hash: b34235542b82a7d347b49f79f26be036509afd00
+      body: >
+        On empty database schemas the `migrations` model is not executed.
+
+        Hence, every model migration that is executed before the `migrations` model
+
+        will not be tracked properly. This is an edge case for empty database schemas.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 15.3.4
+  title: ""
+  date: 2023-08-29T15:30:10.063Z
+- commits:
     - subject: Change S3Handler signing config from private to protected
       hash: 6d7741dfe4117e937d0f4af9c6abb338beeffa89
       body: ""
