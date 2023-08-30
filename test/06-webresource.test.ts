@@ -216,7 +216,7 @@ describe('06 webresources tests', function () {
 					const uniqueFilename = `${randomUUID()}_${filename}`;
 
 					await supertest(testLocalServer)
-						.patch(`/${resourceName}/organization(42)`)
+						.patch(`/${resourceName}/organization(4242)`)
 						.field('name', 'john')
 						.attach(resourcePath, newFilePath, {
 							filename: uniqueFilename,
@@ -225,6 +225,80 @@ describe('06 webresources tests', function () {
 						.expect(200);
 
 					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
+				});
+
+				it(`does not fail if delete on ${resourcePath} has no affected ids`, async () => {
+					await supertest(testLocalServer)
+						.delete(`/${resourceName}/organization(4242)`)
+						.expect(200);
+				});
+
+				it(`does not fail to patch on ${resourcePath} has no affected ids`, async () => {
+					await supertest(testLocalServer)
+						.patch(`/${resourceName}/organization(4242)`)
+						.field('name', 'peter')
+						.expect(200);
+				});
+
+				it(`fails to post on ${resourcePath} if invalid rule and no webresource with correct error`, async () => {
+					const res = await supertest(testLocalServer)
+						.post(`/${resourceName}/organization`)
+						.field('name', 'longname')
+						.expect(400);
+					expect(res.body).to.equal(
+						`It is necessary that each organization that has a name, has a name that has a Length (Type) that is greater than 0 and is less than or equal to 5`,
+					);
+				});
+
+				it(`it should be able to patch multiple keys on ${resourcePath} without any webresource`, async () => {
+					const { body: org1 } = await supertest(testLocalServer)
+						.post(`/${resourceName}/organization`)
+						.field('name', 'john')
+						.attach(resourcePath, filePath, {
+							filename,
+							contentType,
+						})
+						.expect(201);
+
+					const { body: org2 } = await supertest(testLocalServer)
+						.post(`/${resourceName}/organization`)
+						.field('name', 'peter')
+						.attach(resourcePath, filePath, {
+							filename,
+							contentType,
+						})
+						.expect(201);
+
+					// Patching the name of all orgs
+					await supertest(testLocalServer)
+						.patch(`/${resourceName}/organization`)
+						.field('name', 'test')
+						.expect(200);
+
+					const { body: patchedOrg1 } = await supertest(testLocalServer).get(
+						`/${resourceName}/organization(${org1.id})`,
+					);
+
+					const { body: patchedOrg2 } = await supertest(testLocalServer).get(
+						`/${resourceName}/organization(${org2.id})`,
+					);
+
+					expect(patchedOrg1.d[0].name).to.equals('test');
+					await expectImageEquals(
+						patchedOrg1.d[0][resourcePath].href,
+						filePath,
+						fileSize,
+					);
+					expect(patchedOrg2.d[0].name).to.equals('test');
+					await expectImageEquals(
+						patchedOrg2.d[0][resourcePath].href,
+						filePath,
+						fileSize,
+					);
+
+					expect(patchedOrg1.d[0][resourcePath].href).not.to.be.eq(
+						patchedOrg2.d[0][resourcePath].href,
+					);
 				});
 
 				it(`fails to update multiple entities with same ${resourcePath}`, async () => {
@@ -902,7 +976,7 @@ const generateFilenames = (count: number): string[] => {
 
 const isEventuallyDeleted = async (
 	filename: string,
-	attempts = 3,
+	attempts = 5,
 	retryDelay = 1000,
 ): Promise<boolean> => {
 	// File deletion happens in background so it might need
@@ -928,13 +1002,7 @@ const bucketContainsFile = async (filename: string): Promise<boolean> => {
 		requiredVar('S3_STORAGE_ADAPTER_BUCKET'),
 	);
 
-	for (const file of files) {
-		if (file.includes(filename)) {
-			return true;
-		}
-	}
-
-	return false;
+	return files.some((file) => file.includes(filename));
 };
 
 const expectToExist = async (filename: string) => {
