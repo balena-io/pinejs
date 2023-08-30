@@ -1,4 +1,16 @@
 - commits:
+    - subject: Fix failure on delete requests with invalid ID
+      hash: 4749ed86c9a3858a2eb84c58d2a9581c93b91bec
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otávio Jacobi
+      nested: []
+  version: 15.3.5
+  title: ""
+  date: 2023-08-30T14:29:41.408Z
+- commits:
     - subject: Fix skipped migrations on empty database schema
       hash: b34235542b82a7d347b49f79f26be036509afd00
       body: >
