@@ -32,6 +32,7 @@ import {
 	getUploaderMiddlware,
 	WebResourceHandler,
 	setupUploadHooks,
+	setupWebresourceHandler,
 } from '../webresource-handler';
 import { AliasValidNodeType } from '../sbvr-api/translations';
 
@@ -205,6 +206,7 @@ export const setup = (app: Express.Application) => {
 						const webResourceHandler =
 							data.webResourceHandler ?? getDefaultHandler();
 
+						setupWebresourceHandler(webResourceHandler);
 						const fileUploadMiddleware =
 							getUploaderMiddlware(webResourceHandler);
 						app

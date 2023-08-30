@@ -116,8 +116,10 @@ export class S3Handler implements WebResourceHandler {
 	}
 
 	public async onPreRespond(webResource: WebResource): Promise<WebResource> {
-		const fileKey = this.getKeyFromHref(webResource.href);
-		webResource.href = await this.cachedGetSignedUrl(fileKey);
+		if (webResource.href != null) {
+			const fileKey = this.getKeyFromHref(webResource.href);
+			webResource.href = await this.cachedGetSignedUrl(fileKey);
+		}
 		return webResource;
 	}
 

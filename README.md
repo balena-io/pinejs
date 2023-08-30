@@ -66,7 +66,6 @@ An application can choose between two types to save file content or another larg
 
 Please note that `WebResource` is still a work in progress and as such has a few limitations. Such as (but not exclusively):
 
- - When expanding a resource on a webresource, the output content will not be pre-signed (needs to directly get the resource or association table)
  - Filtering for specific filenames or size
  - Deletion of a file may fail and will require to manually delete the file from its storage
 
