@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update TypeScript to 5.2.2
+      hash: 38838fe15d78a4cc0bbbb665edc5b6e98fbfd84a
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 15.3.7
+  title: ""
+  date: 2023-08-31T09:45:00.773Z
+- commits:
     - subject: Fix the remaining lint errors
       hash: c974ff49f97ca861665e55cf2f024372c46006b9
       body: ""
