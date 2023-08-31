@@ -101,7 +101,7 @@ class SideEffectHook<T extends HookFn> extends Hook<T> {
 
 	public registerRollback(fn: RollbackAction): void {
 		if (this.rolledBack) {
-			(async () => {
+			void (async () => {
 				try {
 					await fn();
 				} catch {
@@ -140,7 +140,7 @@ export const rollbackRequestHooks = <T extends InstantiatedHooks>(
 	if (sideEffectHooks.length === 0) {
 		return;
 	}
-	settleMapSeries(sideEffectHooks, async (hook) => {
+	void settleMapSeries(sideEffectHooks, async (hook) => {
 		await hook.rollback();
 	});
 };
@@ -391,8 +391,7 @@ const getReadOnlyArgs = <T extends keyof Hooks>(
 		// If we don't have a tx then read-only/writable is irrelevant
 		return args;
 	}
-	let readOnlyArgs: typeof args;
-	readOnlyArgs = { ...args, tx: args.tx.asReadOnly() };
+	const readOnlyArgs: typeof args = { ...args, tx: args.tx.asReadOnly() };
 	if ((args as HookArgs).request != null) {
 		defineApi(modelName, readOnlyArgs as HookArgs);
 	}

@@ -33,4 +33,4 @@ export async function forkInit() {
 	}
 }
 
-forkInit();
+void forkInit();

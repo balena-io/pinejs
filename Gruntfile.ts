@@ -57,7 +57,9 @@ export = (grunt: typeof Grunt) => {
 
 		concat: _.mapValues(serverConfigs, (config, task) => {
 			const defines = (
-				config.plugins as Array<WebpackPluginInstance & { definitions?: {} }>
+				config.plugins as Array<
+					WebpackPluginInstance & { definitions?: object }
+				>
 			).find((plugin) => plugin.definitions != null)!.definitions;
 			return {
 				options: {
@@ -147,6 +149,7 @@ export = (grunt: typeof Grunt) => {
 		},
 	});
 
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	require('load-grunt-tasks')(grunt);
 
 	if (!grunt.option('target')) {

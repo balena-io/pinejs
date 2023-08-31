@@ -13,7 +13,7 @@ export const initRoutes = (app: express.Express) => {
 				await track('POST /slow-custom-endpoint tx started');
 				const tryCancelRequest = () => {
 					if (!tx.isClosed()) {
-						tx.rollback();
+						void tx.rollback();
 					}
 				};
 				switch (req.query.event) {

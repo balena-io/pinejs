@@ -10,7 +10,7 @@ import * as permissions from '../sbvr-api/permissions';
 export let login: (
 	fn: (
 		err: any,
-		user: {} | null | false | undefined,
+		user: object | null | false | undefined,
 		req: Express.Request,
 		res: Express.Response,
 		next: Express.NextFunction,
@@ -35,12 +35,13 @@ export const checkPassword: PassportLocal.VerifyFunction = async (
 
 const setup: ConfigLoader.SetupFunction = async (app: Express.Application) => {
 	if (!process.browser) {
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const passport: typeof Passport = require('passport');
 		app.use(passport.initialize());
 		app.use(passport.session());
 
 		const {
-			Strategy: LocalStrategy,
+			Strategy: LocalStrategy, // eslint-disable-next-line @typescript-eslint/no-var-requires
 		}: typeof PassportLocal = require('passport-local');
 
 		passport.serializeUser((user, done) => {
@@ -66,7 +67,10 @@ const setup: ConfigLoader.SetupFunction = async (app: Express.Application) => {
 
 		logout = (req, _res, next) => {
 			req.logout((error) => {
-				error ? next(error) : next();
+				if (error) {
+					return next(error);
+				}
+				next();
 			});
 		};
 	} else {

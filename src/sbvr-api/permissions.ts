@@ -52,7 +52,7 @@ import {
 } from './uri-parser';
 import memoizeWeak = require('memoizee/weak');
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const userModel: string = require('./user.sbvr');
 
 const DEFAULT_ACTOR_BIND = '@__ACTOR_ID';
@@ -87,7 +87,7 @@ interface NestedCheckOr<T> {
 interface NestedCheckAnd<T> {
 	and: NestedCheckArray<T>;
 }
-interface NestedCheckArray<T> extends Array<NestedCheck<T>> {}
+type NestedCheckArray<T> = Array<NestedCheck<T>>;
 type NestedCheck<T> =
 	| NestedCheckOr<T>
 	| NestedCheckAnd<T>
@@ -175,22 +175,26 @@ const isAnd = <T>(x: any): x is NestedCheckAnd<T> =>
 	typeof x === 'object' && 'and' in x;
 const isOr = <T>(x: any): x is NestedCheckOr<T> =>
 	typeof x === 'object' && 'or' in x;
-export function nestedCheck<I extends {}, O>(
-	check: string,
+export function nestedCheck<I extends string, O>(
+	check: I,
 	stringCallback: (s: string) => O,
 ): O;
-export function nestedCheck<I extends {}, O>(
-	check: boolean,
+export function nestedCheck<I extends boolean, O>(
+	check: I,
 	stringCallback: (s: string) => O,
 ): boolean;
-export function nestedCheck<I extends {}, O>(
+export function nestedCheck<I extends NonNullable<unknown>, O>(
 	check: NestedCheck<I>,
 	stringCallback: (s: string) => O,
 ): Exclude<I, string> | O | MappedNestedCheck<typeof check, I, O>;
-export function nestedCheck<I extends {}, O>(
-	check: NestedCheck<I>,
+export function nestedCheck<I extends object, O>(
+	check: NestedCheck<I> | string | boolean,
 	stringCallback: (s: string) => O,
-): boolean | Exclude<I, string> | O | MappedNestedCheck<typeof check, I, O> {
+):
+	| boolean
+	| Exclude<I, string>
+	| O
+	| MappedNestedCheck<Exclude<typeof check, string | boolean>, I, O> {
 	if (typeof check === 'string') {
 		return stringCallback(check);
 	}
@@ -228,10 +232,11 @@ export function nestedCheck<I extends {}, O>(
 		}
 		const checkType = checkTypes[0];
 		switch (checkType.toUpperCase()) {
-			case 'AND':
+			case 'AND': {
 				const and = (check as NestedCheckAnd<I>)[checkType as 'and'];
 				return nestedCheck(and, stringCallback);
-			case 'OR':
+			}
+			case 'OR': {
 				const or = (check as NestedCheckOr<I>)[checkType as 'or'];
 				let results: any[] = [];
 				for (const subcheck of or) {
@@ -255,6 +260,7 @@ export function nestedCheck<I extends {}, O>(
 					};
 				}
 				return false;
+			}
 			default:
 				throw new Error('Cannot parse required checking logic: ' + checkType);
 		}
@@ -425,7 +431,7 @@ const convertToLambda = (filter: AnyObject, identifier: string) => {
 			}
 		}
 
-		if (object.hasOwnProperty('name')) {
+		if (Object.prototype.hasOwnProperty.call(object, 'name')) {
 			object.property = { ...object };
 			object.name = identifier;
 			delete object.lambda;
@@ -721,7 +727,7 @@ const deepFreezeExceptDefinition = (obj: AnyObject) => {
 		// We skip the definition because we know it's a property we've defined that will throw an error in some cases
 		if (
 			prop !== 'definition' &&
-			obj.hasOwnProperty(prop) &&
+			Object.prototype.hasOwnProperty.call(obj, prop) &&
 			obj[prop] !== null &&
 			!['object', 'function'].includes(typeof obj[prop])
 		) {

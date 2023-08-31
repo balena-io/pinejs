@@ -3,7 +3,9 @@ import type * as Db from '../database-layer/db';
 import type { Model } from '../config-loader/config-loader';
 import type { AnyObject, RequiredField } from './common-types';
 
+// Augment the Express typings
 declare global {
+	// eslint-disable-next-line @typescript-eslint/no-namespace
 	namespace Express {
 		export interface Request {
 			tx?: Db.Tx;
@@ -38,7 +40,7 @@ import * as asyncMigrator from '../migrator/async';
 import * as syncMigrator from '../migrator/sync';
 import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
 
-// tslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const devModel = require('./dev.sbvr');
 import * as permissions from './permissions';
 import {
@@ -249,13 +251,14 @@ const prettifyConstraintError = (
 							err.message,
 						);
 					break;
-				case 'postgres':
+				case 'postgres': {
 					const resourceName = resolveSynonym(request);
 					const abstractSqlModel = getFinalAbstractSqlModel(request);
 					matches = new RegExp(
 						'"' + abstractSqlModel.tables[resourceName].name + '_(.*?)_key"',
 					).exec(err.message);
 					break;
+				}
 			}
 			// We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
 			if (matches == null) {
@@ -282,7 +285,7 @@ const prettifyConstraintError = (
 							err.message,
 						);
 					break;
-				case 'postgres':
+				case 'postgres': {
 					const resourceName = resolveSynonym(request);
 					const abstractSqlModel = getFinalAbstractSqlModel(request);
 					const tableName = abstractSqlModel.tables[resourceName].name;
@@ -301,6 +304,7 @@ const prettifyConstraintError = (
 						).exec(err.message);
 					}
 					break;
+				}
 			}
 			// We know it's the right error type, so if no matches exists just throw a generic error message,
 			// since we have failed to get the info for a more specific one.
@@ -983,7 +987,7 @@ export class PinejsClient extends PinejsClientCore<PinejsClient> {
 		req?: permissions.PermissionReq;
 		custom?: AnyObject;
 	}) {
-		return (await runURI(method, url, body, tx, req, custom)) as {};
+		return (await runURI(method, url, body, tx, req, custom)) as object;
 	}
 }
 

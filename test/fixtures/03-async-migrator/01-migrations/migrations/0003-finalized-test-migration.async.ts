@@ -1,7 +1,7 @@
 import { AsyncMigration } from '../../../../../src/migrator/utils';
 
 const migration: AsyncMigration = {
-	asyncFn: async (tx, _options) => {
+	asyncFn: async (tx) => {
 		const staticSql = `\
 		SELECT 1;`;
 

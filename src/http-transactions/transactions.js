@@ -1,10 +1,10 @@
-import * as _ from 'lodash';
 import { odataNameToSqlName } from '@balena/odata-to-abstract-sql';
-// @ts-ignore
+// @ts-expect-error b/c TS doesn't know what the result of requiring an sbvr file would be
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const transactionModel = require('./transaction.sbvr');
 
 /** @type {import('../config-loader/config-loader').Config} */
-export let config = {
+export const config = {
 	models: [
 		{
 			apiRoot: 'transaction',
@@ -130,7 +130,12 @@ WHERE "conditional field"."conditional resource" = ?;`,
 								modelField.dataType === 'ForeignKey' &&
 								Number.isNaN(Number(fieldValue))
 							) {
-								if (!placeholders.hasOwnProperty(fieldValue)) {
+								if (
+									!Object.prototype.hasOwnProperty.call(
+										placeholders,
+										fieldValue,
+									)
+								) {
 									throw new Error('Cannot resolve placeholder' + fieldValue);
 								} else {
 									try {
@@ -170,7 +175,7 @@ WHERE "conditional resource"."transaction" = ?;\
 							resolve = $resolve;
 							reject = $reject;
 						});
-						// @ts-ignore
+						// @ts-expect-error we use resolve & reject before they are assigned b/c we treat them as a deferred.
 						placeholders[placeholder] = { promise, resolve, reject };
 					}
 				}

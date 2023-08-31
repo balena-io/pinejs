@@ -50,7 +50,7 @@ const asCallback = async <T>(
 
 export class PinejsSessionStore extends Store {
 	public get = ((sid, callback) => {
-		asCallback(
+		void asCallback(
 			callback,
 			api.session
 				.get({
@@ -77,7 +77,7 @@ export class PinejsSessionStore extends Store {
 			data,
 			expiry_time: data?.cookie?.expires ?? null,
 		};
-		asCallback(
+		void asCallback(
 			callback,
 			api.session.put({
 				resource: 'session',
@@ -91,7 +91,7 @@ export class PinejsSessionStore extends Store {
 	}) as Store['set'];
 
 	public destroy = ((sid, callback) => {
-		asCallback(
+		void asCallback(
 			callback,
 			api.session.delete({
 				resource: 'session',
@@ -104,7 +104,7 @@ export class PinejsSessionStore extends Store {
 	}) as Store['destroy'];
 
 	public all = ((callback) => {
-		asCallback(
+		void asCallback(
 			callback,
 			api.session
 				.get({
@@ -124,7 +124,7 @@ export class PinejsSessionStore extends Store {
 	}) as Store['all'];
 
 	public clear = ((callback) => {
-		asCallback(
+		void asCallback(
 			callback,
 			// TODO: Use a truncate
 			api.session.delete({
@@ -137,7 +137,7 @@ export class PinejsSessionStore extends Store {
 	}) as Store['clear'];
 
 	public length = ((callback) => {
-		asCallback(
+		void asCallback(
 			callback,
 			api.session.get({
 				resource: 'session/',

@@ -1,5 +1,6 @@
+// We have to use var when extending the global namespace
+// eslint-disable-next-line no-var
 declare var nodeRequire: NodeRequire;
-/* tslint:disable-next-line:no-namespace */
 declare namespace NodeJS {
 	export interface Process {
 		browser: boolean;

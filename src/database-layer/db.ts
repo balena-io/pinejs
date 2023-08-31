@@ -168,7 +168,7 @@ const atomicExecuteSql: Database['executeSql'] = async function (
 };
 
 const asyncTryFn = (fn: () => any) => {
-	Promise.resolve().then(fn);
+	void Promise.resolve().then(fn);
 };
 
 type RejectedFunctions = (message: string) => {
@@ -215,7 +215,10 @@ class AutomaticClose {
 	private automaticCloseTimeout: ReturnType<typeof setTimeout>;
 	private automaticClose: () => void;
 	private pending: false | number = 0;
-	constructor(tx: Tx, private stackTraceErr?: Error) {
+	constructor(
+		tx: Tx,
+		private stackTraceErr?: Error,
+	) {
 		this.automaticClose = () => {
 			console.error(
 				`Transaction still open after ${env.db.timeoutMS}ms without an execute call.`,
@@ -223,7 +226,7 @@ class AutomaticClose {
 			if (this.stackTraceErr) {
 				console.error(this.stackTraceErr.stack);
 			}
-			tx.rollback();
+			void tx.rollback();
 		};
 		this.automaticCloseTimeout = setTimeout(
 			this.automaticClose,
@@ -400,10 +403,13 @@ export abstract class Tx {
 	protected abstract _rollback(): Promise<void>;
 	protected abstract _commit(): Promise<void>;
 
+	// TODO: Re-enable the lint rule once eslint properly supports abstract class base implementations
 	public async getTxLevelLock(
+		/* eslint-disable @typescript-eslint/no-unused-vars */
 		_namespaceKey: string,
 		_key: number,
 		_blocking: boolean = true,
+		/* eslint-enable @typescript-eslint/no-unused-vars */
 	): Promise<boolean> {
 		throw new Error(
 			'The getTxLevelLock method is not implemented for the current engine.',
@@ -462,7 +468,6 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 
 let maybePg: typeof Pg | undefined;
 try {
-	// tslint:disable-next-line:no-var-requires
 	maybePg = require('pg');
 } catch (e) {
 	// Ignore errors
@@ -497,7 +502,7 @@ if (maybePg != null) {
 			const p = new pg.Pool(config);
 			if (PG_SCHEMA != null) {
 				p.on('connect', (client) => {
-					client.query({ text: `SET search_path TO "${PG_SCHEMA}"` });
+					void client.query({ text: `SET search_path TO "${PG_SCHEMA}"` });
 				});
 			}
 			p.on('connect', (client) => {
@@ -519,6 +524,7 @@ if (maybePg != null) {
 		let pool: Pg.Pool;
 		let replica: Pg.Pool;
 		if (typeof connectString === 'string') {
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const pgConnectionString: typeof PgConnectionString = require('pg-connection-string');
 			// We have to cast because of the use of null vs undefined
 			const config = pgConnectionString.parse(connectString) as Pg.PoolConfig;
@@ -617,9 +623,9 @@ if (maybePg != null) {
 					);
 					this.db.release();
 				} catch (err: any) {
-					err = wrapDatabaseError(err);
-					this.db.release(err);
-					throw err;
+					const errorToReturn = wrapDatabaseError(err);
+					this.db.release(errorToReturn);
+					throw errorToReturn;
 				}
 			}
 
@@ -686,13 +692,13 @@ if (maybePg != null) {
 			transaction: createTransaction(async (stackTraceErr) => {
 				const client = await pool.connect();
 				const tx = new PostgresTx(client, false, stackTraceErr);
-				tx.executeSql('START TRANSACTION;');
+				void tx.executeSql('START TRANSACTION;');
 				return tx;
 			}),
 			readTransaction: createTransaction(async (stackTraceErr) => {
 				const client = await replica.connect();
 				const tx = new PostgresTx(client, false, stackTraceErr);
-				tx.executeSql('START TRANSACTION READ ONLY;');
+				void tx.executeSql('START TRANSACTION READ ONLY;');
 				return tx.asReadOnly();
 			}),
 			...alwaysExport,
@@ -702,7 +708,6 @@ if (maybePg != null) {
 
 let maybeMysql: typeof Mysql | undefined;
 try {
-	// tslint:disable-next-line:no-var-requires
 	maybeMysql = require('mysql');
 } catch (e) {
 	// Ignore errors
@@ -809,14 +814,14 @@ if (maybeMysql != null) {
 				const client = await getConnectionAsync();
 				const close = () => client.release();
 				const tx = new MySqlTx(client, close, false, stackTraceErr);
-				tx.executeSql('START TRANSACTION;');
+				void tx.executeSql('START TRANSACTION;');
 				return tx;
 			}),
 			readTransaction: createTransaction(async (stackTraceErr) => {
 				const client = await getConnectionAsync();
 				const close = () => client.release();
 				const tx = new MySqlTx(client, close, false, stackTraceErr);
-				tx.executeSql('START TRANSACTION READ ONLY;');
+				void tx.executeSql('START TRANSACTION READ ONLY;');
 				return tx.asReadOnly();
 			}),
 			...alwaysExport,
@@ -935,7 +940,6 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			// allowing us to use async calls within the API.
 			private asyncRecurse = () => {
 				let args: AsyncQuery | undefined;
-				// tslint:disable-next-line no-conditional-assignment
 				while ((args = this.queue.pop())) {
 					console.debug('Running', args[0]);
 					this.tx.executeSql(args[0], args[1], args[2], args[3]);

@@ -48,7 +48,7 @@ const serverIsOnAir = async (_req, _res, next) => {
 };
 
 /** @type {import('../config-loader/config-loader').Config} */
-export let config = {
+export const config = {
 	models: [
 		{
 			modelName: 'ui',
@@ -267,6 +267,8 @@ export async function setup(app, sbvrUtils, db) {
 							try {
 								await tx.executeSql(query);
 							} catch (err) {
+								// TODO: Consider changing this to a custom Error
+								// eslint-disable-next-line no-throw-literal
 								throw [query, err];
 							}
 						}

@@ -27,7 +27,7 @@ switch (app.get('env')) {
 }
 
 if (!process.browser) {
-	// tslint:disable:no-var-requires
+	/* eslint-disable @typescript-eslint/no-var-requires */
 	const passport: typeof Passport = require('passport');
 	const path: typeof Path = require('path');
 	const compression: typeof Compression = require('compression');
@@ -36,7 +36,7 @@ if (!process.browser) {
 	const bodyParser: typeof BodyParser = require('body-parser');
 	const methodOverride: typeof MethodOverride = require('method-override');
 	const expressSession: typeof ExpressSession = require('express-session');
-	// tslint:enable:no-var-requires
+	/* eslint-enable @typescript-eslint/no-var-requires */
 
 	app.use(compression());
 

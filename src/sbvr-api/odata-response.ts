@@ -1,5 +1,11 @@
+import type {
+	AbstractSqlModel,
+	AbstractSqlTable,
+} from '@balena/abstract-sql-compiler';
+
+// Augment express.js with pinejs-specific attributes via declaration merging.
 declare module '@balena/abstract-sql-compiler' {
-	interface AbstractSqlTable {
+	export interface AbstractSqlTable {
 		fetchProcessingFields?: {
 			[field: string]: NonNullable<SbvrType['fetchProcessing']>;
 		};
@@ -9,10 +15,6 @@ declare module '@balena/abstract-sql-compiler' {
 	}
 }
 
-import type {
-	AbstractSqlModel,
-	AbstractSqlTable,
-} from '@balena/abstract-sql-compiler';
 import type { Result, Row } from '../database-layer/db';
 
 import { sqlNameToODataName } from '@balena/odata-to-abstract-sql';
@@ -144,14 +146,15 @@ export const process = async (
 
 	const fetchProcessingFields = getFetchProcessingFields(table);
 	const processedFields = fieldNames.filter((fieldName) =>
-		fetchProcessingFields.hasOwnProperty(fieldName),
+		Object.prototype.hasOwnProperty.call(fetchProcessingFields, fieldName),
 	);
 
 	const localFields = getLocalFields(table);
 	// We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
 	// and hence not known to this resource
 	const expandableFields = fieldNames.filter(
-		(fieldName) => !localFields.hasOwnProperty(fieldName),
+		(fieldName) =>
+			!Object.prototype.hasOwnProperty.call(localFields, fieldName),
 	);
 
 	const odataIdField = sqlNameToODataName(table.idField);
