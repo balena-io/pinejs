@@ -1,4 +1,67 @@
 - commits:
+    - subject: Fix the remaining lint errors
+      hash: c974ff49f97ca861665e55cf2f024372c46006b9
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Mark expected floating promises with the `void` operator
+      hash: b05bfea78ebd635d07378f2147588573990e3322
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Switch hasOwnProperty() to Object.prototype.hasOwnProperty.call
+      hash: 08b89ab63508961edf8a1a322e7c750934e2bda0
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Replace Function and {} types
+      hash: aee746ac2b3ab5239ec0118faf35e3a17250f0ef
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Change `export let` to `export const`
+      hash: 6745b55b82b62b21a2259c574a76539f6ff1b1bf
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Update @balena/lint to 7.1.1
+      hash: 9bccb01eb0273a5a386af220feeabdcb65d75b4c
+      body: |
+        Update @balena/lint from 6.1.1 to 7.1.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Update @balena/abstract-sql-to-typescript to 2.1.1
+      hash: 5004a1626d4d58fc588b1e50a0e77708f73f3f0e
+      body: |
+        Update @balena/abstract-sql-to-typescript
+         from 2.1.0 to 2.1.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 15.3.6
+  title: ""
+  date: 2023-08-31T09:10:30.231Z
+- commits:
     - subject: Fix failure on delete requests with invalid ID
       hash: 4749ed86c9a3858a2eb84c58d2a9581c93b91bec
       body: ""
