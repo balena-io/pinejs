@@ -28,6 +28,7 @@ export interface IncomingFile {
 export interface UploadResponse {
 	size: number;
 	filename: string;
+	checksum?: string;
 }
 
 export interface WebResourceHandler {
@@ -152,6 +153,7 @@ export const getUploaderMiddlware = (
 						content_disposition: undefined,
 						size: result.size,
 						href: result.filename,
+						checksum: result.checksum,
 					};
 					uploadedFilePaths.push(result.filename);
 				});

@@ -89,6 +89,9 @@ describe('06 webresources tests', function () {
 					expect(organization[resourcePath].content_type).to.equals(
 						contentType,
 					);
+					expect(organization[resourcePath].checksum).to.equals(
+						'ec8646654eff3273c823da7481f6ed216a96504241bd1d5d3d3755f3d536c7db',
+					);
 
 					const getRes = await supertest(testLocalServer)
 						.get(headers.location)
@@ -142,6 +145,9 @@ describe('06 webresources tests', function () {
 					expect(organization[resourcePath].filename).to.equals(filename);
 					expect(organization[resourcePath].content_type).to.equals(
 						contentType,
+					);
+					expect(organization[resourcePath].checksum).to.equals(
+						'5876ce6ca093f2f4903a2f588d52ddc4086f67d7b669c5714d7ef51456da47b8',
 					);
 
 					const getRes = await supertest(testLocalServer)
@@ -383,6 +389,10 @@ describe('06 webresources tests', function () {
 					const getRes = await supertest(testLocalServer)
 						.get(`/${resourceName}/organization(${organization.id})`)
 						.expect(200);
+
+					expect(getRes.body.d[0][resourcePath].checksum).to.equals(
+						'8c1a88b6948e3fa9bb1ccae96d5a4ecb1e23a148e403db34ea54d2268990a1d1',
+					);
 
 					await expectImageEquals(
 						getRes.body.d[0][resourcePath].href,
