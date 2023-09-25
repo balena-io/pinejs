@@ -1,5 +1,5 @@
-const configPath = __dirname + '/fixtures/06-batch/config';
-const hooksPath = __dirname + '/fixtures/06-batch/translations/hooks';
+const configPath = __dirname + '/fixtures/07-batch/config';
+const hooksPath = __dirname + '/fixtures/07-batch/translations/hooks';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
 import { faker } from '@faker-js/faker';
 import { expect } from 'chai';
@@ -7,8 +7,20 @@ import * as supertest from 'supertest';
 
 const validBatchMethods = ['PUT', 'POST', 'PATCH', 'DELETE', 'GET'];
 
+const validBatchPostRequest = {
+	id: '1',
+	method: 'POST',
+	url: '/university/student',
+	body: {
+		matrix_number: 100004,
+		name: faker.name.firstName(),
+		last_name: faker.name.lastName(),
+		studies_at__campus: 'bar',
+	},
+};
+
 // TODO: figure out how to not persist the results across describes
-describe('06 batch tests', function () {
+describe('07 batch tests', function () {
 	let pineServer: Awaited<ReturnType<typeof testInit>>;
 	before(async () => {
 		pineServer = await testInit({
@@ -22,12 +34,6 @@ describe('06 batch tests', function () {
 
 	after(async () => {
 		testDeInit(pineServer);
-	});
-
-	describe('Basic', () => {
-		it('check /ping route is OK', async () => {
-			await supertest(testLocalServer).get('/ping').expect(200, 'OK');
-		});
 	});
 
 	describe('test non-atomic batch requests', () => {
@@ -95,7 +101,30 @@ describe('06 batch tests', function () {
 				.that.has.ownProperty('d')
 				.to.be.an('array')
 				.of.length(2);
+		});
+
+		it("ids of responses in a successful request should match the original requests' ids", async () => {
+			const id = Math.random().toString();
+			const id2 = id + 'test';
+			const res = await supertest(testLocalServer)
+				.post('/university/$batch')
+				.send({
+					requests: [
+						{
+							id,
+							method: 'GET',
+							url: '/university/student',
+						},
+						{
+							id: id2,
+							method: 'GET',
+							url: '/university/student',
+						},
+					],
+				})
+				.expect(200);
 			expect(res.body.responses[0].id).to.equal(id);
+			expect(res.body.responses[1].id).to.equal(id2);
 		});
 
 		it('should fail if the body does not have a valid "requests" property', async () => {
@@ -115,7 +144,6 @@ describe('06 batch tests', function () {
 				);
 		});
 
-		// TODO: Seems we have default `continue-on-error` = `false`, but the docs specify `true`. Do we want to continue like this?
 		it('should not complete following requests if an earlier request fails', async () => {
 			await supertest(testLocalServer)
 				.post('/university/$batch')
@@ -273,17 +301,7 @@ describe('06 batch tests', function () {
 								studies_at__campus: 'foo',
 							},
 						},
-						{
-							id: '1',
-							method: 'POST',
-							url: '/university/student',
-							body: {
-								matrix_number: 100004,
-								name: faker.name.firstName(),
-								last_name: faker.name.lastName(),
-								studies_at__campus: 'bar',
-							},
-						},
+						validBatchPostRequest,
 					],
 				})
 				.expect(400, '"Batch requests cannot contain batch requests"');
@@ -304,17 +322,7 @@ describe('06 batch tests', function () {
 								studies_at__campus: 'foo',
 							},
 						},
-						{
-							id: '1',
-							method: 'POST',
-							url: '/university/student',
-							body: {
-								matrix_number: 100004,
-								name: faker.name.firstName(),
-								last_name: faker.name.lastName(),
-								studies_at__campus: 'bar',
-							},
-						},
+						validBatchPostRequest,
 					],
 				})
 				.expect(400, '"Requests of a batch request must have a \\"url\\""');
@@ -335,17 +343,7 @@ describe('06 batch tests', function () {
 								studies_at__campus: 'foo',
 							},
 						},
-						{
-							id: '1',
-							method: 'POST',
-							url: '/university/student',
-							body: {
-								matrix_number: 100004,
-								name: faker.name.firstName(),
-								last_name: faker.name.lastName(),
-								studies_at__campus: 'bar',
-							},
-						},
+						validBatchPostRequest,
 					],
 				})
 				.expect(400, '"Requests of a batch request must have a \\"method\\""');
@@ -364,17 +362,7 @@ describe('06 batch tests', function () {
 								studies_at__campus: 'foo',
 							},
 						},
-						{
-							id: '1',
-							method: 'POST',
-							url: '/university/student',
-							body: {
-								matrix_number: 100004,
-								name: faker.name.firstName(),
-								last_name: faker.name.lastName(),
-								studies_at__campus: 'bar',
-							},
-						},
+						validBatchPostRequest,
 					],
 				})
 				.expect(
@@ -468,17 +456,7 @@ describe('06 batch tests', function () {
 								studies_at__campus: 'foo',
 							},
 						},
-						{
-							id: '1',
-							method: 'POST',
-							url: '/university/student',
-							body: {
-								matrix_number: 100004,
-								name: faker.name.firstName(),
-								last_name: faker.name.lastName(),
-								studies_at__campus: 'bar',
-							},
-						},
+						validBatchPostRequest,
 					],
 				})
 				.expect(

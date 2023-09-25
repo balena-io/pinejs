@@ -143,7 +143,7 @@ export interface ApiKey extends Actor {
 
 export interface Response {
 	id?: string;
-	status: number;
+	statusCode: number;
 	headers?:
 		| {
 				[headerName: string]: any;
@@ -1060,15 +1060,15 @@ export const runURI = async (
 		throw response;
 	}
 
-	const { body: responseBody, status, headers } = response as Response;
+	const { body: responseBody, statusCode, headers } = response as Response;
 
-	if (status != null && status >= 400) {
+	if (statusCode != null && statusCode >= 400) {
 		const ErrorClass =
-			statusCodeToError[status as keyof typeof statusCodeToError];
+			statusCodeToError[statusCode as keyof typeof statusCodeToError];
 		if (ErrorClass != null) {
 			throw new ErrorClass(undefined, responseBody, headers);
 		}
-		throw new HttpError(status, undefined, responseBody, headers);
+		throw new HttpError(statusCode, undefined, responseBody, headers);
 	}
 
 	return responseBody as AnyObject | undefined;
@@ -1269,7 +1269,9 @@ const validateBatch = (req: Express.Request) => {
 	if (urls.has(undefined)) {
 		throw new BadRequestError('Requests of a batch request must have a "url"');
 	}
-	if (urls.has('/university/$batch')) {
+	const containsBatch =
+		Array.from(urls).filter((url) => !!url?.includes('/$batch')).length > 0;
+	if (containsBatch) {
 		throw new BadRequestError('Batch requests cannot contain batch requests');
 	}
 	const urlModels = new Set(
@@ -1467,7 +1469,7 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 						if (
 							!Array.isArray(result) &&
 							result.body == null &&
-							result.status == null
+							result.statusCode == null
 						) {
 							console.error('No status or body set', req.url, responses);
 							return new InternalRequestError();
@@ -1555,9 +1557,9 @@ export const handleHttpErrors = (
 	return false;
 };
 const handleResponse = (res: Express.Response, response: Response): void => {
-	const { body, headers, status } = response as Response;
+	const { body, headers, statusCode } = response as Response;
 	res.set(headers);
-	res.status(status);
+	res.status(statusCode);
 	if (!body) {
 		res.end();
 	} else {
@@ -1568,10 +1570,10 @@ const handleResponse = (res: Express.Response, response: Response): void => {
 const httpErrorToResponse = (
 	err: HttpError,
 	req?: Express.Request,
-): RequiredField<Response, 'status'> => {
+): RequiredField<Response, 'statusCode'> => {
 	const message = err.getResponseBody();
 	return {
-		status: err.status,
+		statusCode: err.status,
 		body: req != null && 'batch' in req ? { responses: [], message } : message,
 		headers: err.headers,
 	};
@@ -1748,7 +1750,10 @@ const prepareResponse = async (
 		default:
 			throw new MethodNotAllowedError();
 	}
-	return { ...response, id: request.batchRequestId };
+	if (request.batchRequestId != null) {
+		response['id'] = request.batchRequestId;
+	}
+	return response;
 };
 
 const checkReadOnlyRequests = (request: uriParser.ODataRequest) => {
@@ -1871,7 +1876,7 @@ const respondGet = async (
 		);
 
 		const response = {
-			status: 200,
+			statusCode: 200,
 			body: { d },
 			headers: { 'content-type': 'application/json' },
 		};
@@ -1886,14 +1891,14 @@ const respondGet = async (
 	} else {
 		if (request.resourceName === '$metadata') {
 			return {
-				status: 200,
+				statusCode: 200,
 				body: models[vocab].odataMetadata,
 				headers: { 'content-type': 'xml' },
 			};
 		} else {
 			// TODO: request.resourceName can be '$serviceroot' or a resource and we should return an odata xml document based on that
 			return {
-				status: 404,
+				statusCode: 404,
 			};
 		}
 	}
@@ -1949,7 +1954,7 @@ const respondPost = async (
 	}
 
 	const response = {
-		status: 201,
+		statusCode: 201,
 		body: result.d[0],
 		headers: {
 			'content-type': 'application/json',
@@ -1997,7 +2002,7 @@ const respondPut = async (
 	tx: Db.Tx,
 ): Promise<Response> => {
 	const response = {
-		status: 200,
+		statusCode: 200,
 	};
 	await runHooks('PRERESPOND', request.hooks, {
 		req,
