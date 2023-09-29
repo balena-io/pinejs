@@ -762,7 +762,7 @@ describe('06 webresources tests', function () {
 					]);
 				});
 
-				it('is able to get an organization with all its resources', async () => {
+				it('is able to get resources with expanded organization', async () => {
 					const [{ body: artifactsPublic }, { body: artifactsPrivate }] =
 						await Promise.all([
 							supertest(testLocalServer)
@@ -788,6 +788,43 @@ describe('06 webresources tests', function () {
 					}
 
 					for (const artifact of artifactsPrivate.d) {
+						promises.push(expectToExist(artifact[privateField].filename));
+						promises.push(
+							expectImageEquals(
+								artifact[privateField].href,
+								filePath,
+								fileSize,
+							),
+						);
+					}
+
+					await Promise.all(promises);
+				});
+
+				it('is able to expand an organization with its resources', async () => {
+					const {
+						body: {
+							d: [org],
+						},
+					} = await supertest(testLocalServer)
+						.get(
+							`/${resourceName}/organization?$expand=${publicArtifacts},${privateArtifacts}`,
+						)
+						.expect(200);
+
+					expect(org[publicArtifacts].length).to.be.eq(3);
+					expect(org[privateArtifacts].length).to.be.eq(3);
+
+					// Also asserts that file is reachable with presigned url
+					const promises: Array<Promise<void>> = [];
+					for (const artifact of org[publicArtifacts]) {
+						promises.push(expectToExist(artifact[publicField].filename));
+						promises.push(
+							expectImageEquals(artifact[publicField].href, filePath, fileSize),
+						);
+					}
+
+					for (const artifact of org[privateArtifacts]) {
 						promises.push(expectToExist(artifact[privateField].filename));
 						promises.push(
 							expectImageEquals(

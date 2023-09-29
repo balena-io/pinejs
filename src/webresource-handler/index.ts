@@ -56,6 +56,14 @@ const getLogger = (vocab?: string): Console => {
 	return console;
 };
 
+let configuredWebResourceHandler: WebResourceHandler | undefined;
+export const setupWebresourceHandler = (handler: WebResourceHandler): void => {
+	configuredWebResourceHandler = handler;
+};
+export const getWebresourceHandler = (): WebResourceHandler | undefined => {
+	return configuredWebResourceHandler;
+};
+
 const isFileInValidPath = async (
 	fieldname: string,
 	req: Express.Request,
@@ -225,37 +233,6 @@ const getCreateWebResourceHooks = (
 			tx?.on('rollback', () => {
 				void deleteRollbackPendingFields(request, webResourceHandler);
 			});
-		},
-	};
-};
-
-const getReadWebResourceHooks = (
-	webResourceHandler: WebResourceHandler,
-): sbvrUtils.Hooks => {
-	return {
-		// Before returning a web resource we might need to do some modifications on the payload (e.g. presigning)
-		PRERESPOND: async ({ request, response }) => {
-			const fields = getWebResourceFields(request, false);
-
-			if (fields.length === 0) {
-				return;
-			}
-
-			if (typeof response.body === 'object' && response.body.d != null) {
-				const transformedItems = await Promise.all(
-					response.body.d.map(async (responseItem: any) => {
-						for (const field of fields) {
-							if (responseItem[field] != null) {
-								responseItem[field] = await webResourceHandler.onPreRespond(
-									responseItem[field],
-								);
-							}
-						}
-						return responseItem;
-					}),
-				);
-				response.body.d = transformedItems;
-			}
 		},
 	};
 };
@@ -430,12 +407,5 @@ export const setupUploadHooks = (
 		apiRoot,
 		resourceName,
 		getCreateWebResourceHooks(handler),
-	);
-
-	sbvrUtils.addPureHook(
-		'GET',
-		apiRoot,
-		resourceName,
-		getReadWebResourceHooks(handler),
 	);
 };

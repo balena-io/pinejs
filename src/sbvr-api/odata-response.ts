@@ -12,6 +12,9 @@ declare module '@balena/abstract-sql-compiler' {
 		localFields?: {
 			[odataName: string]: true;
 		};
+		webresourceFields?: {
+			[odataName: string]: true;
+		};
 	}
 }
 
@@ -21,6 +24,7 @@ import { sqlNameToODataName } from '@balena/odata-to-abstract-sql';
 import sbvrTypes, { SbvrType } from '@balena/sbvr-types';
 import * as _ from 'lodash';
 import { resolveNavigationResource, resolveSynonym } from './sbvr-utils';
+import { getWebresourceHandler } from '../webresource-handler';
 
 const checkForExpansion = async (
 	vocab: string,
@@ -98,6 +102,20 @@ const getLocalFields = (table: AbstractSqlTable) => {
 	}
 	return table.localFields;
 };
+
+const getWebResourceFields = (table: AbstractSqlTable) => {
+	if (table.webresourceFields == null) {
+		table.webresourceFields = {};
+		for (const { fieldName, dataType } of table.fields) {
+			if (dataType === 'WebResource') {
+				const odataName = sqlNameToODataName(fieldName);
+				table.webresourceFields[odataName] = true;
+			}
+		}
+	}
+	return table.webresourceFields;
+};
+
 const getFetchProcessingFields = (table: AbstractSqlTable) => {
 	return (table.fetchProcessingFields ??= _(table.fields)
 		.filter(
@@ -140,6 +158,7 @@ export const process = async (
 		vocabulary: vocab,
 		resourceName,
 	});
+	const configuredWebResourceHandler = getWebresourceHandler();
 	const table = abstractSqlModel.tables[sqlResourceName];
 
 	const fieldNames = Object.keys(rows[0]);
@@ -157,6 +176,11 @@ export const process = async (
 			!Object.prototype.hasOwnProperty.call(localFields, fieldName),
 	);
 
+	const webresourceFields = getWebResourceFields(table);
+	const requiredSigningFields = fieldNames.filter((fieldName) =>
+		Object.prototype.hasOwnProperty.call(webresourceFields, fieldName),
+	);
+
 	const odataIdField = sqlNameToODataName(table.idField);
 	for (const row of rows) {
 		for (const fieldName of processedFields) {
@@ -167,6 +191,23 @@ export const process = async (
 				uri: resourceURI(vocab, resourceName, row[odataIdField]),
 			};
 		}
+	}
+
+	if (
+		requiredSigningFields.length > 0 &&
+		configuredWebResourceHandler != null
+	) {
+		await Promise.all(
+			rows.map(async (row) => {
+				requiredSigningFields.map(async (fieldName) => {
+					if (row[fieldName] != null) {
+						row[fieldName] = await configuredWebResourceHandler.onPreRespond(
+							row[fieldName],
+						);
+					}
+				});
+			}),
+		);
 	}
 
 	if (expandableFields.length > 0) {
@@ -195,5 +236,6 @@ export const prepareModel = (abstractSqlModel: AbstractSqlModel) => {
 	_.forEach(abstractSqlModel.tables, (table) => {
 		getLocalFields(table);
 		getFetchProcessingFields(table);
+		getWebResourceFields(table);
 	});
 };
