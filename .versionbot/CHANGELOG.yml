@@ -1,4 +1,16 @@
 - commits:
+    - subject: Fix $expand on parent resource with child webresource
+      hash: c719ff2c3313b5c6870dff2d3ac71522d36c0935
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otávio Jacobi
+      nested: []
+  version: 15.3.8
+  title: ""
+  date: 2023-09-29T16:43:20.967Z
+- commits:
     - subject: Update TypeScript to 5.2.2
       hash: 38838fe15d78a4cc0bbbb665edc5b6e98fbfd84a
       body: ""
