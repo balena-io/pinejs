@@ -1,4 +1,16 @@
 - commits:
+    - subject: Fix Term Forms and Synonyms on webresources models
+      hash: 96747c24ee17652246c7d0c4391ed5e7e6af8586
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otávio Jacobi
+      nested: []
+  version: 15.3.9
+  title: ""
+  date: 2023-10-06T18:11:11.295Z
+- commits:
     - subject: Fix $expand on parent resource with child webresource
       hash: c719ff2c3313b5c6870dff2d3ac71522d36c0935
       body: ""
