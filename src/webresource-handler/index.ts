@@ -77,10 +77,11 @@ const isFileInValidPath = async (
 		return false;
 	}
 	const model = getModel(apiRoot);
-	const { resourceName } = await uriParser.parseOData({
+	const odataRequest = await uriParser.parseOData({
 		url: req.url,
 		method: req.method,
 	});
+	const resourceName = sbvrUtils.resolveSynonym(odataRequest);
 
 	const permission = req.method === 'POST' ? 'create' : 'update';
 	const vocab = model.versions[model.versions.length - 1];
@@ -206,7 +207,8 @@ const getWebResourceFields = (
 	// account for it while finding if a webresrouce field was changed
 	// there are cases where we need to get the original resource name (not translated)
 	// therefore we can use useTranslations = false
-	const sqlResourceName = odataNameToSqlName(request.resourceName);
+	const resourceName = sbvrUtils.resolveSynonym(request);
+	const sqlResourceName = odataNameToSqlName(resourceName);
 	const model = sbvrUtils.getAbstractSqlModel(request).tables[sqlResourceName];
 	const fields = useTranslations
 		? model.modifyFields ?? model.fields
