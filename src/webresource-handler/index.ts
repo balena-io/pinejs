@@ -85,12 +85,11 @@ const isFileInValidPath = async (
 
 	const permission = req.method === 'POST' ? 'create' : 'update';
 	const vocab = model.versions[model.versions.length - 1];
-	const hasPermissions = await checkPermissions(
-		req,
-		permission,
-		resourceName,
-		vocab,
-	);
+
+	// Checks if it has permissions on both the original resourceName or any synonym
+	const hasPermissions =
+		(await checkPermissions(req, permission, resourceName, vocab)) ||
+		(await checkPermissions(req, permission, odataRequest.resourceName, vocab));
 
 	if (!hasPermissions) {
 		return false;
