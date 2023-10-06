@@ -33,3 +33,6 @@ Fact Type: organization has logo image
 
 Fact Type: organization releases public artifacts
 Fact Type: organization has private artifacts
+	Synonymous Form: private artifacts belongs to organization
+	Term Form: organization private artifacts
+	Database Table Name: organization private artifacts

@@ -694,7 +694,7 @@ describe('06 webresources tests', function () {
 		{
 			resourceName: 'example',
 			publicArtifacts: 'organization__releases__public_artifacts',
-			privateArtifacts: 'organization__has__private_artifacts',
+			privateArtifacts: 'organization_private_artifacts',
 			publicField: 'releases__public_artifacts',
 			privateField: 'private_artifacts',
 		},
