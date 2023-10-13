@@ -113,11 +113,15 @@ export const getUploaderMiddlware = (
 		}
 		const uploadedFilePaths: string[] = [];
 		const completeUploads: Array<Promise<void>> = [];
+		let heartBeat: ReturnType<typeof setInterval> | undefined;
 
 		const bb = busboy({ headers: req.headers });
 		let isAborting = false;
 
 		const finishFileUpload = () => {
+			if (heartBeat != null) {
+				clearInterval(heartBeat);
+			}
 			req.unpipe(bb);
 			req.on('readable', req.read.bind(req));
 			bb.removeAllListeners();
@@ -137,7 +141,16 @@ export const getUploaderMiddlware = (
 		};
 
 		bb.on('file', async (fieldname, filestream, info) => {
+			console.log(`File on stream ${isAborting}`);
+
 			if (!isAborting && (await isFileInValidPath(fieldname, req))) {
+				if (heartBeat == null) {
+					heartBeat = setInterval(() => {
+						console.log(`Sending heartbeat`);
+						res.socket?.write('\n'); // Send a null character as a heartbeat
+					}, 50000);
+				}
+
 				const file: IncomingFile = {
 					originalname: info.filename,
 					encoding: info.encoding,
@@ -157,6 +170,7 @@ export const getUploaderMiddlware = (
 				});
 				completeUploads.push(promise);
 			} else {
+				console.log(`Resuming file stream ${isAborting}`);
 				filestream.resume();
 			}
 		});
@@ -194,6 +208,9 @@ export const getUploaderMiddlware = (
 			finishFileUpload();
 			next(err);
 		});
+		// req.on('data', (chunk: string) => {
+		// 	console.error('reading data', chunk.length);
+		// });
 		req.pipe(bb);
 	};
 };

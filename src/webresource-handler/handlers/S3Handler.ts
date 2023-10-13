@@ -74,6 +74,8 @@ export class S3Handler implements WebResourceHandler {
 		const key = `${resource.fieldname}_${randomUUID()}_${
 			resource.originalname
 		}`;
+
+		console.log(`Starting file handling on ${key}`);
 		const params: PutObjectCommandInput = {
 			Bucket: this.bucket,
 			StorageClass: 'STANDARD',
@@ -85,20 +87,25 @@ export class S3Handler implements WebResourceHandler {
 
 		upload.on('httpUploadProgress', async (ev) => {
 			size = ev.total ?? ev.loaded!;
+			console.log(`httpUploadProgress ${size} $${this.maxFileSize}`);
 			if (size > this.maxFileSize) {
+				console.log(`Aborting upload`);
 				await upload.abort();
 			}
 		});
 
 		try {
+			console.log(`Awaitng for done upload`);
 			await upload.done();
 		} catch (err: any) {
+			console.log(`Resuming upload`);
 			resource.stream.resume();
 			if (size > this.maxFileSize) {
 				throw new FileSizeExceededError(this.maxFileSize);
 			}
 			throw new WebResourceError(err);
 		}
+		console.log(`Getting URL`);
 
 		const filename = this.getS3URL(key);
 		return { size, filename };
