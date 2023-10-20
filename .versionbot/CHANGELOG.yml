@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency @types/method-override to ^0.0.33
+      hash: c3266ad791bcc11bed607657af460b87cdba2053
+      body: |
+        Update @types/method-override from 0.0.32 to 0.0.33
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 15.3.11
+  title: ""
+  date: 2023-10-20T00:15:28.695Z
+- commits:
     - subject: Allow uploading file on resourceName and synonyms
       hash: 1f6f5aa7e60fe7e6ce938b97f072d13dcaa8012c
       body: ""
