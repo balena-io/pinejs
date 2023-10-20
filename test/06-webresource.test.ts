@@ -484,6 +484,77 @@ describe('06 webresources tests', function () {
 					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
 				});
 
+				it('should not accept webresource payload on application/json requests', async () => {
+					const uniqueFilename = `${randomUUID()}_${filename}`;
+
+					const res = await supertest(testLocalServer)
+						.post(`/${resourceName}/organization`)
+						.send({
+							name: 'John',
+							[resourcePath]: {
+								filename: uniqueFilename,
+								content_type: contentType,
+								size: fileSize,
+								href: 'http://dummy/bucket/other_href',
+							},
+						})
+						.expect(400);
+
+					expect(res.body).to.equal('Use multipart requests to upload a file.');
+				});
+
+				it('does not modify stored file if uploading with application/json requests', async () => {
+					const uniqueFilename = `${randomUUID()}_${filename}`;
+
+					const { body: organization } = await supertest(testLocalServer)
+						.post(`/${resourceName}/organization`)
+						.field('name', 'john')
+						.attach(resourcePath, filePath, {
+							filename: uniqueFilename,
+							contentType,
+						})
+						.expect(201);
+
+					const href = organization[resourcePath].href;
+
+					await supertest(testLocalServer)
+						.patch(`/${resourceName}/organization(${organization.id})`)
+						.send({ name: 'test' })
+						.expect(200);
+
+					const getRes = await supertest(testLocalServer)
+						.get(`/${resourceName}/organization(${organization.id})`)
+						.expect(200);
+
+					expect(getRes.body.d[0].name).to.be.eq('test');
+					expect(getRes.body.d[0][resourcePath].href).to.be.eq(href);
+				});
+
+				it('should delete resource in S3 when passing null in application/json request', async () => {
+					const uniqueFilename = `${randomUUID()}_${filename}`;
+
+					const { body: organization } = await supertest(testLocalServer)
+						.post(`/${resourceName}/organization`)
+						.field('name', 'john')
+						.attach(resourcePath, filePath, {
+							filename: uniqueFilename,
+							contentType,
+						})
+						.expect(201);
+
+					await supertest(testLocalServer)
+						.patch(`/${resourceName}/organization(${organization.id})`)
+						.send({ [resourcePath]: null })
+						.expect(200);
+
+					const getRes = await supertest(testLocalServer)
+						.get(`/${resourceName}/organization(${organization.id})`)
+						.expect(200);
+
+					expect(getRes.body.d[0][resourcePath]).to.be.null;
+					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
+				});
+
 				it('does not fail to serve if S3 resource is deleted but entry exists', async () => {
 					// This tests the current behavior, but we might want to change it in the future
 					// because the current behavior allows for a dangling reference to exist
@@ -582,6 +653,26 @@ describe('06 webresources tests', function () {
 					await expectToExist(newOtherUniqueFilename);
 					expect(await isEventuallyDeleted(otherUniqueFilename)).to.be.true;
 					otherUniqueFilename = newOtherUniqueFilename;
+				});
+
+				it('can patch with application/json null on one without modifying the other', async () => {
+					await supertest(testLocalServer)
+						.patch(`/${resourceName}/organization(${organization.id})`)
+						.send({ [firstResourcePath]: null })
+						.expect(200);
+					const {
+						body: {
+							d: [org],
+						},
+					} = await supertest(testLocalServer)
+						.get(`/${resourceName}/organization(${organization.id})`)
+						.expect(200);
+
+					expect(org[firstResourcePath]).to.be.null;
+					expect(org[secondResourcePath].filename).to.not.be.null;
+
+					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
+					await expectToExist(otherUniqueFilename);
 				});
 
 				it('can patch multiple web resources on the same organization', async () => {

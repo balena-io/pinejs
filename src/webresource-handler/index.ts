@@ -1,9 +1,9 @@
 import type * as Express from 'express';
 import * as busboy from 'busboy';
-import * as is from 'type-is';
 import * as stream from 'stream';
 import * as uriParser from '../sbvr-api/uri-parser';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+import type { HookArgs } from '../sbvr-api/hooks';
 import { getApiRoot, getModel } from '../sbvr-api/sbvr-utils';
 import { checkPermissions } from '../sbvr-api/permissions';
 import { NoopHandler } from './handlers/NoopHandler';
@@ -108,7 +108,7 @@ export const getUploaderMiddlware = (
 	handler: WebResourceHandler,
 ): Express.RequestHandler => {
 	return async (req, res, next) => {
-		if (!is(req, ['multipart'])) {
+		if (!req.is('multipart')) {
 			return next();
 		}
 		const uploadedFilePaths: string[] = [];
@@ -226,10 +226,28 @@ const deleteFiles = async (
 	await Promise.all(promises);
 };
 
+const throwIfWebresourceNotInMultipart = (
+	webResourceFields: string[],
+	{ req, request }: HookArgs,
+) => {
+	if (
+		!req.is?.('multipart') &&
+		webResourceFields.some((field) => request.values[field] != null)
+	) {
+		throw new errors.BadRequestError(
+			'Use multipart requests to upload a file.',
+		);
+	}
+};
+
 const getCreateWebResourceHooks = (
 	webResourceHandler: WebResourceHandler,
 ): sbvrUtils.Hooks => {
 	return {
+		PRERUN: (hookArgs) => {
+			const webResourceFields = getWebResourceFields(hookArgs.request);
+			throwIfWebresourceNotInMultipart(webResourceFields, hookArgs);
+		},
 		'POSTRUN-ERROR': async ({ tx, request }) => {
 			tx?.on('rollback', () => {
 				void deleteRollbackPendingFields(request, webResourceHandler);
@@ -271,6 +289,8 @@ const getRemoveWebResourceHooks = (
 		PRERUN: async (args) => {
 			const { api, request, tx } = args;
 			let webResourceFields = getWebResourceFields(request);
+
+			throwIfWebresourceNotInMultipart(webResourceFields, args);
 
 			// Request failed on DB roundtrip (e.g. DB constraint) and pending files need to be deleted
 			tx.on('rollback', () => {

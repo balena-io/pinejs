@@ -10,7 +10,7 @@ const addHook = (
 
 addHook(['PUT', 'POST', 'PATCH'], 'organization', {
 	async POSTPARSE({ request }) {
-		if (request.values.other_image) {
+		if (request.values.other_image !== undefined) {
 			request.values.logo_image = request.values.other_image;
 			delete request.values.other_image;
 		}
