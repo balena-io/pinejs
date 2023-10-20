@@ -49,7 +49,7 @@
     "@types/passport-strategy": "^0.2.35",
     "@types/pg": "^8.6.6",
     "@types/randomstring": "^1.1.8",
-    "@types/websql": "^0.0.27",
+    "@types/websql": "^0.0.28",
     "busboy": "^1.6.0",
     "commander": "^10.0.1",
     "deep-freeze": "^0.0.1",
