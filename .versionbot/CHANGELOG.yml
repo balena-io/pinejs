@@ -1,4 +1,17 @@
 - commits:
+    - subject: Blocks updating and creating webresources with non multipart-formdata
+        requests
+      hash: c3d6262661f2680f824790ab0d855caaeb89ec29
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otávio Jacobi
+      nested: []
+  version: 15.3.13
+  title: ""
+  date: 2023-10-23T15:35:39.739Z
+- commits:
     - subject: Update dependency @types/websql to ^0.0.28
       hash: f1fc571c6340aaecb591ffaee446a59642bad1af
       body: |
