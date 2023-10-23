@@ -29,6 +29,7 @@ export interface HookReq {
 	custom?: AnyObject;
 	tx?: Tx;
 	hooks?: InstantiatedHooks;
+	is?: (type: string | string[]) => string | false | null;
 }
 export interface HookArgs {
 	req: HookReq;
