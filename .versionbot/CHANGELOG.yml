@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency @types/node to v20
+      hash: 86536af590e8b408e9cae3ee6e30621d6e2ae97e
+      body: |
+        Update @types/node from 18.18.6 to 20.8.7
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 15.3.14
+  title: ""
+  date: 2023-10-24T02:14:39.535Z
+- commits:
     - subject: Blocks updating and creating webresources with non multipart-formdata
         requests
       hash: c3d6262661f2680f824790ab0d855caaeb89ec29
