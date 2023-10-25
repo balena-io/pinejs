@@ -76,7 +76,6 @@ export class S3Handler implements WebResourceHandler {
 		}`;
 		const params: PutObjectCommandInput = {
 			Bucket: this.bucket,
-			StorageClass: 'STANDARD',
 			Key: key,
 			Body: resource.stream,
 			ContentType: resource.mimetype,
