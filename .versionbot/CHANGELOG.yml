@@ -1,4 +1,16 @@
 - commits:
+    - subject: Do not force storage class on s3 upload
+      hash: e72ffa55f21408996c04eab44d0013bf7a3f905d
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otávio Jacobi
+      nested: []
+  version: 15.3.15
+  title: ""
+  date: 2023-10-25T22:46:52.289Z
+- commits:
     - subject: Update dependency @types/node to v20
       hash: 86536af590e8b408e9cae3ee6e30621d6e2ae97e
       body: |
