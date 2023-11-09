@@ -1,4 +1,29 @@
 - commits:
+    - subject: Handling typing changes of @types/pg
+      hash: f7520efb9e2c44ab5ae341ad8fdd635814819eb0
+      body: >
+        rowCount can be NULL in the case of PG returning from `LOCK`
+
+
+        Refernece:
+
+        https://github.com/DefinitelyTyped/DefinitelyTyped/pull/66990
+
+        https://github.com/brianc/node-postgres/pull/2967
+
+
+        In pinejs the case is handled and as of now we don't want to populate a breaking change by transparently push the types to callers.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 15.3.16
+  title: ""
+  date: 2023-11-09T13:56:00.178Z
+- commits:
     - subject: Do not force storage class on s3 upload
       hash: e72ffa55f21408996c04eab44d0013bf7a3f905d
       body: ""
