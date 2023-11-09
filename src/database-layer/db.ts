@@ -546,12 +546,12 @@ if (maybePg != null) {
 			rowCount,
 			rows,
 		}: {
-			rowCount: number;
+			rowCount: number | null;
 			rows: Row[];
 		}): Result => {
 			return {
 				rows,
-				rowsAffected: rowCount,
+				rowsAffected: rowCount ?? 0,
 				insertId: rows?.[0]?.id,
 			};
 		};
