@@ -146,3 +146,9 @@ export const migrator = {
 	 */
 	asyncMigrationIsEnabled: boolVar('PINEJS_ASYNC_MIGRATION_ENABLED', true),
 };
+
+export const tasks = {
+	pollIntervalMS: process.env.TASKS_POLL_INTERVAL_MS
+		? parseInt(process.env.TASKS_POLL_INTERVAL_MS, 10)
+		: 2000,
+};

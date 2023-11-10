@@ -1,41 +1,77 @@
 Vocabulary: tasks
 
-Term: key
-	Concept Type: Short Text (Type)
-Term: handler
-	Concept Type: Short Text (Type)
 Term: actor
 	Concept Type: Integer (Type)
-Term: parameter set
-	Concept Type: JSON (Type)
-Term: start time
+Term: cron expression
+	Concept Type: Short Text (Type)
+Term: end time
 	Concept Type: Date Time (Type)
-Term: retry limit
-	Concept Type: Integer (Type)
+Term: error
+	Concept Type: Short Text (Type)
 Term: error count
 	Concept Type: Integer (Type)
+Term: handler
+	Concept Type: Short Text (Type)
+Term: key
+	Concept Type: Short Text (Type)
 Term: last error
 	Concept Type: Short Text (Type)
+Term: last run time
+	Concept Type: Date Time (Type)
+Term: model name
+	Concept Type: Short Text (Type)
+Term: parameter set
+	Concept Type: JSON (Type)
+Term: priority
+	Concept Type: Integer (Type)
+Term: retry limit
+	Concept Type: Integer (Type)
+Term: run count
+	Concept Type: Integer (Type)
+Term: start time
+	Concept Type: Date Time (Type)
 Term: status
 	Concept Type: Short Text (Type)
 
 Term: task
-Fact Type: task has key
-	Necessity: each task has exactly one key
-Fact Type: task is executed by actor
-	Necessity: each task is executed by exactly one actor
+Fact Type: task has error count
+	Necessity: each task has exactly one error count
 Fact Type: task is executed by handler
 	Necessity: each task is executed by exactly one handler
 Fact Type: task is executed with parameter set
-	Necessity: each task is executed with exactly one parameter set
-Fact Type: task has start time
-	Necessity: each task has at most one start time
-Fact Type: task has retry limit
-	Necessity: each task has exactly one retry limit
-Fact Type: task has error count
-	Necessity: each task has at most one error count
+	Necessity: each task is executed with at most one parameter set
+Fact Type: task is for model name
+	Necessity: each task is for exactly one model name
+Fact Type: task is scheduled by actor
+	Necessity: each task is scheduled by exactly one actor
+Fact Type: task is scheduled with cron expression
+	Necessity: each task is scheduled with at most one cron expression
+Fact Type: task has key
+	Necessity: each task has exactly one key
 Fact Type: task has last error
 	Necessity: each task has at most one last error
-Fact Type: task has status
-	Necessity: each task has exactly one status
-	Definition: "pending" or "success" or "failed"
+Fact Type: task has priority
+	Necessity: each task has exactly one priority
+	Necessity: each task has a priority that is greater than or equal to 0
+Fact Type: task has retry limit
+	Necessity: each task has exactly one retry limit
+Fact Type: task has run count
+	Necessity: each task has exactly one run count
+Fact Type: task has start time
+	Necessity: each task has exactly one start time
+Fact Type: task is complete
+
+Term: task run
+Fact Type: task run has error
+	Necessity: each task run has at most one error
+Fact Type: task run is for task
+	Synonymous Form: task was executed by task run
+	Necessity: each task run is for exactly one task
+	Reference Type: informative
+Fact Type: task run has start time
+	Necessity: each task run has exactly one start time
+Fact Type: task run has end time
+	Necessity: each task run has at most one end time
+Fact Type: task run has status
+	Necessity: each task run has exactly one status
+	Definition: "running" or "success" or "failed"

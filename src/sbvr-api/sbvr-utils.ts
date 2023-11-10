@@ -1965,6 +1965,7 @@ export const setup = async (
 			await permissions.setup();
 			await tasks.setup(tx);
 		});
+		await tasks.postSetup(db);
 	} catch (err: any) {
 		console.error('Could not execute standard models', err);
 		process.exit(1);
