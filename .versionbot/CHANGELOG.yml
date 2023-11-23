@@ -1,4 +1,19 @@
 - commits:
+    - subject: Update @balena/lint
+      hash: 079f1a9438c61b7642088470818ead9580eb1f85
+      body: |
+        Update @balena/lint from 7.1.1 to 7.2.4
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 15.3.17
+  title: ""
+  date: 2023-11-23T19:26:45.288Z
+- commits:
     - subject: Handling typing changes of @types/pg
       hash: f7520efb9e2c44ab5ae341ad8fdd635814819eb0
       body: >
