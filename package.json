@@ -62,7 +62,7 @@
     "typed-error": "^3.2.2"
   },
   "devDependencies": {
-    "@balena/lint": "^7.1.1",
+    "@balena/lint": "^7.2.4",
     "@faker-js/faker": "^7.6.0",
     "@types/busboy": "^1.5.0",
     "@types/chai": "^4.3.4",

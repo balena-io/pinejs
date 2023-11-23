@@ -160,9 +160,8 @@ export const translateAbstractSqlModel = (
 		if (synonym.includes('$')) {
 			fromAbstractSqlModel.synonyms[synonym] = canonicalForm;
 		} else {
-			fromAbstractSqlModel.synonyms[
-				`${synonym}$${toVersion}`
-			] = `${canonicalForm}$${toVersion}`;
+			fromAbstractSqlModel.synonyms[`${synonym}$${toVersion}`] =
+				`${canonicalForm}$${toVersion}`;
 		}
 	}
 	const relationships = _.cloneDeep(toAbstractSqlModel.relationships);
