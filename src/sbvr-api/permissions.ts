@@ -105,10 +105,10 @@ type MappedNestedCheck<
 > = T extends NestedCheckOr<I>
 	? NestedCheckOr<MappedType<I, O>>
 	: T extends NestedCheckAnd<I>
-	? NestedCheckAnd<MappedType<I, O>>
-	: T extends NestedCheckArray<I>
-	? NestedCheckArray<MappedType<I, O>>
-	: Exclude<I, string> | O;
+	  ? NestedCheckAnd<MappedType<I, O>>
+	  : T extends NestedCheckArray<I>
+	    ? NestedCheckArray<MappedType<I, O>>
+	    : Exclude<I, string> | O;
 
 const methodPermissions: {
 	[method in Exclude<SupportedMethod, 'OPTIONS'>]: PermissionCheck;
