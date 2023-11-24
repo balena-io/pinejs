@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency @types/method-override to ^0.0.35
+      hash: 9c2ef078ad9cf65d6c74b38241e5d0387f2f7473
+      body: |
+        Update @types/method-override from 0.0.33 to 0.0.35
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 15.3.19
+  title: ""
+  date: 2023-11-24T09:08:36.817Z
+- commits:
     - subject: Update dependency @faker-js/faker to v8
       hash: d4490df5ca66fb55235f27d40c5008d6e755e8ea
       body: |
