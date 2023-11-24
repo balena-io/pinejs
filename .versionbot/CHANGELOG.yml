@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency commander to v11
+      hash: b00a2e317c724f8d7f5cd8843ffd62b7b3b13af7
+      body: |
+        Update commander from 10.0.1 to 11.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 15.3.22
+  title: ""
+  date: 2023-11-24T12:13:05.092Z
+- commits:
     - subject: Update dependency grunt-webpack to v6
       hash: 8e6a57ca6c715f8a9c329948788d58cc8ceeedd6
       body: |
