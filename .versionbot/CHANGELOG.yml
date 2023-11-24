@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency @faker-js/faker to v8
+      hash: d4490df5ca66fb55235f27d40c5008d6e755e8ea
+      body: |
+        Update @faker-js/faker from 7.6.0 to 8.3.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 15.3.18
+  title: ""
+  date: 2023-11-24T08:39:42.925Z
+- commits:
     - subject: Update @balena/lint
       hash: 079f1a9438c61b7642088470818ead9580eb1f85
       body: |
