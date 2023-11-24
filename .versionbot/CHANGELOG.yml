@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency grunt-webpack to v6
+      hash: 8e6a57ca6c715f8a9c329948788d58cc8ceeedd6
+      body: |
+        Update grunt-webpack from 5.0.0 to 6.0.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 15.3.21
+  title: ""
+  date: 2023-11-24T12:00:32.882Z
+- commits:
     - subject: Update dependency @types/websql to ^0.0.30
       hash: 1df43317b094ec1230a7e494246804cf509dc6c1
       body: |
