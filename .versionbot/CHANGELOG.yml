@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency @types/websql to ^0.0.30
+      hash: 1df43317b094ec1230a7e494246804cf509dc6c1
+      body: |
+        Update @types/websql from 0.0.28 to 0.0.30
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 15.3.20
+  title: ""
+  date: 2023-11-24T10:08:43.412Z
+- commits:
     - subject: Update dependency @types/method-override to ^0.0.35
       hash: 9c2ef078ad9cf65d6c74b38241e5d0387f2f7473
       body: |
