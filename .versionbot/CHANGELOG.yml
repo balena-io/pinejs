@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency pinejs-client-supertest to v2
+      hash: bf047987a8f4c37a4c17257174c128c66fb12104
+      body: |
+        Update pinejs-client-supertest from 1.5.0 to 2.0.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 15.3.24
+  title: ""
+  date: 2023-11-24T15:28:14.042Z
+- commits:
     - subject: Update postgres Docker tag to v16
       hash: 31d4836ed5c81bc668eaf9202e1ee43175dc15f9
       body: |
