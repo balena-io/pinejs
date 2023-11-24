@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update postgres Docker tag to v16
+      hash: 31d4836ed5c81bc668eaf9202e1ee43175dc15f9
+      body: |
+        Update postgres from 15 to 16
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 15.3.23
+  title: ""
+  date: 2023-11-24T14:26:08.002Z
+- commits:
     - subject: Update dependency commander to v11
       hash: b00a2e317c724f8d7f5cd8843ffd62b7b3b13af7
       body: |
