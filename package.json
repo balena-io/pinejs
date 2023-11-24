@@ -92,7 +92,7 @@
     "load-grunt-tasks": "^5.1.0",
     "mocha": "^10.2.0",
     "on-finished": "^2.4.1",
-    "pinejs-client-supertest": "^1.4.0",
+    "pinejs-client-supertest": "^2.0.0",
     "raw-loader": "^4.0.2",
     "request": "^2.88.2",
     "require-npm4-to-publish": "^1.0.0",
