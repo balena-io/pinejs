@@ -1,5 +1,8 @@
-process.env.PINEJS_CACHE_FILE =
-	process.env.PINEJS_CACHE_FILE || __dirname + '/.pinejs-cache.json';
+import { optionalVar } from '@balena/env-parsing';
+process.env.PINEJS_CACHE_FILE = optionalVar(
+	'PINEJS_CACHE_FILE',
+	__dirname + '/.pinejs-cache.json',
+);
 
 import type { SqlModel } from '@balena/abstract-sql-compiler';
 import type { Config, Model } from '../config-loader/config-loader';

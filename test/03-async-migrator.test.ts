@@ -5,6 +5,7 @@ import { setTimeout } from 'timers';
 import { dbModule } from '../src/server-glue/module';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
 import { MigrationStatus } from '../src/migrator/utils';
+import { optionalVar } from '@balena/env-parsing';
 
 const fixturesBasePath = __dirname + '/fixtures/03-async-migrator/';
 
@@ -40,11 +41,11 @@ function delay(ms: number) {
 const getDbUnderTest = async function () {
 	const initDbOptions = {
 		engine:
-			process.env.DATABASE_URL?.slice(
+			optionalVar('DATABASE_URL')?.slice(
 				0,
-				process.env.DATABASE_URL?.indexOf(':'),
+				optionalVar('DATABASE_URL')?.indexOf(':'),
 			) || 'postgres',
-		params: process.env.DATABASE_URL || 'localhost',
+		params: optionalVar('DATABASE_URL', 'localhost'),
 	};
 	return dbModule.connect(initDbOptions);
 };

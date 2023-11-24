@@ -1,3 +1,4 @@
+import { optionalVar } from '@balena/env-parsing';
 import * as express from 'express';
 import { exit } from 'process';
 import * as pine from '../../src/server-glue/module';
@@ -56,11 +57,11 @@ async function cleanInit(deleteDb: boolean = false) {
 	try {
 		const initDbOptions = {
 			engine:
-				process.env.DATABASE_URL?.slice(
+				optionalVar('DATABASE_URL')?.slice(
 					0,
-					process.env.DATABASE_URL?.indexOf(':'),
+					optionalVar('DATABASE_URL')?.indexOf(':'),
 				) || 'postgres',
-			params: process.env.DATABASE_URL || 'localhost',
+			params: optionalVar('DATABASE_URL', 'localhost'),
 		};
 		const initDb = pine.dbModule.connect(initDbOptions);
 		await initDb.executeSql(
