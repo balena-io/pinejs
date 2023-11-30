@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update TypeScript to 5.3.2
+      hash: 4a90e0e5e64908b042f91e71fe5084130f786d4c
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 15.3.28
+  title: ""
+  date: 2023-11-30T16:07:38.567Z
+- commits:
     - subject: Fix unstable large webresource test
       hash: 86867a49ec26c4a2cdad1a3d2d789aa530c369ee
       body: ""
