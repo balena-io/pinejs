@@ -1,4 +1,18 @@
 - commits:
+    - subject: Fix unstable large webresource test
+      hash: 86867a49ec26c4a2cdad1a3d2d789aa530c369ee
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Co-authored-by: Thodoris Greasidis <thgreasi@gmail.com>
+        co-authored-by: Thodoris Greasidis <thgreasi@gmail.com>
+      author: Otávio Jacobi
+      nested: []
+  version: 15.3.27
+  title: ""
+  date: 2023-11-30T15:22:05.981Z
+- commits:
     - subject: Update dependency passport to ^0.7.0
       hash: d66132ed0e0e7f8749749a6aacb7bdc498bb59d5
       body: |
