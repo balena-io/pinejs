@@ -137,15 +137,24 @@ export const getUploaderMiddlware = (
 		};
 
 		bb.on('file', async (fieldname, filestream, info) => {
-			if (!isAborting && (await isFileInValidPath(fieldname, req))) {
-				const file: IncomingFile = {
-					originalname: info.filename,
-					encoding: info.encoding,
-					mimetype: info.mimeType,
-					stream: filestream,
-					fieldname,
-				};
-				const promise = handler.handleFile(file).then((result) => {
+			if (isAborting) {
+				filestream.resume();
+				return;
+			}
+			completeUploads.push(
+				(async () => {
+					if (!(await isFileInValidPath(fieldname, req))) {
+						filestream.resume();
+						return;
+					}
+					const file: IncomingFile = {
+						originalname: info.filename,
+						encoding: info.encoding,
+						mimetype: info.mimeType,
+						stream: filestream,
+						fieldname,
+					};
+					const result = await handler.handleFile(file);
 					req.body[fieldname] = {
 						filename: info.filename,
 						content_type: info.mimeType,
@@ -154,11 +163,8 @@ export const getUploaderMiddlware = (
 						href: result.filename,
 					};
 					uploadedFilePaths.push(result.filename);
-				});
-				completeUploads.push(promise);
-			} else {
-				filestream.resume();
-			}
+				})(),
+			);
 		});
 
 		// multipart requests will have two main parts, the file contents and the form fields
