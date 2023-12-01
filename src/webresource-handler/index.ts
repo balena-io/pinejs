@@ -136,7 +136,7 @@ export const getUploaderMiddlware = (
 			}
 		};
 
-		bb.on('file', async (fieldname, filestream, info) => {
+		bb.on('file', (fieldname, filestream, info) => {
 			if (isAborting) {
 				filestream.resume();
 				return;
