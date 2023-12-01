@@ -1,4 +1,16 @@
 - commits:
+    - subject: Remove unnecessary async on busboy file handler
+      hash: 26823c1b8aca2c8352a105fe8083909afa6aab48
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otávio Jacobi
+      nested: []
+  version: 15.3.29
+  title: ""
+  date: 2023-12-01T11:13:28.236Z
+- commits:
     - subject: Update TypeScript to 5.3.2
       hash: 4a90e0e5e64908b042f91e71fe5084130f786d4c
       body: ""
