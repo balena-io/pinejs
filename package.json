@@ -88,7 +88,7 @@
     "grunt-ts": "^6.0.0-beta.22",
     "grunt-webpack": "^6.0.0",
     "husky": "^8.0.3",
-    "lint-staged": "^13.2.2",
+    "lint-staged": "^14.0.1",
     "load-grunt-tasks": "^5.1.0",
     "mocha": "^10.2.0",
     "on-finished": "^2.4.1",
