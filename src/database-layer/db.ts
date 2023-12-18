@@ -189,7 +189,7 @@ const getRejectedFunctions: RejectedFunctions = env.DEBUG
 				executeSql: rejectFn,
 				rollback: rejectFn,
 			};
-	  }
+		}
 	: (message) => {
 			const rejectFn = async () => {
 				throw new TransactionClosedError(message);
@@ -198,7 +198,7 @@ const getRejectedFunctions: RejectedFunctions = env.DEBUG
 				executeSql: rejectFn,
 				rollback: rejectFn,
 			};
-	  };
+		};
 
 const onEnd: Tx['on'] = (name: string, fn: () => void) => {
 	if (name === 'end') {
