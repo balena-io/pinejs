@@ -261,18 +261,18 @@ const memoizedOdata2AbstractSQL = (() => {
 
 export const metadataEndpoints = ['$metadata', '$serviceroot'];
 
-export async function parseOData(
+export function parseOData(
 	b: UnparsedRequest & { _isChangeSet?: false },
-): Promise<ParsedODataRequest>;
-export async function parseOData(
+): ParsedODataRequest;
+export function parseOData(
 	b: UnparsedRequest & { _isChangeSet: true },
-): Promise<ParsedODataRequest[]>;
-export async function parseOData(
+): ParsedODataRequest[];
+export function parseOData(
 	b: UnparsedRequest,
-): Promise<ParsedODataRequest | ParsedODataRequest[]>;
-export async function parseOData(
+): ParsedODataRequest | ParsedODataRequest[];
+export function parseOData(
 	b: UnparsedRequest,
-): Promise<ParsedODataRequest | ParsedODataRequest[]> {
+): ParsedODataRequest | ParsedODataRequest[] {
 	try {
 		if (b._isChangeSet && b.changeSet != null) {
 			// We sort the CS set once, we must assure that requests which reference

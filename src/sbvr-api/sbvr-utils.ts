@@ -1142,7 +1142,7 @@ const $getAffectedIds = async ({
 	// And we use the request's url rather than the req for things like batch where the req url is ../$batch
 	const parsedRequest: uriParser.ParsedODataRequest &
 		Partial<Pick<uriParser.ODataRequest, 'engine' | 'translateVersions'>> =
-		await uriParser.parseOData({
+		uriParser.parseOData({
 			method: request.method,
 			url: `/${request.vocabulary}${request.url}`,
 		});
@@ -1317,7 +1317,7 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 
 			// Parse the OData requests
 			const results = await mappingFn(requests, async (requestPart) => {
-				const parsedRequest = await uriParser.parseOData(requestPart);
+				const parsedRequest = uriParser.parseOData(requestPart);
 
 				let request: uriParser.ODataRequest | uriParser.ODataRequest[];
 				if (Array.isArray(parsedRequest)) {
