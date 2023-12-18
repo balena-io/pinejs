@@ -1,4 +1,16 @@
 - commits:
+    - subject: Remove unnecessary `async` on `parseOData`
+      hash: e277a4899e95f3e030558f7fe545977937d5cabb
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 15.3.32
+  title: ""
+  date: 2023-12-18T19:51:26.735Z
+- commits:
     - subject: Bail early with 404 when requesting a resource that doesn't exist
       hash: adad5bd0647996fd9db7a0cb83bd6d0e96f6ab7d
       body: ""
