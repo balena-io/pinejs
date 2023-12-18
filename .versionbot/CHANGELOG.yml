@@ -1,4 +1,24 @@
 - commits:
+    - subject: Bail early with 404 when requesting a resource that doesn't exist
+      hash: adad5bd0647996fd9db7a0cb83bd6d0e96f6ab7d
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Don't try to generate permissions for non-existent tables
+      hash: 6c7832d712ca06ce872712e431fe6db9efe97798
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 15.3.31
+  title: ""
+  date: 2023-12-18T19:40:18.617Z
+- commits:
     - subject: Update dependencies
       hash: 6acbb8140611019ed0ad413d137573c0c0eec513
       body: |
