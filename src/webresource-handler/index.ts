@@ -77,7 +77,7 @@ const isFileInValidPath = async (
 		return false;
 	}
 	const model = getModel(apiRoot);
-	const odataRequest = await uriParser.parseOData({
+	const odataRequest = uriParser.parseOData({
 		url: req.url,
 		method: req.method,
 	});
