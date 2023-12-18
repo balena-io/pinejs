@@ -1514,7 +1514,7 @@ export const resolveApiKey = async (
 	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
 	const apiKey =
-		req.params[paramName] ?? req.body[paramName] ?? req.query[paramName];
+		req.params?.[paramName] ?? req.body?.[paramName] ?? req.query?.[paramName];
 	if (apiKey == null) {
 		return;
 	}
