@@ -1,4 +1,216 @@
 - commits:
+    - subject: Update dependencies
+      hash: 6acbb8140611019ed0ad413d137573c0c0eec513
+      body: |
+        Update @balena/abstract-sql-to-typescript from 2.1.1 to 2.1.3
+        Update @balena/lf-to-abstract-sql from 5.0.0 to 5.0.1
+        Update @balena/odata-parser from 3.0.0 to 3.0.1
+        Update @balena/sbvr-types from 6.0.0 to 6.1.0
+        Update pinejs-client-core from 6.13.0 to 6.14.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Update dependency @types/node to v20
+              hash: 2da3ac75a216559964c0dcf385e7e5c3431d72e3
+              body: |
+                Update @types/node from 18.18.6 to 20.8.7
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Self-hosted Renovate Bot
+              nested: []
+          version: abstract-sql-to-typescript-2.1.3
+          title: ""
+          date: 2023-10-24T01:08:19.954Z
+        - commits:
+            - subject: Update dependency @types/node to v18
+              hash: 15d2c455710b6b68594c3ed6def0ccc1c26ecf51
+              body: |
+                Update @types/node from 16.18.42 to 18.17.7
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Self-hosted Renovate Bot
+              nested: []
+          version: abstract-sql-to-typescript-2.1.2
+          title: ""
+          date: 2023-08-23T19:44:34.641Z
+        - commits:
+            - subject: Update @balena/sbvr-types to 5.0.0
+              hash: 9acf28eac9790f47704d9103b5788fc4e1802e14
+              body: |
+                Update @balena/sbvr-types from 3.4.18 to 5.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Switch from `export =` to `export default`
+                      hash: 6cd01340e0fee46833942691fce5a9f6a42ac104
+                      body: ""
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                  version: sbvr-types-5.0.0
+                  title: ""
+                  date: 2023-05-16T15:56:09.861Z
+                - commits:
+                    - subject: Improve typings
+                      hash: a5fd4a319cd0336afc5a765af9e1a1eec851f2c3
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-4.0.2
+                  title: ""
+                  date: 2023-05-03T11:40:24.422Z
+                - commits:
+                    - subject: "boolean: Avoid unnecessary array creation to reduce GCs"
+                      hash: 5ba948cd5f42844974d43dc19f1c371e56376fc8
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Thodoris Greasidis
+                  version: sbvr-types-4.0.1
+                  title: ""
+                  date: 2023-05-02T13:39:37.722Z
+                - commits:
+                    - subject: Add test cases for Objects in JSON validate
+                      hash: be8fc31c3754186dd4c43ca8d4c056b0def7ffbd
+                      body: >
+                        As balena-lint rejects `new Boolean()`, `new Number()`
+                        and `new String()` constructor usage, test cases double
+                        check that they are not instantiated as object but
+                        primitive type.
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: fisehara <harald@balena.io>
+                        signed-off-by: fisehara <harald@balena.io>
+                      author: fisehara
+                    - subject: Drop `require-npm4-to-publish` devDependency
+                      hash: 46a369117c9d1222089498a8794c32d14edef85b
+                      body: >
+                        As engine and npm is now required as part of
+                        package.json we can drop this dependency
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: fisehara <harald@balena.io>
+                        signed-off-by: fisehara <harald@balena.io>
+                      author: fisehara
+                    - subject: Set minimum supported nodejs version to 16.13.0 and tsconfig to es2021
+                      hash: 54920d701a7aa4890c27801fc5cc6b9d74ece21c
+                      body: ""
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: Switch `JSON` to use `JSON` db type instead of `TEXT`
+                      hash: 0d3561364ad018f59466c0dae9b3adb4390d9496
+                      body: ""
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: Switch `Boolean` to use `BOOLEAN` db type instead of `INTEGER`
+                      hash: 5af2bd476a9032ab5d60c163a3940e0dd8e81cc6
+                      body: ""
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: Assert that JSON input typeof is object
+                      hash: 1819ee97811e20da93c6e0f227db6a62ada8c00e
+                      body: >
+                        Ensure that the input passed in for JSON types is either
+                        an object or
+
+                        an array (typeof returns 'object' for arrays as well). This change is
+
+                        mainly to prevent primitives from being stored as JSON.
+                      footer:
+                        Change-type: major
+                        change-type: major
+                        Signed-off-by: Josh Bowling <josh@monarci.com>
+                        signed-off-by: Josh Bowling <josh@monarci.com>
+                      author: Josh Bowling
+                  version: sbvr-types-4.0.0
+                  title: ""
+                  date: 2023-04-26T15:00:16.169Z
+                - commits:
+                    - subject: Add Big Serial type
+                      hash: 49460ad51fcbc60f81e61329c573a1af5b207a46
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Josh Bowling
+                  version: sbvr-types-3.5.0
+                  title: ""
+                  date: 2023-03-21T11:16:27.398Z
+                - commits:
+                    - subject: "Flowzone: Allow external contributions"
+                      hash: 9f7bb028bbac327e6fe0711491d7c0f2c6464f98
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: Josh Bowling <josh@monarci.com>
+                        signed-off-by: Josh Bowling <josh@monarci.com>
+                      author: Josh Bowling
+                  version: sbvr-types-3.4.19
+                  title: ""
+                  date: 2022-12-08T01:08:35.143Z
+          version: lf-to-abstract-sql-5.0.1
+          title: ""
+          date: 2023-05-16T16:11:31.737Z
+        - commits:
+            - subject: Allow running CI on external PRs
+              hash: 875af25a9e8ba9ade051f76f4500f5146db675a7
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-3.0.1
+          title: ""
+          date: 2023-09-25T10:50:13.648Z
+        - commits:
+            - subject: Respect the Retry-After header when clients define the
+                getRetryAfterHeader option
+              hash: 04f146bbe2127f4bc140ce7c7e9d9d78f62e00dd
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Thodoris Greasidis
+              nested: []
+          version: pinejs-client-js-6.14.0
+          title: ""
+          date: 2023-12-05T13:05:12.092Z
+        - commits:
+            - subject: Add checksum to WebResource
+              hash: be6a1e9bacad51f99d685f491b3bf81545536adb
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Otávio Jacobi
+          version: sbvr-types-6.1.0
+          title: ""
+          date: 2023-10-03T22:49:47.984Z
+  version: 15.3.30
+  title: ""
+  date: 2023-12-18T19:21:40.459Z
+- commits:
     - subject: Remove unnecessary async on busboy file handler
       hash: 26823c1b8aca2c8352a105fe8083909afa6aab48
       body: ""
