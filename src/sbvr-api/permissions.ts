@@ -1036,9 +1036,14 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 							if (!permissionsJSON) {
 								return;
 							}
-							const permissions = JSON.parse(permissionsJSON);
 
 							const table = tables[`${resourceName}$bypass`];
+							if (table == null) {
+								// If the table we're based upon doesn't exist then this table also shouldn't exist
+								return;
+							}
+
+							const permissions = JSON.parse(permissionsJSON);
 
 							const permissionsTable = (tables[permissionResourceName] = {
 								...table,
