@@ -1255,7 +1255,8 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 				parsedRequest: uriParser.ParsedODataRequest &
 					Partial<Pick<uriParser.ODataRequest, 'engine' | 'translateVersions'>>,
 			): Promise<uriParser.ODataRequest> => {
-				if (models[parsedRequest.vocabulary] == null) {
+				const abstractSqlModel = getAbstractSqlModel(parsedRequest);
+				if (abstractSqlModel == null) {
 					throw new BadRequestError(
 						'Unknown vocabulary: ' + parsedRequest.vocabulary,
 					);
@@ -1269,6 +1270,10 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 				>;
 				// Add/check the relevant permissions
 				try {
+					if (abstractSqlModel.tables[resolveSynonym($request)] == null) {
+						throw new NotFoundError();
+					}
+
 					$request.hooks = [];
 					for (const version of versions) {
 						// We get the hooks list between each `runHooks` so that any resource renames will be used
