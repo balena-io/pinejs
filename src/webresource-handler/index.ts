@@ -143,26 +143,31 @@ export const getUploaderMiddlware = (
 			}
 			completeUploads.push(
 				(async () => {
-					if (!(await isFileInValidPath(fieldname, req))) {
+					try {
+						if (!(await isFileInValidPath(fieldname, req))) {
+							filestream.resume();
+							return;
+						}
+						const file: IncomingFile = {
+							originalname: info.filename,
+							encoding: info.encoding,
+							mimetype: info.mimeType,
+							stream: filestream,
+							fieldname,
+						};
+						const result = await handler.handleFile(file);
+						req.body[fieldname] = {
+							filename: info.filename,
+							content_type: info.mimeType,
+							content_disposition: undefined,
+							size: result.size,
+							href: result.filename,
+						};
+						uploadedFilePaths.push(result.filename);
+					} catch (err: any) {
 						filestream.resume();
-						return;
+						throw err;
 					}
-					const file: IncomingFile = {
-						originalname: info.filename,
-						encoding: info.encoding,
-						mimetype: info.mimeType,
-						stream: filestream,
-						fieldname,
-					};
-					const result = await handler.handleFile(file);
-					req.body[fieldname] = {
-						filename: info.filename,
-						content_type: info.mimeType,
-						content_disposition: undefined,
-						size: result.size,
-						href: result.filename,
-					};
-					uploadedFilePaths.push(result.filename);
 				})(),
 			);
 		});
