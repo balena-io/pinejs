@@ -1,4 +1,24 @@
 - commits:
+    - subject: Avoid error when trying to upload to a non-existent resource
+      hash: abb521be4b62918739e3732526b3b25bd763519f
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Ensure we consume the web resource upload stream even if errors occur
+      hash: 07571d0b87332958353887c88374ef5310985dc7
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 15.3.33
+  title: ""
+  date: 2023-12-19T10:46:49.728Z
+- commits:
     - subject: Remove unnecessary `async` on `parseOData`
       hash: e277a4899e95f3e030558f7fe545977937d5cabb
       body: ""
