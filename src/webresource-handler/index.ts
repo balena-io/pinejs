@@ -81,24 +81,31 @@ const isFileInValidPath = async (
 		url: req.url,
 		method: req.method,
 	});
-	const resourceName = sbvrUtils.resolveSynonym(odataRequest);
+	const sqlResourceName = sbvrUtils.resolveSynonym(odataRequest);
+
+	const table = model.abstractSql.tables[sqlResourceName];
+
+	if (table == null) {
+		return false;
+	}
 
 	const permission = req.method === 'POST' ? 'create' : 'update';
 	const vocab = model.versions[model.versions.length - 1];
 
 	// Checks if it has permissions on both the original resourceName or any synonym
-	const hasPermissions =
-		(await checkPermissions(req, permission, resourceName, vocab)) ||
-		(await checkPermissions(req, permission, odataRequest.resourceName, vocab));
+	const hasPermissions = await checkPermissions(
+		req,
+		permission,
+		odataRequest.resourceName,
+		vocab,
+	);
 
 	if (!hasPermissions) {
 		return false;
 	}
 
-	const sqlResourceName = odataNameToSqlName(resourceName);
-	const fields = model.abstractSql.tables[sqlResourceName].fields;
 	const dbFieldName = odataNameToSqlName(fieldname);
-	return fields.some(
+	return table.fields.some(
 		(field) =>
 			field.fieldName === dbFieldName && field.dataType === 'WebResource',
 	);
@@ -143,26 +150,31 @@ export const getUploaderMiddlware = (
 			}
 			completeUploads.push(
 				(async () => {
-					if (!(await isFileInValidPath(fieldname, req))) {
+					try {
+						if (!(await isFileInValidPath(fieldname, req))) {
+							filestream.resume();
+							return;
+						}
+						const file: IncomingFile = {
+							originalname: info.filename,
+							encoding: info.encoding,
+							mimetype: info.mimeType,
+							stream: filestream,
+							fieldname,
+						};
+						const result = await handler.handleFile(file);
+						req.body[fieldname] = {
+							filename: info.filename,
+							content_type: info.mimeType,
+							content_disposition: undefined,
+							size: result.size,
+							href: result.filename,
+						};
+						uploadedFilePaths.push(result.filename);
+					} catch (err: any) {
 						filestream.resume();
-						return;
+						throw err;
 					}
-					const file: IncomingFile = {
-						originalname: info.filename,
-						encoding: info.encoding,
-						mimetype: info.mimeType,
-						stream: filestream,
-						fieldname,
-					};
-					const result = await handler.handleFile(file);
-					req.body[fieldname] = {
-						filename: info.filename,
-						content_type: info.mimeType,
-						content_disposition: undefined,
-						size: result.size,
-						href: result.filename,
-					};
-					uploadedFilePaths.push(result.filename);
 				})(),
 			);
 		});
@@ -255,7 +267,7 @@ const getCreateWebResourceHooks = (
 			throwIfWebresourceNotInMultipart(webResourceFields, hookArgs);
 		},
 		'POSTRUN-ERROR': async ({ tx, request }) => {
-			tx?.on('rollback', () => {
+			tx.on('rollback', () => {
 				void deleteRollbackPendingFields(request, webResourceHandler);
 			});
 		},
