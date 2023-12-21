@@ -15,6 +15,7 @@ export async function testInit(
 			configPath: options.configPath,
 			hooksPath: options.hooksPath,
 			routesPath: options.routesPath,
+			withLoginRoute: options.withLoginRoute,
 		};
 		const testServer = fork(
 			__dirname + '/pine-in-process.ts',

@@ -1,0 +1,36 @@
+Vocabulary: university
+
+Term: name
+	Concept Type: Short Text (Type)
+
+Term: lastname
+	Concept Type: Short Text (Type)
+
+Term: birthday
+	Concept Type: Date Time (Type)
+
+Term: semester credits
+	Concept Type: Integer (Type)
+
+Term: matrix number
+	Concept Type: Integer (Type)
+
+
+Term: student
+
+Fact Type: student has matrix number
+	Necessity: each student has exactly one matrix number
+	Necessity: each matrix number is of exactly one student
+
+Fact Type: student has name
+	Necessity: each student has exactly one name
+
+Fact Type: student has lastname
+	Necessity: each student has exactly one lastname
+
+Fact Type: student has birthday
+	Necessity: each student has exactly one birthday
+
+Fact Type: student has semester credits
+	Necessity: each student has at most one semester credits
+	Necessity: each student that has a semester credits, has a semester credits that is greater than or equal to 4 and is less than or equal to 16.
