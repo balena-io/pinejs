@@ -1,4 +1,24 @@
 - commits:
+    - subject: Fix 404 error on canAccess action
+      hash: 05f0cbcc576972e815cfe3b3f63aeeecfca62422
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otávio Jacobi
+      nested: []
+    - subject: Add permissions tests & expose mountLoginRouter
+      hash: 6aaae2078457e2b178c6ced42f6fdc1f2088892e
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Otávio Jacobi
+      nested: []
+  version: 15.4.0
+  title: ""
+  date: 2024-01-10T15:40:15.795Z
+- commits:
     - subject: Avoid error when trying to upload to a non-existent resource
       hash: abb521be4b62918739e3732526b3b25bd763519f
       body: ""
