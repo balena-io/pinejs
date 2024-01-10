@@ -1270,7 +1270,11 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 				>;
 				// Add/check the relevant permissions
 				try {
-					if (abstractSqlModel.tables[resolveSynonym($request)] == null) {
+					const resolvedResourceName = resolveSynonym($request);
+					if (
+						abstractSqlModel.tables[resolvedResourceName] == null &&
+						!resolvedResourceName.endsWith('#canAccess')
+					) {
 						throw new NotFoundError();
 					}
 

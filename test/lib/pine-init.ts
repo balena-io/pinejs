@@ -1,11 +1,13 @@
 import * as express from 'express';
 import { exit } from 'process';
 import * as pine from '../../src/server-glue/module';
+import type * as ExpressSession from 'express-session';
 
 export type PineTestOptions = {
 	configPath: string;
 	hooksPath?: string;
 	routesPath?: string;
+	withLoginRoute?: boolean;
 	deleteDb: boolean;
 	listenPort: number;
 };
@@ -14,10 +16,26 @@ export async function init(
 	initConfig: pine.ConfigLoader.Config,
 	initPort: number,
 	deleteDb: boolean = false,
+	withLoginRoute: boolean = false,
 ) {
 	const app = express();
 	app.use(express.urlencoded({ extended: true }));
 	app.use(express.json());
+
+	if (withLoginRoute) {
+		/* eslint-disable @typescript-eslint/no-var-requires */
+		const expressSession: typeof ExpressSession = require('express-session');
+		const passport = await import('passport');
+
+		app.use(
+			expressSession({
+				secret: 'A pink cat jumped over a rainbow',
+				store: new pine.PinejsSessionStore(),
+			}),
+		);
+		app.use(passport.initialize());
+		app.use(passport.session());
+	}
 
 	app.use('/ping', (_req, res) => {
 		res.sendStatus(200);
@@ -35,7 +53,10 @@ export async function init(
 
 	try {
 		await cleanInit(deleteDb);
-		await pine.init(app, initConfig);
+		const loader = await pine.init(app, initConfig);
+		if (withLoginRoute) {
+			await pine.mountLoginRouter(loader, app);
+		}
 		await new Promise((resolve) => {
 			app.listen(initPort, () => {
 				resolve('server started');

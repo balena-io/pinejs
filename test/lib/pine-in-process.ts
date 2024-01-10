@@ -12,6 +12,7 @@ export async function forkInit() {
 			initConfig.default,
 			processArgs.listenPort,
 			processArgs.deleteDb,
+			processArgs.withLoginRoute,
 		);
 
 		// load hooks

@@ -19,7 +19,7 @@ describe('01 basic constrain tests', function () {
 		});
 	});
 
-	describe('university vocabular', () => {
+	describe('university vocabulary', () => {
 		it('check /university/student is served by pinejs', async () => {
 			const res = await supertest(testLocalServer)
 				.get('/university/student')
