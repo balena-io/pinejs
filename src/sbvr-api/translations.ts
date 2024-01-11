@@ -198,6 +198,10 @@ export const translateAbstractSqlModel = (
 	}
 
 	for (const key of fromResourceKeys) {
+		if (key.includes('$')) {
+			// Skip translated resources, eg `resource$v2`
+			continue;
+		}
 		const translationDefinition = translationDefinitions[key];
 		const table = fromAbstractSqlModel.tables[key];
 		if (translationDefinition) {
