@@ -199,13 +199,15 @@ export const process = async (
 	) {
 		await Promise.all(
 			rows.map(async (row) => {
-				requiredSigningFields.map(async (fieldName) => {
-					if (row[fieldName] != null) {
-						row[fieldName] = await configuredWebResourceHandler.onPreRespond(
-							row[fieldName],
-						);
-					}
-				});
+				await Promise.all(
+					requiredSigningFields.map(async (fieldName) => {
+						if (row[fieldName] != null) {
+							row[fieldName] = await configuredWebResourceHandler.onPreRespond(
+								row[fieldName],
+							);
+						}
+					}),
+				);
 			}),
 		);
 	}
