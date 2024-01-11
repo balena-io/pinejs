@@ -1144,12 +1144,8 @@ const expectImageEquals = async (
 ) => {
 	const { body: photoRes } = await supertest(href)
 		.get('')
-		.set({
-			responseType: 'arraybuffer',
-			headers: {
-				Accept: '*/*',
-			},
-		})
+		.responseType('arraybuffer')
+		.set('Accept', '*/*')
 		.expect(200);
 
 	const receivedSize = photoRes.length;
@@ -1162,12 +1158,8 @@ const expectImageEquals = async (
 const expectToBeUnreachable = async (href: string) => {
 	await supertest(href)
 		.get('')
-		.set({
-			responseType: 'arraybuffer',
-			headers: {
-				Accept: '*/*',
-			},
-		})
+		.responseType('arraybuffer')
+		.set('Accept', '*/*')
 		.expect(404);
 };
 
