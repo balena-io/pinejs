@@ -1,4 +1,20 @@
 - commits:
+    - subject: Fix nested translations
+      hash: a66ad6a82ce243fff63e06b2f7729c73cebc6bb2
+      body: |
+        They were failing because they were expecting translations for the
+        versioned copies of resources, eg `resource$v2`, so this just avoids
+        those copies and only requires the "true" resources from the model to
+        be translated
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 15.4.2
+  title: ""
+  date: 2024-01-11T14:34:06.824Z
+- commits:
     - subject: Update dependencies
       hash: dc23ee1c9bda7b122fe18e3ee6b9338e05f534d1
       body: |
