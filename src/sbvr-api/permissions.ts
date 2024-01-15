@@ -95,20 +95,18 @@ type NestedCheck<T> =
 	| T;
 type PermissionCheck = NestedCheck<string>;
 
-type MappedType<I, O> = O extends NestedCheck<infer T>
-	? Exclude<Exclude<I, string> | T, boolean>
-	: Exclude<Exclude<I, string> | O, boolean>;
-type MappedNestedCheck<
-	T extends NestedCheck<I>,
-	I,
-	O,
-> = T extends NestedCheckOr<I>
-	? NestedCheckOr<MappedType<I, O>>
-	: T extends NestedCheckAnd<I>
-		? NestedCheckAnd<MappedType<I, O>>
-		: T extends NestedCheckArray<I>
-			? NestedCheckArray<MappedType<I, O>>
-			: Exclude<I, string> | O;
+type MappedType<I, O> =
+	O extends NestedCheck<infer T>
+		? Exclude<Exclude<I, string> | T, boolean>
+		: Exclude<Exclude<I, string> | O, boolean>;
+type MappedNestedCheck<T extends NestedCheck<I>, I, O> =
+	T extends NestedCheckOr<I>
+		? NestedCheckOr<MappedType<I, O>>
+		: T extends NestedCheckAnd<I>
+			? NestedCheckAnd<MappedType<I, O>>
+			: T extends NestedCheckArray<I>
+				? NestedCheckArray<MappedType<I, O>>
+				: Exclude<I, string> | O;
 
 const methodPermissions: {
 	[method in Exclude<SupportedMethod, 'OPTIONS'>]: PermissionCheck;
