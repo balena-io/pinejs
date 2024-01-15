@@ -235,10 +235,14 @@ const memoizedOdata2AbstractSQL = (() => {
 		>,
 	) => {
 		const { method, odataBinds, values } = request;
-		let { odataQuery } = request;
-		const abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 		// Sort the body keys to improve cache hits
 		const sortedBody = Object.keys(values).sort();
+		if (sortedBody.length === 0 && (method === 'PATCH' || method === 'MERGE')) {
+			throw new BadRequestError('No fields to update');
+		}
+
+		let { odataQuery } = request;
+		const abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 		// Remove unused options for odata-to-abstract-sql to improve cache hits
 		if (odataQuery.options) {
 			odataQuery = {
