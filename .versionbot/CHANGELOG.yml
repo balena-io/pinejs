@@ -1,4 +1,111 @@
 - commits:
+    - subject: Update dependencies
+      hash: fed61f75aea3820edab9d4804f133c048bbfaf19
+      body: |
+        Update @balena/odata-to-abstract-sql from 6.2.0 to 6.2.3
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Require at least one field to be updated for PATCH requests
+              hash: ad819432657598898a4811d9628c9ca0a0e428c6
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-6.2.3
+          title: ""
+          date: 2024-01-15T16:41:10.852Z
+        - commits:
+            - subject: Simplify support for MERGE as an alias for PATCH
+              hash: 1da1bd4a49aab7d1bc5053c86109cb976f79c91d
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-6.2.2
+          title: ""
+          date: 2024-01-15T16:21:54.195Z
+        - commits:
+            - subject: Update dependencies
+              hash: 6f619f6a24ec7a4086963b035fe3c015c729678c
+              body: |
+                Update @balena/abstract-sql-compiler from 9.0.3 to 9.0.4
+                Update @balena/lint from 7.2.0 to 7.2.4
+                Update @balena/odata-parser from 3.0.1 to 3.0.3
+                Update @balena/sbvr-types from 6.1.0 to 6.1.1
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Update dependency @types/node to v20
+                      hash: 82a6edce01af738b184d223351bdfe79c63e7cce
+                      body: |
+                        Update @types/node from 18.19.4 to 20.10.6
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Self-hosted Renovate Bot
+                      nested: []
+                  version: abstract-sql-compiler-9.0.4
+                  title: ""
+                  date: 2024-01-02T18:48:39.478Z
+                - commits:
+                    - subject: Optimize by moving constant values into global init
+                      hash: 94899b779fb879540f3675c3c9d7ca3f9d8af4bf
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: fisehara <harald@balena.io>
+                        signed-off-by: fisehara <harald@balena.io>
+                      author: fisehara
+                  version: odata-parser-3.0.3
+                  title: ""
+                  date: 2024-01-04T15:30:09.102Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: 0a7bd8ff2e506fa3988b6e1851e0098df5da3f86
+                      body: >
+                        - Update @balena/lint from 6.2.2 to 7.2.4
+
+                        - Delete `require-npm4-to-publish` as handled by `engines` parameter in `package.json`
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: fisehara <harald@balena.io>
+                        signed-off-by: fisehara <harald@balena.io>
+                      author: fisehara
+                  version: odata-parser-3.0.2
+                  title: ""
+                  date: 2024-01-04T10:16:56.896Z
+                - commits:
+                    - subject: Update dependency @types/chai-datetime to ^0.0.39
+                      hash: 428c5a2c94bd753cc2ffc6d1e012c3a743e1b4d2
+                      body: |
+                        Update @types/chai-datetime from 0.0.37 to 0.0.39
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Self-hosted Renovate Bot
+                  version: sbvr-types-6.1.1
+                  title: ""
+                  date: 2024-01-02T18:54:07.180Z
+          version: odata-to-abstract-sql-6.2.1
+          title: ""
+          date: 2024-01-15T15:03:52.684Z
+  version: 15.4.3
+  title: ""
+  date: 2024-01-16T12:22:22.998Z
+- commits:
     - subject: Fix nested translations
       hash: a66ad6a82ce243fff63e06b2f7729c73cebc6bb2
       body: |
