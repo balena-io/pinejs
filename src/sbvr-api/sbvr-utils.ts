@@ -1275,7 +1275,7 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 						abstractSqlModel.tables[resolvedResourceName] == null &&
 						!resolvedResourceName.endsWith('#canAccess')
 					) {
-						throw new NotFoundError();
+						throw new UnauthorizedError();
 					}
 
 					$request.hooks = [];
