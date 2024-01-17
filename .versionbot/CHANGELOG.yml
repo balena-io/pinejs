@@ -1,4 +1,17 @@
 - commits:
+    - subject: Change NotFound for Unauthorized when requesting a resource that does
+        not exists
+      hash: 4fda84933d3ade581bed965abf2793d24d04fa9f
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otávio Jacobi
+      nested: []
+  version: 15.4.4
+  title: ""
+  date: 2024-01-17T16:31:19.586Z
+- commits:
     - subject: Update dependencies
       hash: fed61f75aea3820edab9d4804f133c048bbfaf19
       body: |
