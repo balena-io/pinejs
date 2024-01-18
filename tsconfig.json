@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
+		"module": "Node16",
 		"strict": true,
 		"strictFunctionTypes": false,
 		"noImplicitThis": false,

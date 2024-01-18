@@ -14,7 +14,7 @@ declare global {
 	}
 }
 
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 import { TypedError } from 'typed-error';
 import { cachedCompile } from './cached-compile';

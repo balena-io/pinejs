@@ -1,7 +1,7 @@
-import * as express from 'express';
+import express from 'express';
 import { exit } from 'process';
 import * as pine from '../../src/server-glue/module';
-import type * as ExpressSession from 'express-session';
+import type ExpressSession from 'express-session';
 
 export type PineTestOptions = {
 	configPath: string;
@@ -25,7 +25,7 @@ export async function init(
 	if (withLoginRoute) {
 		/* eslint-disable @typescript-eslint/no-var-requires */
 		const expressSession: typeof ExpressSession = require('express-session');
-		const passport = await import('passport');
+		const { default: passport } = await import('passport');
 
 		app.use(
 			expressSession({

@@ -1,11 +1,11 @@
-import type * as BodyParser from 'body-parser';
-import type * as Compression from 'compression';
-import type * as CookieParser from 'cookie-parser';
-import type * as ExpressSession from 'express-session';
-import type * as MethodOverride from 'method-override';
+import type BodyParser from 'body-parser';
+import type Compression from 'compression';
+import type CookieParser from 'cookie-parser';
+import type ExpressSession from 'express-session';
+import type MethodOverride from 'method-override';
 import type * as Passport from 'passport';
 import type * as Path from 'path';
-import type * as ServeStatic from 'serve-static';
+import type ServeStatic from 'serve-static';
 
 import * as Pinejs from './module';
 export { sbvrUtils, PinejsSessionStore } from './module';
@@ -14,7 +14,7 @@ export { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser
 
 import { mountLoginRouter } from '../passport-pinejs/mount-login-router';
 
-import * as express from 'express';
+import express from 'express';
 
 const app = express();
 

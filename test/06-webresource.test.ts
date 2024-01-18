@@ -1,7 +1,7 @@
-import * as supertest from 'supertest';
+import supertest from 'supertest';
 import { expect } from 'chai';
-const configPath = __dirname + '/fixtures/06-webresource/config';
-const hooksPath = __dirname + '/fixtures/06-webresource/translations/hooks';
+const configPath = __dirname + '/fixtures/06-webresource/config.js';
+const hooksPath = __dirname + '/fixtures/06-webresource/translations/hooks.js';
 const testResourcePath = __dirname + '/fixtures/06-webresource/resources/';
 
 import * as fsBase from 'fs';

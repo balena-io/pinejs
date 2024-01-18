@@ -22,7 +22,7 @@ import type { Result, Row } from '../database-layer/db';
 
 import { sqlNameToODataName } from '@balena/odata-to-abstract-sql';
 import sbvrTypes, { SbvrType } from '@balena/sbvr-types';
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { resolveNavigationResource, resolveSynonym } from './sbvr-utils';
 import { getWebresourceHandler } from '../webresource-handler';
 

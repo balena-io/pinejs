@@ -1,4 +1,4 @@
-import * as supertest from 'supertest';
+import supertest from 'supertest';
 import { ChildProcess } from 'child_process';
 import { expect } from 'chai';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
@@ -15,7 +15,7 @@ type TestDevice = {
 };
 
 async function executeModelBeforeMigrations(
-	modelFixturePath = fixturesBasePath + '00-execute-model',
+	modelFixturePath = fixturesBasePath + '00-execute-model.js',
 ) {
 	// start pine instace with a configuration without migrations to execute the model in the DB once.
 	// model has an initSqlPath declared so that the database gets filled first
@@ -34,7 +34,7 @@ describe('02 Sync Migrations', async function () {
 		before(async () => {
 			await executeModelBeforeMigrations();
 			pineTestInstance = await testInit({
-				configPath: fixturesBasePath + '01-migrations',
+				configPath: fixturesBasePath + '01-migrations.js',
 				deleteDb: false,
 			});
 		});
@@ -71,7 +71,7 @@ describe('02 Sync Migrations', async function () {
 		it('Starting pine should fail when migrations fail', async () => {
 			try {
 				pineErrorInstace = await testInit({
-					configPath: fixturesBasePath + '02-migrations-error',
+					configPath: fixturesBasePath + '02-migrations-error.js',
 					deleteDb: false,
 					listenPort: 1338,
 				});
@@ -83,7 +83,7 @@ describe('02 Sync Migrations', async function () {
 		it('Check that failed migrations did not manipulated data', async () => {
 			// get a pineInstance without data manipulations to check data
 			pineTestInstance = await testInit({
-				configPath: fixturesBasePath + '00-execute-model',
+				configPath: fixturesBasePath + '00-execute-model.js',
 				deleteDb: false,
 			});
 
@@ -101,7 +101,7 @@ describe('02 Sync Migrations', async function () {
 		let pineTestInstance: ChildProcess;
 		before(async () => {
 			pineTestInstance = await testInit({
-				configPath: fixturesBasePath + '04-new-model-with-init',
+				configPath: fixturesBasePath + '04-new-model-with-init.js',
 				deleteDb: true,
 			});
 		});
@@ -134,7 +134,7 @@ describe('02 Sync Migrations', async function () {
 			try {
 				await executeModelBeforeMigrations();
 				pineErrorInstance = await testInit({
-					configPath: fixturesBasePath + '03-exclusive-category',
+					configPath: fixturesBasePath + '03-exclusive-category.js',
 					deleteDb: false,
 				});
 				expect(pineErrorInstance).to.not.exist;

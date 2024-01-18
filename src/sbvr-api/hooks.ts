@@ -5,9 +5,9 @@ import type { AnyObject } from 'pinejs-client-core';
 import type { TypedError } from 'typed-error';
 import type { SupportedMethod } from '@balena/odata-to-abstract-sql';
 
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { settleMapSeries } from './control-flow';
-import * as memoize from 'memoizee';
+import memoize from 'memoizee';
 import {
 	PinejsClient,
 	User,

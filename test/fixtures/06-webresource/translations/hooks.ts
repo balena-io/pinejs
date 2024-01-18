@@ -1,1 +1,1 @@
-import('./v1/hooks');
+import('./v1/hooks.js');

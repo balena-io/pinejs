@@ -33,8 +33,8 @@ import {
 } from '@balena/odata-to-abstract-sql';
 import * as ODataParser from '@balena/odata-parser';
 
-import * as _ from 'lodash';
-import * as memoize from 'memoizee';
+import _ from 'lodash';
+import memoize from 'memoizee';
 import * as randomstring from 'randomstring';
 import * as env from '../config-loader/env';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';

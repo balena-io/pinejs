@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 /**
  * @typedef {Partial<Window> & {GLOBAL_PERMISSIONS?: string[]}} ExtendedWindow
