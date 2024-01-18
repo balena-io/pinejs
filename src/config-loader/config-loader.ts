@@ -381,8 +381,11 @@ export const setup = (app: Express.Application) => {
 									case '.coffee':
 									case '.ts':
 									case '.js': {
-										const loadeMigration = nodeRequire(filePath);
-										const migration = loadeMigration.default ?? loadeMigration;
+										const { default: loadedMigration } = await import(filePath);
+										const migration =
+											// This second check for `.default` is because it might be a commonjs file that was compiled from typescript with `export default`
+											// and typescript will add the `.default` but so will the `import()`
+											loadedMigration.default ?? loadedMigration;
 
 										if (
 											!isAsyncMigration(migration) &&
