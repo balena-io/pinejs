@@ -1,4 +1,16 @@
 - commits:
+    - subject: Check that some fields are being updated for PATCH requests
+      hash: 8a8fe6582526e164810d46d8f12744a8113f8d74
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 15.4.5
+  title: ""
+  date: 2024-01-19T11:13:25.472Z
+- commits:
     - subject: Change NotFound for Unauthorized when requesting a resource that does
         not exists
       hash: 4fda84933d3ade581bed965abf2793d24d04fa9f
