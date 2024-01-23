@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as webpack from 'webpack';
 const root = path.dirname(__dirname);
 
-export = {
+export default {
 	mode: 'production',
 	devtool: 'source-map',
 	entry: root,

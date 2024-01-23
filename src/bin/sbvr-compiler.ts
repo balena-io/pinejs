@@ -5,7 +5,7 @@ import * as fs from 'fs';
 const getSE = (inputFile: string) => fs.readFileSync(inputFile, 'utf8');
 
 const parse = async (inputFile: string, outputFile?: string) => {
-	const { generateLfModel } = await import('../sbvr-api/sbvr-utils');
+	const { generateLfModel } = await import('../sbvr-api/sbvr-utils.js');
 	const seModel = getSE(inputFile);
 	const result = generateLfModel(seModel);
 	const json = JSON.stringify(result, null, 2);
@@ -14,7 +14,7 @@ const parse = async (inputFile: string, outputFile?: string) => {
 
 const transform = async (inputFile: string, outputFile?: string) => {
 	const { generateLfModel, generateAbstractSqlModel } = await import(
-		'../sbvr-api/sbvr-utils'
+		'../sbvr-api/sbvr-utils.js'
 	);
 	const seModel = getSE(inputFile);
 	const lfModel = generateLfModel(seModel);
@@ -24,7 +24,7 @@ const transform = async (inputFile: string, outputFile?: string) => {
 };
 
 const runCompile = async (inputFile: string, outputFile?: string) => {
-	const { generateModels } = await import('../sbvr-api/sbvr-utils');
+	const { generateModels } = await import('../sbvr-api/sbvr-utils.js');
 	const seModel = getSE(inputFile);
 	const models = generateModels(
 		{ apiRoot: 'sbvr-compiler', modelText: seModel },
@@ -35,7 +35,7 @@ const runCompile = async (inputFile: string, outputFile?: string) => {
 };
 
 const generateTypes = async (inputFile: string, outputFile?: string) => {
-	const { generateModels } = await import('../sbvr-api/sbvr-utils');
+	const { generateModels } = await import('../sbvr-api/sbvr-utils.js');
 	const seModel = getSE(inputFile);
 	const models = generateModels(
 		{ apiRoot: 'sbvr-compiler', modelText: seModel },

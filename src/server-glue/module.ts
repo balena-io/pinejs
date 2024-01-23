@@ -66,7 +66,7 @@ export const init = async <T extends string>(
 
 		const promises: Array<Promise<void>> = [];
 		if (process.env.SBVR_SERVER_ENABLED) {
-			const sbvrServer = await import('../data-server/sbvr-server');
+			const sbvrServer = await import('../data-server/sbvr-server.js');
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const transactions = require('../http-transactions/transactions');
 			promises.push(cfgLoader.loadConfig(sbvrServer.config));

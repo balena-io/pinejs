@@ -3,7 +3,7 @@ import type { Resolvable } from '../sbvr-api/common-types';
 
 import { createHash } from 'crypto';
 import { Engines } from '@balena/abstract-sql-compiler';
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { TypedError } from 'typed-error';
 import { migrator as migratorEnv } from '../config-loader/env';
 export { migrator as migratorEnv } from '../config-loader/env';

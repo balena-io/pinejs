@@ -1,3 +1,3 @@
-import('./v1/hooks');
-import('./v2/hooks');
-import('./v3/hooks');
+import('./v1/hooks.js');
+import('./v2/hooks.js');
+import('./v3/hooks.js');

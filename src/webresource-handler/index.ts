@@ -1,5 +1,5 @@
 import type * as Express from 'express';
-import * as busboy from 'busboy';
+import busboy from 'busboy';
 import * as stream from 'stream';
 import * as uriParser from '../sbvr-api/uri-parser';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';

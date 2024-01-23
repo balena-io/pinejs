@@ -1,5 +1,5 @@
-const configPath = __dirname + '/fixtures/04-translations/config';
-const hooksPath = __dirname + '/fixtures/04-translations/translations/hooks';
+const configPath = __dirname + '/fixtures/04-translations/config.js';
+const hooksPath = __dirname + '/fixtures/04-translations/translations/hooks.js';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
 import { faker } from '@faker-js/faker';
 import { expect } from 'chai';

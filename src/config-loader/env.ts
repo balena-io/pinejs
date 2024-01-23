@@ -50,7 +50,7 @@ export const cache = {
 };
 
 import { boolVar } from '@balena/env-parsing';
-import * as memoize from 'memoizee';
+import memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
 export const createCache = <T extends (...args: any[]) => any>(
 	cacheName: keyof typeof cache,

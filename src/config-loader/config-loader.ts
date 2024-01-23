@@ -21,7 +21,7 @@ import {
 } from '../migrator/utils';
 
 import * as fs from 'fs';
-import * as _ from 'lodash';
+import _ from 'lodash';
 import * as path from 'path';
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
@@ -280,7 +280,8 @@ export const setup = (app: Express.Application) => {
 	};
 	const loadConfigFile = async (configPath: string): Promise<Config> => {
 		console.info('Loading config:', configPath);
-		return await import(configPath);
+		const { default: configObj } = await import(configPath);
+		return configObj;
 	};
 
 	const loadApplicationConfig = async (config: string | Config | undefined) => {

@@ -8,7 +8,7 @@ import {
 import { program } from 'commander';
 
 const runCompile = async (inputFile: string, outputFile?: string) => {
-	const { generateSqlModel } = await import('../sbvr-api/sbvr-utils');
+	const { generateSqlModel } = await import('../sbvr-api/sbvr-utils.js');
 	const abstractSql = getAbstractSqlModelFromFile(inputFile);
 	const sqlModel = generateSqlModel(abstractSql, program.opts().engine);
 

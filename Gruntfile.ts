@@ -1,11 +1,11 @@
 import type * as Grunt from 'grunt';
 import type { WebpackPluginInstance } from 'webpack';
 
-import * as _ from 'lodash';
-import * as TerserPlugin from 'terser-webpack-plugin';
-import * as browserConfig from './build/browser';
-import * as moduleConfig from './build/module';
-import * as serverConfig from './build/server';
+import _ from 'lodash';
+import TerserPlugin from 'terser-webpack-plugin';
+import browserConfig from './build/browser';
+import moduleConfig from './build/module';
+import serverConfig from './build/server';
 
 const serverConfigs = {
 	browser: browserConfig,

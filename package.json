@@ -2,6 +2,7 @@
   "name": "@balena/pinejs",
   "version": "15.4.5",
   "main": "out/server-glue/module",
+  "type": "commonjs",
   "repository": "git@github.com:balena-io/pinejs.git",
   "license": "Apache-2.0",
   "bin": {

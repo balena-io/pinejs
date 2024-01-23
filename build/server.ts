@@ -1,5 +1,5 @@
 import * as webpack from 'webpack';
-import sharedConfig = require('./config');
+import sharedConfig from './config';
 const config = { ...sharedConfig };
 
 config.entry += '/src/server-glue/server';
@@ -12,4 +12,4 @@ config.plugins = config.plugins.concat(
 	}),
 );
 
-export = config;
+export default config;

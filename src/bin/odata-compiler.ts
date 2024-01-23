@@ -5,7 +5,7 @@ import { program } from 'commander';
 
 const generateAbstractSqlQuery = async (modelFile: string, odata: string) => {
 	const { memoizedParseOdata, translateUri } = await import(
-		'../sbvr-api/uri-parser'
+		'../sbvr-api/uri-parser.js'
 	);
 	const odataAST = memoizedParseOdata(odata);
 	const vocabulary = '';
@@ -26,7 +26,7 @@ const generateAbstractSqlQuery = async (modelFile: string, odata: string) => {
 };
 
 const parseOData = async (odata: string, outputFile?: string) => {
-	const { memoizedParseOdata } = await import('../sbvr-api/uri-parser');
+	const { memoizedParseOdata } = await import('../sbvr-api/uri-parser.js');
 	const result = memoizedParseOdata(odata);
 	const json = JSON.stringify(result, null, 2);
 	writeAll(json, outputFile);
@@ -59,7 +59,7 @@ const compileOData = async (
 	outputFile?: string,
 ) => {
 	const translatedRequest = await generateAbstractSqlQuery(modelFile, odata);
-	const { compileRequest } = await import('../sbvr-api/abstract-sql');
+	const { compileRequest } = await import('../sbvr-api/abstract-sql.js');
 	const compiledRequest = compileRequest(translatedRequest);
 	let output;
 	if (program.opts().json) {

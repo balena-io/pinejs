@@ -1,7 +1,7 @@
 import type { Tx } from '../database-layer/db';
 import type { Model } from '../config-loader/config-loader';
 
-import * as _ from 'lodash';
+import _ from 'lodash';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 
 type ApiRootModel = Model & { apiRoot: string };

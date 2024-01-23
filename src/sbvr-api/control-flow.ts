@@ -1,6 +1,6 @@
 import type { Resolvable } from './common-types';
 
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { TypedError } from 'typed-error';
 
 export type MappingFunction = <T, U>(

@@ -6,7 +6,7 @@ import type { Dictionary, Resolvable } from '../sbvr-api/common-types';
 
 import { Engines } from '@balena/abstract-sql-compiler';
 import { EventEmitter } from 'eventemitter3';
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { TypedError } from 'typed-error';
 import * as env from '../config-loader/env';
 import { fromCallback, timeout } from '../sbvr-api/control-flow';

@@ -1,5 +1,5 @@
-import * as express from 'express';
-import * as onFinished from 'on-finished';
+import express from 'express';
+import onFinished from 'on-finished';
 import * as pine from '../../../src/server-glue/module';
 import { handleHttpErrors } from '../../../src/sbvr-api/sbvr-utils';
 import { setTimeout } from 'timers/promises';

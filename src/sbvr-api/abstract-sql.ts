@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 import * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
 import type { BindKey } from '@balena/odata-parser';
@@ -8,7 +8,7 @@ import {
 	isBindReference,
 } from '@balena/odata-to-abstract-sql';
 import deepFreeze = require('deep-freeze');
-import * as memoize from 'memoizee';
+import memoize from 'memoizee';
 import * as env from '../config-loader/env';
 import { BadRequestError, SqlCompilationError } from './errors';
 import * as sbvrUtils from './sbvr-utils';

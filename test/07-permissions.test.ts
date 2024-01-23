@@ -1,6 +1,6 @@
-import * as supertest from 'supertest';
+import supertest from 'supertest';
 import { expect } from 'chai';
-const configPath = __dirname + '/fixtures/07-permissions/config';
+const configPath = __dirname + '/fixtures/07-permissions/config.js';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
 
 describe('07 permissions tests', function () {

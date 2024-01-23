@@ -1,6 +1,6 @@
 import type * as Fs from 'fs';
 
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 const cacheFile = process.env.PINEJS_CACHE_FILE || '.pinejs-cache.json';
 let cache: null | {

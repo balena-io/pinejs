@@ -18,7 +18,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 import { randomUUID } from 'crypto';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
-import * as memoize from 'memoizee';
+import memoize from 'memoizee';
 
 export interface S3HandlerProps {
 	region: string;

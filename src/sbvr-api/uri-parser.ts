@@ -12,11 +12,11 @@ import type { AnyObject } from './common-types';
 import * as ODataParser from '@balena/odata-parser';
 export const SyntaxError = ODataParser.SyntaxError;
 import { OData2AbstractSQL } from '@balena/odata-to-abstract-sql';
-import * as _ from 'lodash';
+import _ from 'lodash';
 import memoizeWeak = require('memoizee/weak');
 
 export { BadRequestError, ParsingError, TranslationError } from './errors';
-import * as deepFreeze from 'deep-freeze';
+import deepFreeze from 'deep-freeze';
 import * as env from '../config-loader/env';
 import {
 	BadRequestError,

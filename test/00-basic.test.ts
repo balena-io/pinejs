@@ -1,6 +1,6 @@
-import * as supertest from 'supertest';
+import supertest from 'supertest';
 import { expect } from 'chai';
-const configPath = __dirname + '/fixtures/00-basic/config';
+const configPath = __dirname + '/fixtures/00-basic/config.js';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
 
 describe('00 basic tests', function () {
