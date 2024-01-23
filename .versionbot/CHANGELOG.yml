@@ -1,4 +1,18 @@
 - commits:
+    - subject: Use `Node16` module resolution for typescript
+      hash: 32a73b7a08fac700d10b2606c04383ab05608c9b
+      body: |
+        This continues to expose only commonjs but makes it decided by more
+        standard nodejs means
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 15.5.0
+  title: ""
+  date: 2024-01-23T16:04:00.628Z
+- commits:
     - subject: Check that some fields are being updated for PATCH requests
       hash: 8a8fe6582526e164810d46d8f12744a8113f8d74
       body: ""
