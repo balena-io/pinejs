@@ -1,7 +1,7 @@
 import * as passportPinejs from './passport-pinejs';
 import type { Express } from 'express';
 import { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store';
-import { setup } from '../config-loader/config-loader';
+import type { setup } from '../config-loader/config-loader';
 
 export const mountLoginRouter = async (
 	configLoader: ReturnType<typeof setup>,

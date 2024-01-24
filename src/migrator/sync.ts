@@ -1,11 +1,11 @@
 import {
-	MigrationTuple,
+	type MigrationTuple,
 	MigrationError,
-	MigrationExecutionResult,
+	type MigrationExecutionResult,
 	setExecutedMigrations,
 	getExecutedMigrations,
 	lockMigrations,
-	RunnableMigrations,
+	type RunnableMigrations,
 	filterAndSortPendingMigrations,
 	getRunnableSyncMigrations,
 } from './utils';

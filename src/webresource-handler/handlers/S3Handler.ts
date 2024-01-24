@@ -1,16 +1,16 @@
 import {
 	FileSizeExceededError,
-	IncomingFile,
+	type IncomingFile,
 	normalizeHref,
-	UploadResponse,
+	type UploadResponse,
 	WebResourceError,
-	WebResourceHandler,
+	type WebResourceHandler,
 } from '..';
 import {
 	S3Client,
-	S3ClientConfig,
+	type S3ClientConfig,
 	DeleteObjectCommand,
-	PutObjectCommandInput,
+	type PutObjectCommandInput,
 	GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';

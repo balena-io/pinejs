@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {
+import type {
 	AbstractSqlModel,
 	Relationship,
 	ReferencedFieldNode,
@@ -14,7 +14,7 @@ import {
 	UnknownTypeNodes,
 	NullNode,
 } from '@balena/abstract-sql-compiler';
-import { Dictionary } from './common-types';
+import type { Dictionary } from './common-types';
 
 export type AliasValidNodeType =
 	| ReferencedFieldNode

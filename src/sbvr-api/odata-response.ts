@@ -21,7 +21,7 @@ declare module '@balena/abstract-sql-compiler' {
 import type { Result, Row } from '../database-layer/db';
 
 import { sqlNameToODataName } from '@balena/odata-to-abstract-sql';
-import sbvrTypes, { SbvrType } from '@balena/sbvr-types';
+import sbvrTypes, { type SbvrType } from '@balena/sbvr-types';
 import _ from 'lodash';
 import { resolveNavigationResource, resolveSynonym } from './sbvr-utils';
 import { getWebresourceHandler } from '../webresource-handler';
