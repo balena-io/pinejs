@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add support for ESM migrations
+      hash: e8a2bf506f62ffa96ac6d1d12bc7b48e41c6b040
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 15.6.0
+  title: ""
+  date: 2024-01-24T13:33:42.588Z
+- commits:
     - subject: Use `Node16` module resolution for typescript
       hash: 32a73b7a08fac700d10b2606c04383ab05608c9b
       body: |
