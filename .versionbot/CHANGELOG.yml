@@ -1,4 +1,16 @@
 - commits:
+    - subject: Improve type imports by using "import type" where possible
+      hash: 1405999a4ffd66d1e9541409d8158c0d9e065553
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Josh Bowling
+      nested: []
+  version: 15.6.1
+  title: ""
+  date: 2024-02-04T02:31:08.153Z
+- commits:
     - subject: Add support for ESM migrations
       hash: e8a2bf506f62ffa96ac6d1d12bc7b48e41c6b040
       body: ""
