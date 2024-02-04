@@ -28,7 +28,7 @@ import {
 	isBindReference,
 	type OData2AbstractSQL,
 	odataNameToSqlName,
-	ResourceFunction,
+	type ResourceFunction,
 	sqlNameToODataName,
 } from '@balena/odata-to-abstract-sql';
 import * as ODataParser from '@balena/odata-parser';
@@ -38,7 +38,7 @@ import memoize from 'memoizee';
 import * as randomstring from 'randomstring';
 import * as env from '../config-loader/env';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-import { HookReq, addPureHook, addHook } from './hooks';
+import { type HookReq, addPureHook, addHook } from './hooks';
 import {
 	BadRequestError,
 	PermissionError,
@@ -48,7 +48,7 @@ import {
 	memoizedGetOData2AbstractSQL,
 	memoizedParseOdata,
 	metadataEndpoints,
-	ODataRequest,
+	type ODataRequest,
 } from './uri-parser';
 import memoizeWeak = require('memoizee/weak');
 

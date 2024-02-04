@@ -12,8 +12,8 @@ import type {
 } from '../sbvr-api/common-types';
 
 import {
-	Migration,
-	Migrations,
+	type Migration,
+	type Migrations,
 	defaultMigrationCategory,
 	MigrationCategories,
 	isSyncMigration,
@@ -30,11 +30,11 @@ import * as permissions from '../sbvr-api/permissions';
 import {
 	getDefaultHandler,
 	getUploaderMiddlware,
-	WebResourceHandler,
+	type WebResourceHandler,
 	setupUploadHooks,
 	setupWebresourceHandler,
 } from '../webresource-handler';
-import { AliasValidNodeType } from '../sbvr-api/translations';
+import type { AliasValidNodeType } from '../sbvr-api/translations';
 
 export type SetupFunction = (
 	app: Express.Application,

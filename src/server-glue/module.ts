@@ -5,7 +5,7 @@ import './sbvr-loader';
 import * as dbModule from '../database-layer/db';
 import * as configLoader from '../config-loader/config-loader';
 import * as migrator from '../migrator/sync';
-import * as migratorUtils from '../migrator/utils';
+import type * as migratorUtils from '../migrator/utils';
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import { PINEJS_ADVISORY_LOCK } from '../config-loader/env';

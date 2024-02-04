@@ -12,18 +12,18 @@ type InitialMigrationStatus = MigrationStatus &
 	>;
 
 import {
-	MigrationTuple,
+	type MigrationTuple,
 	getExecutedMigrations,
 	migratorEnv,
 	lockMigrations,
 	initMigrationStatus,
 	readMigrationStatus,
 	updateMigrationStatus,
-	RunnableAsyncMigrations,
+	type RunnableAsyncMigrations,
 	getRunnableAsyncMigrations,
 	filterAndSortPendingMigrations,
-	MigrationStatus,
-	BaseAsyncMigration,
+	type MigrationStatus,
+	type BaseAsyncMigration,
 } from './utils';
 import { booleanToEnabledString } from '../config-loader/env';
 

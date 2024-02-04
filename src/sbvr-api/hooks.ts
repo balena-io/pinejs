@@ -9,13 +9,13 @@ import _ from 'lodash';
 import { settleMapSeries } from './control-flow';
 import memoize from 'memoizee';
 import {
-	PinejsClient,
-	User,
-	ApiKey,
+	type PinejsClient,
+	type User,
+	type ApiKey,
 	resolveSynonym,
 	getAbstractSqlModel,
 	api,
-	Response,
+	type Response,
 } from './sbvr-utils';
 
 export interface HookReq {

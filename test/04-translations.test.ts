@@ -3,7 +3,7 @@ const hooksPath = __dirname + '/fixtures/04-translations/translations/hooks.js';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
 import { faker } from '@faker-js/faker';
 import { expect } from 'chai';
-import { AnyObject } from 'pinejs-client-core';
+import type { AnyObject } from 'pinejs-client-core';
 
 import { PineTest } from 'pinejs-client-supertest';
 

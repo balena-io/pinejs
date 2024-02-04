@@ -16,7 +16,7 @@ declare global {
 
 import _ from 'lodash';
 
-import { TypedError } from 'typed-error';
+import type { TypedError } from 'typed-error';
 import { cachedCompile } from './cached-compile';
 
 type LFModel = any[];
@@ -25,14 +25,14 @@ import { version as AbstractSQLCompilerVersion } from '@balena/abstract-sql-comp
 import * as LF2AbstractSQL from '@balena/lf-to-abstract-sql';
 
 import {
-	ODataBinds,
+	type ODataBinds,
 	odataNameToSqlName,
 	sqlNameToODataName,
-	SupportedMethod,
+	type SupportedMethod,
 } from '@balena/odata-to-abstract-sql';
 import sbvrTypes from '@balena/sbvr-types';
 import deepFreeze = require('deep-freeze');
-import { PinejsClientCore, PromiseResultTypes } from 'pinejs-client-core';
+import { PinejsClientCore, type PromiseResultTypes } from 'pinejs-client-core';
 
 import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
 
@@ -60,20 +60,20 @@ import {
 	UnauthorizedError,
 } from './errors';
 import * as uriParser from './uri-parser';
-export { ODataRequest } from './uri-parser';
+export type { ODataRequest } from './uri-parser';
 import {
-	HookReq,
-	HookArgs,
+	type HookReq,
+	type HookArgs,
 	rollbackRequestHooks,
 	getHooks,
 	runHooks,
-	InstantiatedHooks,
+	type InstantiatedHooks,
 } from './hooks';
 export {
-	HookReq,
-	HookArgs,
-	HookResponse,
-	Hooks,
+	type HookReq,
+	type HookArgs,
+	type HookResponse,
+	type Hooks,
 	addPureHook,
 	addSideEffectHook,
 } from './hooks';
@@ -97,7 +97,7 @@ import * as odataResponse from './odata-response';
 import { env } from '../server-glue/module';
 import { translateAbstractSqlModel } from './translations';
 import {
-	MigrationExecutionResult,
+	type MigrationExecutionResult,
 	setExecutedMigrations,
 } from '../migrator/utils';
 

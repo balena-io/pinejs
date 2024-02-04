@@ -3,7 +3,7 @@ import type {
 	AbstractSqlTable,
 } from '@balena/abstract-sql-compiler';
 
-import sbvrTypes, { SbvrType } from '@balena/sbvr-types';
+import sbvrTypes, { type SbvrType } from '@balena/sbvr-types';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version }: { version: string } = require('../../package.json');
