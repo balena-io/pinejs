@@ -106,6 +106,13 @@ export interface Database extends BaseDatabase {
 	) => Promise<Result>;
 	transaction: TransactionFn;
 	readTransaction: TransactionFn;
+	on?: (
+		name: 'notification',
+		fn: (...args: any[]) => Promise<void>,
+		options?: {
+			channel?: string;
+		},
+	) => void;
 }
 
 interface EngineParams {
@@ -710,6 +717,29 @@ if (maybePg != null) {
 		return {
 			engine: Engines.postgres,
 			executeSql: atomicExecuteSql,
+			on: async (name, fn, options) => {
+				if (name === 'notification' && options?.channel === undefined) {
+					throw new Error('Missing channel option for notification listener');
+				}
+
+				const client = await pool.connect();
+				client.on(name, async (msg) => {
+					try {
+						await fn(msg);
+					} catch (error) {
+						console.error('Error handling message:', error);
+					}
+				});
+
+				if (name === 'notification' && options?.channel !== undefined) {
+					if (options.channel.includes('"')) {
+						throw new Error(
+							`Invalid channel name for task LISTEN: ${options.channel}`,
+						);
+					}
+					await client.query(`LISTEN "${options.channel}";`);
+				}
+			},
 			transaction: createTransaction(async (stackTraceErr, timeoutMS) => {
 				const client = await pool.connect();
 				const tx = new PostgresTx(client, false, stackTraceErr, timeoutMS);

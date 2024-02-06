@@ -777,7 +777,7 @@ export const postExecuteModels = async (tx: Db.Tx): Promise<void> => {
 	// Hence, skipped migrations from earlier models are not set as executed as the `migration` table is missing
 	// Here the skipped migrations that haven't been set properly are covered
 	// This is mostly an edge case when running on an empty database schema and migrations model hasn't been executed, yet.
-	// One specifc case are tests to run tests against migrated and unmigrated database states
+	// One specific case are tests to run tests against migrated and unmigrated database states
 
 	for (const modelKey of Object.keys(models)) {
 		const pendingToSetExecutedMigrations =

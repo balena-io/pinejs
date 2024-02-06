@@ -6,6 +6,7 @@ import type ExpressSession from 'express-session';
 export type PineTestOptions = {
 	configPath: string;
 	hooksPath?: string;
+	taskHandlersPath?: string;
 	routesPath?: string;
 	withLoginRoute?: boolean;
 	deleteDb: boolean;
