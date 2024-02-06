@@ -1,0 +1,55 @@
+Vocabulary: tasks
+
+Term: id
+    Concept Type: Big Serial (Type)
+Term: actor
+	Concept Type: Integer (Type)
+Term: attempt count
+	Concept Type: Integer (Type)
+Term: attempt limit
+	Concept Type: Integer (Type)
+Term: cron expression
+	Concept Type: Short Text (Type)
+Term: error message
+	Concept Type: Short Text (Type)
+Term: handler
+	Concept Type: Short Text (Type)
+Term: key
+	Concept Type: Short Text (Type)
+Term: parameter set
+	Concept Type: JSON (Type)
+Term: status
+	Concept Type: Short Text (Type)
+Term: time
+	Concept Type: Date Time (Type)
+
+Term: task
+Fact type: task has id
+	Necessity: each task has exactly one id
+Fact type: task has key
+	Necessity: each task has at most one key
+Fact type: task is created by actor
+	Necessity: each task is created by exactly one actor
+Fact type: task is executed by handler
+	Necessity: each task is executed by exactly one handler
+Fact type: task is executed with parameter set
+	Necessity: each task is executed with at most one parameter set
+Fact type: task is scheduled with cron expression
+	Necessity: each task is scheduled with at most one cron expression
+Fact type: task is scheduled to execute on time
+	Necessity: each task is scheduled to execute on at most one time
+Fact type: task has status
+	Necessity: each task has exactly one status
+	Definition: "queued" or "cancelled" or "succeeded" or "failed"
+Fact type: task started on time
+	Necessity: each task started on at most one time
+Fact type: task ended on time
+	Necessity: each task ended on at most one time
+Fact type: task has error message
+	Necessity: each task has at most one error message
+Fact type: task has attempt count
+	Necessity: each task has exactly one attempt count
+Fact type: task has attempt limit
+	Necessity: each task has exactly one attempt limit
+	Necessity: each task has an attempt limit that is greater than or equal to 1
+
