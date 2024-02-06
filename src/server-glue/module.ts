@@ -19,6 +19,7 @@ export * as errors from '../sbvr-api/errors';
 export * as env from '../config-loader/env';
 export * as types from '../sbvr-api/common-types';
 export * as hooks from '../sbvr-api/hooks';
+export * as tasks from '../sbvr-api/tasks';
 export * as webResourceHandler from '../webresource-handler';
 export type { configLoader as ConfigLoader };
 export type { migratorUtils as Migrator };

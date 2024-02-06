@@ -21,6 +21,14 @@ export async function forkInit() {
 			await import(processArgs.hooksPath);
 		}
 
+		// load task handlers
+		if (processArgs.taskHandlersPath) {
+			const {
+				default: { initTaskHandlers },
+			} = await import(processArgs.taskHandlersPath);
+			initTaskHandlers();
+		}
+
 		if (processArgs.routesPath) {
 			const {
 				default: { initRoutes },
