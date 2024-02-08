@@ -62,6 +62,9 @@ This returns a promise that resolves to the user permissions for the given userI
 #### getApiKeyPermissions(apiKey)
 This returns a promise that resolves to the api key permissions for the given apiKey
 
+#### getUserPermissionsForRole(roleName, userId)
+This returns a promise that resolves to the roleName permissions if the user given by userId has this role
+
 #### apiKeyMiddleware(req, res, next)
 This is a default `customApiKeyMiddleware`, which is useful to avoid having to create your own default one.
 

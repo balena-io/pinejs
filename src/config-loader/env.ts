@@ -47,6 +47,7 @@ export const cache = {
 	userPermissions: false as CacheOpts,
 	apiKeyPermissions: false as CacheOpts,
 	apiKeyActorId: false as CacheOpts,
+	rolePermissions: false as CacheOpts,
 };
 
 import { boolVar } from '@balena/env-parsing';

@@ -1273,6 +1273,99 @@ export const getUserPermissions = async (
 	}
 };
 
+export const getUserPermissionsForRole = async (
+	userId: number,
+	roleName: string,
+	tx?: Tx,
+): Promise<string[]> => {
+	try {
+		return await $getUserPermissionsForRole(userId, roleName, tx);
+	} catch (err: unknown) {
+		sbvrUtils.api.Auth.logger.error(
+			`Error loading role permissions for ${userId} ${roleName}`,
+			err,
+		);
+		throw err;
+	}
+};
+
+const $getUserPermissionsForRole = (() => {
+	const getUserPermissionsForRoleQuery = _.once(() =>
+		sbvrUtils.api.Auth.prepare<{ userId: number; roleName: string }>({
+			resource: 'permission',
+			passthrough: {
+				req: rootRead,
+			},
+			options: {
+				$select: 'name',
+				$filter: {
+					is_of__role: {
+						$any: {
+							$alias: 'rhp',
+							$expr: {
+								rhp: {
+									role: {
+										$any: {
+											$alias: 'r',
+											$expr: {
+												r: {
+													name: { '@': 'roleName' },
+													is_of__user: {
+														$any: {
+															$alias: 'uhr',
+															$expr: {
+																uhr: { user: { '@': 'userId' } },
+																$or: [
+																	{
+																		uhr: { expiry_date: null },
+																	},
+																	{
+																		uhr: {
+																			expiry_date: { $gt: { $now: null } },
+																		},
+																	},
+																],
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				// We orderby to increase the hit rate for the `_checkPermissions` memoisation
+				$orderby: {
+					name: 'asc',
+				},
+			},
+		}),
+	);
+
+	return env.createCache(
+		'rolePermissions',
+		async (userId: number, roleName: string, tx?: Tx) => {
+			const permissions = (await getUserPermissionsForRoleQuery()(
+				{
+					userId,
+					roleName,
+				},
+				undefined,
+				{ tx },
+			)) as Array<{ name: string }>;
+			return permissions.map((permission) => permission.name);
+		},
+		{
+			primitive: true,
+			promise: true,
+			normalizer: ([userId, roleName]) => `${userId}${roleName}`,
+		},
+	);
+})();
+
 const $getApiKeyPermissions = (() => {
 	const getApiKeyPermissionsQuery = _.once(() =>
 		sbvrUtils.api.Auth.prepare<{ apiKey: string }>({
