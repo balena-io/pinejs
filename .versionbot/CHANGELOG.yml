@@ -1,4 +1,16 @@
 - commits:
+    - subject: Fix linting with proper import type
+      hash: 15e2a3fe62dba797c62e38d135695be17e083360
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otávio Jacobi
+      nested: []
+  version: 15.6.2
+  title: ""
+  date: 2024-02-09T12:35:39.112Z
+- commits:
     - subject: Improve type imports by using "import type" where possible
       hash: 1405999a4ffd66d1e9541409d8158c0d9e065553
       body: ""
