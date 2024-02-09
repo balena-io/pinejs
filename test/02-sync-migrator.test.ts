@@ -1,5 +1,5 @@
 import supertest from 'supertest';
-import { ChildProcess } from 'child_process';
+import type { ChildProcess } from 'child_process';
 import { expect } from 'chai';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
 

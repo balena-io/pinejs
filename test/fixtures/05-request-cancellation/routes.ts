@@ -1,4 +1,4 @@
-import express from 'express';
+import type express from 'express';
 import onFinished from 'on-finished';
 import * as pine from '../../../src/server-glue/module';
 import { handleHttpErrors } from '../../../src/sbvr-api/sbvr-utils';

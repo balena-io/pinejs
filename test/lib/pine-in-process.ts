@@ -1,5 +1,6 @@
 import { exit } from 'process';
-import { init, PineTestOptions } from './pine-init';
+import type { PineTestOptions } from './pine-init';
+import { init } from './pine-init';
 
 export async function forkInit() {
 	try {

@@ -1,6 +1,6 @@
 import type { ConfigLoader } from '../../../../../src/server-glue/module';
 import { getAbstractSqlModelFromFile } from '../../../../../src/bin/utils';
-import {
+import type {
 	AbstractSqlQuery,
 	SelectQueryNode,
 } from '@balena/abstract-sql-compiler';

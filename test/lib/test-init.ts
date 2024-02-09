@@ -1,7 +1,8 @@
-import { ChildProcess, fork } from 'child_process';
+import type { ChildProcess } from 'child_process';
+import { fork } from 'child_process';
 import { boolVar } from '@balena/env-parsing';
 import type { PineTestOptions } from './pine-init';
-import { OptionalField } from '../../src/sbvr-api/common-types';
+import type { OptionalField } from '../../src/sbvr-api/common-types';
 export const listenPortDefault = 1337;
 export const testLocalServer = `http://localhost:${listenPortDefault}`;
 
