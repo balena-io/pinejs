@@ -1,6 +1,6 @@
 import type { ConfigLoader } from '../../../../../src/server-glue/module';
 import { getAbstractSqlModelFromFile } from '../../../../../src/bin/utils';
-import { AbstractSqlQuery } from '@balena/abstract-sql-compiler';
+import type { AbstractSqlQuery } from '@balena/abstract-sql-compiler';
 
 export const v3AbstractSqlModel = getAbstractSqlModelFromFile(
 	__dirname + '/university.sbvr',

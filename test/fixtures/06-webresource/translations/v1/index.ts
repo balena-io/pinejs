@@ -1,4 +1,4 @@
-import { ConfigLoader } from '../../../../../src/server-glue/module';
+import type { ConfigLoader } from '../../../../../src/server-glue/module';
 import { getAbstractSqlModelFromFile } from '../../../../../src/bin/utils';
 
 export const toVersion = 'example';

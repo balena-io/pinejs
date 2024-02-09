@@ -1,5 +1,5 @@
 import supertest from 'supertest';
-import { ChildProcess } from 'child_process';
+import type { ChildProcess } from 'child_process';
 import { assert, expect } from 'chai';
 import { setTimeout } from 'timers';
 import { dbModule } from '../src/server-glue/module';

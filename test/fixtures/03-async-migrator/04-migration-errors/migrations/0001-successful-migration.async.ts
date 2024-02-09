@@ -1,4 +1,4 @@
-import { AsyncMigration } from '../../../../../src/migrator/utils';
+import type { AsyncMigration } from '../../../../../src/migrator/utils';
 
 const migration: AsyncMigration = {
 	asyncFn: async (tx, options) => {
