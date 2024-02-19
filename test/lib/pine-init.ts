@@ -8,6 +8,7 @@ export type PineTestOptions = {
 	hooksPath?: string;
 	routesPath?: string;
 	withLoginRoute?: boolean;
+	exposeAuthEndpoints?: boolean;
 	deleteDb: boolean;
 	listenPort: number;
 };
@@ -17,10 +18,26 @@ export async function init(
 	initPort: number,
 	deleteDb: boolean = false,
 	withLoginRoute: boolean = false,
+	exposeAuthEndpoints: boolean = false,
 ) {
 	const app = express();
 	app.use(express.urlencoded({ extended: true }));
 	app.use(express.json());
+
+	if (exposeAuthEndpoints) {
+		app.all('/Auth/*', pine.sbvrUtils.handleODataRequest);
+
+		// pine object that can actually call the helper functions we want to test only exist on the server process
+		// in order to be able to invoke these functions (in a different process) and properly test we create a custom
+		// endpoint which allows us to execute the api function we are testing
+		app.get('/auth-test/getUserPermissions', async (req, res) => {
+			const body = req.body as { userId: number };
+			const permissions = await pine.permissions.getUserPermissions(
+				body.userId,
+			);
+			res.status(200).send(permissions);
+		});
+	}
 
 	if (withLoginRoute) {
 		/* eslint-disable @typescript-eslint/no-var-requires */
