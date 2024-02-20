@@ -1564,7 +1564,13 @@ const runRequest = async (
 			tx,
 			error: err,
 		});
-		throw err;
+		const httpError = convertToHttpError(err);
+		await runHooks('PRERESPOND-ERROR', request.hooks, {
+			req,
+			request,
+			error: httpError,
+		});
+		throw httpError;
 	}
 	return await prepareResponse(req, request, result, tx);
 };
