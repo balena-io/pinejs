@@ -2,7 +2,6 @@ version: "2.1"
 services:
   postgres:
     image: postgres:16-alpine
-    restart: always
     environment:
       POSTGRES_USER: docker
       POSTGRES_PASSWORD: docker
@@ -11,7 +10,6 @@ services:
       - "5431:5432"
   minio-server:
     image: minio/minio
-    restart: always
     environment:
       MINIO_ROOT_USER: USERNAME
       MINIO_ROOT_PASSWORD: PASSWORD
