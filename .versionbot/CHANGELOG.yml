@@ -1,4 +1,19 @@
 - commits:
+    - subject: "Tests: Remove restart=always policy for sidecar containers"
+      hash: 70d46bc6ccf970a2750a5a92cb2331f168790507
+      body: |
+        These will automatically be started by subsequent test commands as
+        necessary and this will avoid them being unnecessarily started even
+        after a reboot or similar when they are not necessary
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 15.6.3
+  title: ""
+  date: 2024-02-29T16:09:51.394Z
+- commits:
     - subject: Fix linting with proper import type
       hash: 15e2a3fe62dba797c62e38d135695be17e083360
       body: ""
