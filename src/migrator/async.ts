@@ -220,7 +220,8 @@ const $run = async (
 									// skip execution
 									if (migrationState.last_run_time) {
 										const durationSinceLastRun =
-											Date.now() - migrationState.last_run_time.getTime();
+											Date.now() -
+											new Date(migrationState.last_run_time).getTime();
 										const delayMs = migrationState.is_backing_off
 											? initMigrationState.backoffDelayMS
 											: initMigrationState.delayMS;
