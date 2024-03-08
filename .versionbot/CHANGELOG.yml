@@ -1,4 +1,32 @@
 - commits:
+    - subject: Update `@balena/sbvr-types` to enable ISODatestring as internal pine
+        API interface for date and date time fields.
+      hash: f5e8e6ebfd0d3f590ef6ed3fa6b46d1b0861d409
+      body: >
+        Update `@balena/sbvr-types` from 6.1.1 to 7.0.1
+
+
+        pinejs provides an internal and external interface. The external
+        interface returns ISODateString encoded data.
+
+        The internal interface should be consistent to the external interface,
+        so that the pinejs api internally used also returns an ISODateString
+        encoded data. This is solved in `sbvr-types` and is a major in the
+        submodule and made this also a major change for pinejs itself.
+
+
+        https://github.com/balena-io-modules/sbvr-types/pull/91
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 16.0.0
+  title: ""
+  date: 2024-03-08T18:45:46.607Z
+- commits:
     - subject: "Tests: Remove restart=always policy for sidecar containers"
       hash: 70d46bc6ccf970a2750a5a92cb2331f168790507
       body: |
@@ -167,7 +195,8 @@
                       body: >
                         - Update @balena/lint from 6.2.2 to 7.2.4
 
-                        - Delete `require-npm4-to-publish` as handled by `engines` parameter in `package.json`
+                        - Delete `require-npm4-to-publish` as handled by
+                        `engines` parameter in `package.json`
                       footer:
                         Change-type: patch
                         change-type: patch
@@ -256,7 +285,8 @@
               body: >
                 - Update @balena/lint from 6.2.2 to 7.2.4
 
-                - Delete `require-npm4-to-publish` as handled by `engines` parameter in `package.json`
+                - Delete `require-npm4-to-publish` as handled by `engines`
+                parameter in `package.json`
               footer:
                 Change-type: patch
                 change-type: patch
@@ -496,7 +526,8 @@
                         Ensure that the input passed in for JSON types is either
                         an object or
 
-                        an array (typeof returns 'object' for arrays as well). This change is
+                        an array (typeof returns 'object' for arrays as well).
+                        This change is
 
                         mainly to prevent primitives from being stored as JSON.
                       footer:
@@ -922,9 +953,11 @@
                                         Ensure that the input passed in for JSON
                                         types is either an object or
 
-                                        an array (typeof returns 'object' for arrays as well). This change is
+                                        an array (typeof returns 'object' for
+                                        arrays as well). This change is
 
-                                        mainly to prevent primitives from being stored as JSON.
+                                        mainly to prevent primitives from being
+                                        stored as JSON.
                                       footer:
                                         Change-type: major
                                         change-type: major
@@ -1064,7 +1097,8 @@
                                         We know what type they return and they
                                         should be explicitly accepted as
 
-                                        those types instead where it is valid to do so
+                                        those types instead where it is valid to
+                                        do so
                                       footer:
                                         Change-type: patch
                                         change-type: patch
@@ -1472,9 +1506,11 @@
                                 Ensure that the input passed in for JSON types
                                 is either an object or
 
-                                an array (typeof returns 'object' for arrays as well). This change is
+                                an array (typeof returns 'object' for arrays as
+                                well). This change is
 
-                                mainly to prevent primitives from being stored as JSON.
+                                mainly to prevent primitives from being stored
+                                as JSON.
                               footer:
                                 Change-type: major
                                 change-type: major
@@ -1602,9 +1638,11 @@
                                 Ensure that the input passed in for JSON types
                                 is either an object or
 
-                                an array (typeof returns 'object' for arrays as well). This change is
+                                an array (typeof returns 'object' for arrays as
+                                well). This change is
 
-                                mainly to prevent primitives from being stored as JSON.
+                                mainly to prevent primitives from being stored
+                                as JSON.
                               footer:
                                 Change-type: major
                                 change-type: major
@@ -1873,7 +1911,8 @@
         https://github.com/brianc/node-postgres/pull/2967
 
 
-        In pinejs the case is handled and as of now we don't want to populate a breaking change by transparently push the types to callers.
+        In pinejs the case is handled and as of now we don't want to populate a
+        breaking change by transparently push the types to callers.
       footer:
         Change-type: patch
         change-type: patch
@@ -2077,9 +2116,11 @@
       body: >
         On empty database schemas the `migrations` model is not executed.
 
-        Hence, every model migration that is executed before the `migrations` model
+        Hence, every model migration that is executed before the `migrations`
+        model
 
-        will not be tracked properly. This is an edge case for empty database schemas.
+        will not be tracked properly. This is an edge case for empty database
+        schemas.
       footer:
         Change-type: patch
         change-type: patch
@@ -2610,9 +2651,11 @@
                                 Ensure that the input passed in for JSON types
                                 is either an object or
 
-                                an array (typeof returns 'object' for arrays as well). This change is
+                                an array (typeof returns 'object' for arrays as
+                                well). This change is
 
-                                mainly to prevent primitives from being stored as JSON.
+                                mainly to prevent primitives from being stored
+                                as JSON.
                               footer:
                                 Change-type: major
                                 change-type: major
@@ -3156,7 +3199,8 @@
                         Ensure that the input passed in for JSON types is either
                         an object or
 
-                        an array (typeof returns 'object' for arrays as well). This change is
+                        an array (typeof returns 'object' for arrays as well).
+                        This change is
 
                         mainly to prevent primitives from being stored as JSON.
                       footer:
@@ -3310,7 +3354,8 @@
                         Ensure that the input passed in for JSON types is either
                         an object or
 
-                        an array (typeof returns 'object' for arrays as well). This change is
+                        an array (typeof returns 'object' for arrays as well).
+                        This change is
 
                         mainly to prevent primitives from being stored as JSON.
                       footer:
@@ -3429,7 +3474,8 @@
                 Ensure that the input passed in for JSON types is either an
                 object or
 
-                an array (typeof returns 'object' for arrays as well). This change is
+                an array (typeof returns 'object' for arrays as well). This
+                change is
 
                 mainly to prevent primitives from being stored as JSON.
               footer:
@@ -5074,46 +5120,60 @@
                         After every write, pine has to rerun all rules from the
                         model to ensure
 
-                        consistency. These rules run over the entire database, sometimes causing
+                        consistency. These rules run over the entire database,
+                        sometimes causing
 
-                        some queries to run for too long against what should be a simple write.
+                        some queries to run for too long against what should be
+                        a simple write.
 
 
-                        This commit adds a mechanism to help with this issue by narrowing the
+                        This commit adds a mechanism to help with this issue by
+                        narrowing the
 
-                        set of rows that each rule should touch to those rows that were actually
+                        set of rows that each rule should touch to those rows
+                        that were actually
 
                         changed.
 
 
-                        Implementing this mechanism safely is doable and not necessarily complex
+                        Implementing this mechanism safely is doable and not
+                        necessarily complex
 
-                        code-wise, but requires a deep modifications from the current
+                        code-wise, but requires a deep modifications from the
+                        current
 
-                        architecture. This commit adds a restricted form instead where we only
+                        architecture. This commit adds a restricted form instead
+                        where we only
 
-                        narrow the rows of the root table that were changed. If any other table
+                        narrow the rows of the root table that were changed. If
+                        any other table
 
                         was changed then narrowing is a no op.
 
 
-                        It can be proved that this is always safe as long as the root table is
+                        It can be proved that this is always safe as long as the
+                        root table is
 
-                        selected from only once and the rule is positive ("It is necessary that
+                        selected from only once and the rule is positive ("It is
+                        necessary that
 
                         each ...").
 
 
-                        The implementation here adds a single binding into the rule's SQL query
+                        The implementation here adds a single binding into the
+                        rule's SQL query
 
-                        which can be bound by pine for each rule where an opportunity to use
+                        which can be bound by pine for each rule where an
+                        opportunity to use
 
                         this optimization arises.
 
 
-                        The implementation itself is simple: count how many times the root table
+                        The implementation itself is simple: count how many
+                        times the root table
 
-                        is selected from and if it is selected from exactly one, then add a
+                        is selected from and if it is selected from exactly one,
+                        then add a
 
                         narrowing constraint in the form of:
 
@@ -5123,12 +5183,14 @@
                         <root table>.id = ANY(CAST($1 AS INTEGER[]))
 
 
-                        Where $1 will be bound to either '{}', which disables narrowing, or to a
+                        Where $1 will be bound to either '{}', which disables
+                        narrowing, or to a
 
                         list of IDs that were affected by the write.
 
 
-                        This initial implementation can be extended in the future.
+                        This initial implementation can be extended in the
+                        future.
                       footer:
                         Change-type: major
                         change-type: major
@@ -5149,7 +5211,8 @@
                 This function can get called a lot so caching it should provide
                 a
 
-                noticeable performance improvement and linking it to the resource makes
+                noticeable performance improvement and linking it to the
+                resource makes
 
                 cache management simple
               footer:
@@ -5197,7 +5260,8 @@
         This reverts commit 6b85dd0063669e7db4432bdb650927d05ef9f9c4.
 
 
-        Pin grunt to fixed 1.5.3 as grunt does not follow semver. Needed for now to executed on node12
+        Pin grunt to fixed 1.5.3 as grunt does not follow semver. Needed for now
+        to executed on node12
       footer:
         Change-type: minor
         change-type: minor
@@ -5320,11 +5384,14 @@
                 This increases the minimum postgres version for AggregateJSON
                 from 9.2
 
-                to 9.3 but it is likely that other places already require postgres
+                to 9.3 but it is likely that other places already require
+                postgres
 
-                >=9.3 and as such this should not increase the minimum version at all.
+                >=9.3 and as such this should not increase the minimum version
+                at all.
 
-                If it does somehow manage to then increasing the minimum from a 2012
+                If it does somehow manage to then increasing the minimum from a
+                2012
 
                 postgres to 2013 should still be fine
               footer:
@@ -5405,7 +5472,8 @@
                 This is intended to be used to target tables differently for
                 reads vs
 
-                writes, eg where you might read from a view/definition but want to
+                writes, eg where you might read from a view/definition but want
+                to
 
                 write to a physical table instead
               footer:
@@ -5446,7 +5514,8 @@
               body: >
                 `lfInfo` will be used to pass extra context extracted from LF
 
-                downstream. Currently the only context is the root table alias for each
+                downstream. Currently the only context is the root table alias
+                for each
 
                 rule.
               footer:
@@ -5466,7 +5535,8 @@
                 This is intended to be used to target tables differently for
                 reads vs
 
-                writes, eg where you might read from a view/definition but want to
+                writes, eg where you might read from a view/definition but want
+                to
 
                 write to a physical table instead
 
@@ -5484,7 +5554,8 @@
                         This is intended to be used to target tables differently
                         for reads vs
 
-                        writes, eg where you might read from a view/definition but want to
+                        writes, eg where you might read from a view/definition
+                        but want to
 
                         write to a physical table instead
                       footer:
@@ -5611,7 +5682,8 @@
                 This avoids issues where the aliases may not map up,
                 particularly if
 
-                the definition was generated and may have automatic aliases, eg if
+                the definition was generated and may have automatic aliases, eg
+                if
 
                 using the result of an odata-to-abstract-sql generation
               footer:
@@ -6380,7 +6452,8 @@
                 if operands in expression can be used as numericValues.
 
 
-                In SQL statements arithmetic expressions like add/sub are supported for date values.
+                In SQL statements arithmetic expressions like add/sub are
+                supported for date values.
 
                 DateArithmetic nodes need input dependent typing.
               footer:
@@ -6426,12 +6499,15 @@
                                 isNumericValue is evaluated in arithmetic
                                 expressions
 
-                                if operands in expression can be used as numericValues.
+                                if operands in expression can be used as
+                                numericValues.
 
 
-                                In SQL statements arithmetic expressions like add/sub are supported for date values.
+                                In SQL statements arithmetic expressions like
+                                add/sub are supported for date values.
 
-                                DateArithmetic nodes need input dependent typing.
+                                DateArithmetic nodes need input dependent
+                                typing.
                               footer:
                                 Change-type: minor
                                 change-type: minor
@@ -6808,7 +6884,8 @@
                         if operands in expression can be used as numericValues.
 
 
-                        In SQL statements arithmetic expressions like add/sub are supported for date values.
+                        In SQL statements arithmetic expressions like add/sub
+                        are supported for date values.
 
                         DateArithmetic nodes need input dependent typing.
                       footer:
@@ -7342,7 +7419,8 @@
         when I is not set in the overload.
 
 
-        tsc 4.8 https://devblogs.microsoft.com/typescript/announcing-typescript-4-8/#unconstrained-generics-no-longer-assignable-to
+        tsc 4.8
+        https://devblogs.microsoft.com/typescript/announcing-typescript-4-8/#unconstrained-generics-no-longer-assignable-to
       footer:
         Change-type: patch
         change-type: patch
@@ -7933,12 +8011,15 @@
                                 'strict' or 'informative'.
 
 
-                                Behaviour change only if type is informative otherwise default 'strict'.
+                                Behaviour change only if type is informative
+                                otherwise default 'strict'.
 
 
-                                An informative reference is just an int field that points
+                                An informative reference is just an int field
+                                that points
 
-                                to another tables id field - like foreign key without constraints
+                                to another tables id field - like foreign key
+                                without constraints
 
                                 or foregein key cascades.
                               footer:
@@ -7958,7 +8039,8 @@
                                 Since it's possible for them to behave in a way
                                 that violates the
 
-                                safety checks we'll disable them until we can add specific checks
+                                safety checks we'll disable them until we can
+                                add specific checks
 
                                 for the HAVING clause
                               footer:
@@ -8019,10 +8101,12 @@
                         This means the prefix will be stable/reliable across
                         runs and make it
 
-                        easier to compare the output generating from different runs
+                        easier to compare the output generating from different
+                        runs
 
 
-                        Update @balena/abstract-sql-compiler from 7.14.1 to 7.17.0
+                        Update @balena/abstract-sql-compiler from 7.14.1 to
+                        7.17.0
 
                         Update @balena/lf-to-abstract-sql from 4.3.0 to 4.4.1
 
@@ -8209,7 +8293,8 @@
                                 This became unnecessary when @balena/sbvr-types
                                 added the concept of
 
-                                cast types since that now specifies how to cast a SERIAL type
+                                cast types since that now specifies how to cast
+                                a SERIAL type
                               footer:
                                 Change-type: patch
                                 change-type: patch
@@ -8374,7 +8459,8 @@
                                 This works on the assumption that it is a rule
                                 query that should always
 
-                                return true and allows ignoring more modification cases where they
+                                return true and allows ignoring more
+                                modification cases where they
 
                                 cannot change the result from true to false
                               footer:
@@ -8588,12 +8674,15 @@
                         'informative'.
 
 
-                        Behaviour change only if type is informative otherwise default 'strict'.
+                        Behaviour change only if type is informative otherwise
+                        default 'strict'.
 
 
-                        An informative reference is just an int field that points
+                        An informative reference is just an int field that
+                        points
 
-                        to another tables id field - like foreign key without constraints
+                        to another tables id field - like foreign key without
+                        constraints
 
                         or foregein key cascades.
                       footer:
@@ -8613,7 +8702,8 @@
                         Since it's possible for them to behave in a way that
                         violates the
 
-                        safety checks we'll disable them until we can add specific checks
+                        safety checks we'll disable them until we can add
+                        specific checks
 
                         for the HAVING clause
                       footer:
@@ -8854,12 +8944,14 @@
                 'informative'.
 
 
-                Behaviour change only if type is informative otherwise default 'strict'.
+                Behaviour change only if type is informative otherwise default
+                'strict'.
 
 
                 An informative reference is just an int field that points
 
-                to another tables id field - like foreign key without constraints
+                to another tables id field - like foreign key without
+                constraints
 
                 or foregein key cascades.
               footer:
@@ -8997,7 +9089,8 @@
                 Since it's possible for them to behave in a way that violates
                 the
 
-                safety checks we'll disable them until we can add specific checks
+                safety checks we'll disable them until we can add specific
+                checks
 
                 for the HAVING clause
               footer:
@@ -9670,7 +9763,8 @@
                         This became unnecessary when @balena/sbvr-types added
                         the concept of
 
-                        cast types since that now specifies how to cast a SERIAL type
+                        cast types since that now specifies how to cast a SERIAL
+                        type
                       footer:
                         Change-type: patch
                         change-type: patch
@@ -9835,7 +9929,8 @@
                         This works on the assumption that it is a rule query
                         that should always
 
-                        return true and allows ignoring more modification cases where they
+                        return true and allows ignoring more modification cases
+                        where they
 
                         cannot change the result from true to false
                       footer:
@@ -10943,7 +11038,8 @@
                 This works on the assumption that it is a rule query that should
                 always
 
-                return true and allows ignoring more modification cases where they
+                return true and allows ignoring more modification cases where
+                they
 
                 cannot change the result from true to false
               footer:
@@ -11763,7 +11859,8 @@
                         This allows specifying the correct type to cast to when
                         necessary
 
-                        rather than relying on the fact the currently all type functions happen
+                        rather than relying on the fact the currently all type
+                        functions happen
 
                         to be integers
                       footer:
@@ -11822,7 +11919,8 @@
                         This allows specifying the correct type to cast to when
                         necessary
 
-                        rather than relying on the fact the currently all type functions happen
+                        rather than relying on the fact the currently all type
+                        functions happen
 
                         to be integers
                       footer:
@@ -11891,7 +11989,8 @@
                                 This allows specifying the correct type to cast
                                 to when necessary
 
-                                rather than relying on the fact the currently all type functions happen
+                                rather than relying on the fact the currently
+                                all type functions happen
 
                                 to be integers
                               footer:
@@ -11972,7 +12071,8 @@
                 This allows specifying the correct type to cast to when
                 necessary
 
-                rather than relying on the fact the currently all type functions happen
+                rather than relying on the fact the currently all type functions
+                happen
 
                 to be integers
               footer:
@@ -14015,7 +14115,8 @@
                                         We do this by using basic scope info to
                                         prune aliased table references
 
-                                        which also allows us to handle aliased select queries in the from
+                                        which also allows us to handle aliased
+                                        select queries in the from
                                       footer:
                                         Change-type: minor
                                         change-type: minor
@@ -14128,7 +14229,8 @@
                                       body: >
                                         Update odata-parser from 1.0.1 to 1.0.3
 
-                                        Update odata-to-abstract-sql from 3.0.0 to 3.0.1
+                                        Update odata-to-abstract-sql from 3.0.0
+                                        to 3.0.1
 
                                         Update sbvr-parser from 0.2.1 to 0.2.2
 
@@ -15301,7 +15403,8 @@
                                 We do this by using basic scope info to prune
                                 aliased table references
 
-                                which also allows us to handle aliased select queries in the from
+                                which also allows us to handle aliased select
+                                queries in the from
                               footer:
                                 Change-type: minor
                                 change-type: minor
@@ -18136,7 +18239,9 @@
 
         ```
 
-        GET /example/application?$select=id,name&$filter=(owns__device/any(d:d/name eq 'test'))&$expand=owns__device($select=id,name)
+        GET
+        /example/application?$select=id,name&$filter=(owns__device/any(d:d/name
+        eq 'test'))&$expand=owns__device($select=id,name)
 
         ```
 
@@ -18238,7 +18343,8 @@
         ```
 
 
-        As one can see we don't apply the device access permission anymore in the select and where subqueries.
+        As one can see we don't apply the device access permission anymore in
+        the select and where subqueries.
       footer:
         Change-type: minor
         change-type: minor
@@ -19985,7 +20091,8 @@
                         We do this by using basic scope info to prune aliased
                         table references
 
-                        which also allows us to handle aliased select queries in the from
+                        which also allows us to handle aliased select queries in
+                        the from
                       footer:
                         Change-type: minor
                         change-type: minor
@@ -20220,7 +20327,8 @@
                 We do this by using basic scope info to prune aliased table
                 references
 
-                which also allows us to handle aliased select queries in the from
+                which also allows us to handle aliased select queries in the
+                from
               footer:
                 Change-type: minor
                 change-type: minor
