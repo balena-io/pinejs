@@ -32,7 +32,7 @@
     "@balena/odata-parser": "^3.0.3",
     "@balena/odata-to-abstract-sql": "^6.2.3",
     "@balena/sbvr-parser": "^1.4.3",
-    "@balena/sbvr-types": "^6.1.1",
+    "@balena/sbvr-types": "^7.0.1",
     "@types/body-parser": "^1.19.5",
     "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.6",
