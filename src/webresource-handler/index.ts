@@ -64,9 +64,10 @@ export const getWebresourceHandler = (): WebResourceHandler | undefined => {
 	return configuredWebResourceHandler;
 };
 
-const isFileInValidPath = async (
+const isValidUpload = async (
 	fieldname: string,
 	req: Express.Request,
+	odataRequest: uriParser.ParsedODataRequest,
 ): Promise<boolean> => {
 	if (req.method !== 'POST' && req.method !== 'PATCH') {
 		return false;
@@ -77,10 +78,6 @@ const isFileInValidPath = async (
 		return false;
 	}
 	const model = getModel(apiRoot);
-	const odataRequest = uriParser.parseOData({
-		url: req.url,
-		method: req.method,
-	});
 	const sqlResourceName = sbvrUtils.resolveSynonym(odataRequest);
 
 	const table = model.abstractSql.tables[sqlResourceName];
@@ -125,6 +122,15 @@ export const getUploaderMiddlware = (
 		const bb = busboy({ headers: req.headers });
 		let isAborting = false;
 
+		const parsedOdataRequest = uriParser.parseOData({
+			url: req.url,
+			method: req.method,
+		});
+		const webResourcesFieldNames = getWebResourceFields(
+			parsedOdataRequest,
+			false,
+		);
+
 		const finishFileUpload = () => {
 			req.unpipe(bb);
 			req.on('readable', req.read.bind(req));
@@ -152,7 +158,7 @@ export const getUploaderMiddlware = (
 			completeUploads.push(
 				(async () => {
 					try {
-						if (!(await isFileInValidPath(fieldname, req))) {
+						if (!(await isValidUpload(fieldname, req, parsedOdataRequest))) {
 							filestream.resume();
 							return;
 						}
@@ -184,6 +190,14 @@ export const getUploaderMiddlware = (
 		// This receives the form fields and transforms them into a standard JSON body
 		// This is a similar behavior as previous multer library did
 		bb.on('field', (name, val) => {
+			if (webResourcesFieldNames.includes(name)) {
+				isAborting = true;
+				bb.emit(
+					'error',
+					new errors.BadRequestError('WebResource field must be a blob.'),
+				);
+				return;
+			}
 			req.body[name] = val;
 		});
 
@@ -209,7 +223,7 @@ export const getUploaderMiddlware = (
 			}
 		});
 
-		bb.on('error', async (err) => {
+		bb.on('error', async (err: Error) => {
 			finishFileUpload();
 			await clearFiles();
 
@@ -221,15 +235,17 @@ export const getUploaderMiddlware = (
 				);
 			}
 
-			getLogger(getApiRoot(req)).error('Error uploading file', err);
-			next(err);
+			if (!sbvrUtils.handleHttpErrors(req, res, err)) {
+				getLogger(getApiRoot(req)).error('Error uploading file', err);
+				next(err);
+			}
 		});
 		req.pipe(bb);
 	};
 };
 
-const getWebResourceFields = (
-	request: uriParser.ODataRequest,
+export const getWebResourceFields = (
+	request: uriParser.ParsedODataRequest,
 	useTranslations = true,
 ): string[] => {
 	// Translations will use modifyFields(translated) rather than fields(original) so we need to
