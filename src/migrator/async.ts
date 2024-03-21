@@ -119,8 +119,8 @@ const $run = async (
 		let asyncRunnerMigratorFn: (tx: Tx) => Promise<number>;
 		let initMigrationState: InitialMigrationStatus = {
 			migration_key: key,
-			start_time: new Date(),
-			last_run_time: new Date(),
+			start_time: new Date().toISOString(),
+			last_run_time: new Date().toISOString(),
 			run_count: 0,
 			migrated_row_count: 0,
 			error_count: 0,
@@ -265,7 +265,8 @@ const $run = async (
 											// when all rows have been catched up once we only catch up less frequently
 											migrationState.is_backing_off = true;
 											// only store the first time when migrator converged to all data migrated
-											migrationState.converged_time ??= new Date();
+											migrationState.converged_time ??=
+												new Date().toISOString();
 										} else {
 											// Only here for the case that after backoff more rows need to be caught up faster
 											// If rows have been updated recently we start the interval again with normal frequency
@@ -293,7 +294,7 @@ const $run = async (
 									} finally {
 										// using finally as it will also run when return statement is called inside the try block
 										// either success or error release the lock
-										migrationState.last_run_time = new Date();
+										migrationState.last_run_time = new Date().toISOString();
 										migrationState.run_count += 1;
 										await updateMigrationStatus(tx, migrationState);
 									}
