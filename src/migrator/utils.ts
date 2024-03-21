@@ -96,13 +96,13 @@ export class MigrationError extends TypedError {}
 
 export type MigrationStatus = {
 	migration_key: string;
-	start_time: Date;
-	last_run_time: Date | null;
+	start_time: string | undefined | null;
+	last_run_time: string | undefined | null;
 	run_count: number;
 	migrated_row_count: number;
 	error_count: number;
-	converged_time: Date | undefined;
-	is_backing_off: boolean;
+	converged_time: string | undefined | null;
+	is_backing_off: boolean | undefined | null;
 };
 
 export type MigrationExecutionResult =
@@ -325,7 +325,17 @@ WHERE "migration"."model name" = ${1}`,
 	if (data == null) {
 		return [];
 	}
-	return sbvrUtils.sbvrTypes.JSON.fetchProcessing(data.executed_migrations);
+
+	/**
+	 * Should be
+	 * 	if ( Array.isArray(executedMigrations) && executedMigrations.every((migration) => typeof migration === 'string') ) {
+	 * 		return executedMigrations;
+	 *  }
+	 * but typescript does not infer that every element of the array is a string
+	 */
+	return sbvrUtils.sbvrTypes.JSON.fetchProcessing(
+		data.executed_migrations,
+	) as string[];
 };
 
 export const migrationTablesExist = async (tx: Tx) => {
