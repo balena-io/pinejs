@@ -14,6 +14,7 @@ const s3Handler: WebResourceHandler = new S3Handler({
 	accessKey: requiredVar('S3_ACCESS_KEY'),
 	secretKey: requiredVar('S3_SECRET_KEY'),
 	endpoint: requiredVar('S3_ENDPOINT'),
+	jwtSigningKey: requiredVar('S3_JWT_SIGNING_KEY'),
 	maxSize: intVar('PINEJS_WEBRESOURCE_MAXFILESIZE'),
 });
 
