@@ -242,11 +242,17 @@ const prettifyConstraintError = (
 	request: uriParser.ODataRequest,
 ) => {
 	if (err instanceof db.ConstraintError) {
-		let matches: RegExpExecArray | null = null;
+		let keyMatches: RegExpExecArray | null = null;
+		let violatedConstraintInfo:
+			| {
+					table: AbstractSQLCompiler.AbstractSqlTable;
+					name: string;
+			  }
+			| undefined;
 		if (err instanceof db.UniqueConstraintError) {
 			switch (db.engine) {
 				case 'mysql':
-					matches =
+					keyMatches =
 						/ER_DUP_ENTRY: Duplicate entry '.*?[^\\]' for key '(.*?[^\\])'/.exec(
 							err.message,
 						);
@@ -254,22 +260,46 @@ const prettifyConstraintError = (
 				case 'postgres': {
 					const resourceName = resolveSynonym(request);
 					const abstractSqlModel = getFinalAbstractSqlModel(request);
-					matches = new RegExp(
-						'"' + abstractSqlModel.tables[resourceName].name + '_(.*?)_key"',
-					).exec(err.message);
+					const table = abstractSqlModel.tables[resourceName];
+					keyMatches = new RegExp('"' + table.name + '_(.*?)_key"').exec(
+						err.message,
+					);
+					// no need to run the regex if a `_key` error was already matched, or if there are
+					// no indexes on the table (since those are the only supported uniqueness errors atm)
+					if (keyMatches == null && table.indexes.length > 0) {
+						const indexConstraintName =
+							/duplicate key value violates unique constraint "(.*)"/.exec(
+								err.message,
+							)?.[1];
+						if (indexConstraintName != null) {
+							violatedConstraintInfo = {
+								table,
+								name: indexConstraintName,
+							};
+						}
+					}
 					break;
 				}
 			}
-			// We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
-			if (matches == null) {
-				throw new db.UniqueConstraintError('Unique key constraint violated');
+			if (keyMatches != null) {
+				const columns = keyMatches[1].split('_');
+				throw new db.UniqueConstraintError(
+					'"' +
+						columns.map(sqlNameToODataName).join('" and "') +
+						'" must be unique.',
+				);
 			}
-			const columns = matches[1].split('_');
-			throw new db.UniqueConstraintError(
-				'"' +
-					columns.map(sqlNameToODataName).join('" and "') +
-					'" must be unique.',
-			);
+			if (violatedConstraintInfo != null) {
+				const { table, name: violatedConstraintName } = violatedConstraintInfo;
+				const violatedUniqueIndex = table.indexes.find(
+					(idx) => idx.name === violatedConstraintName,
+				);
+				if (violatedUniqueIndex?.description != null) {
+					throw new BadRequestError(violatedUniqueIndex.description);
+				}
+			}
+			// We know it's the right error type, so if matches exists just throw a generic error message, since we have failed to get the info for a more specific one.
+			throw new db.UniqueConstraintError('Unique key constraint violated');
 		}
 
 		if (err instanceof db.ExclusionConstraintError) {
@@ -280,7 +310,7 @@ const prettifyConstraintError = (
 		if (err instanceof db.ForeignKeyConstraintError) {
 			switch (db.engine) {
 				case 'mysql':
-					matches =
+					keyMatches =
 						/ER_ROW_IS_REFERENCED_: Cannot delete or update a parent row: a foreign key constraint fails \(".*?"\.(".*?").*/.exec(
 							err.message,
 						);
@@ -289,13 +319,13 @@ const prettifyConstraintError = (
 					const resourceName = resolveSynonym(request);
 					const abstractSqlModel = getFinalAbstractSqlModel(request);
 					const tableName = abstractSqlModel.tables[resourceName].name;
-					matches = new RegExp(
+					keyMatches = new RegExp(
 						'"' +
 							tableName +
 							'" violates foreign key constraint ".*?" on table "(.*?)"',
 					).exec(err.message);
-					if (matches == null) {
-						matches = new RegExp(
+					if (keyMatches == null) {
+						keyMatches = new RegExp(
 							'"' +
 								tableName +
 								'" violates foreign key constraint "' +
@@ -308,13 +338,13 @@ const prettifyConstraintError = (
 			}
 			// We know it's the right error type, so if no matches exists just throw a generic error message,
 			// since we have failed to get the info for a more specific one.
-			if (matches == null) {
+			if (keyMatches == null) {
 				throw new db.ForeignKeyConstraintError(
 					'Foreign key constraint violated',
 				);
 			}
 			throw new db.ForeignKeyConstraintError(
-				'Data is referenced by ' + sqlNameToODataName(matches[1]) + '.',
+				'Data is referenced by ' + sqlNameToODataName(keyMatches[1]) + '.',
 			);
 		}
 
@@ -325,7 +355,7 @@ const prettifyConstraintError = (
 			if (table.checks) {
 				switch (db.engine) {
 					case 'postgres':
-						matches = new RegExp(
+						keyMatches = new RegExp(
 							'new row for relation "' +
 								table.name +
 								'" violates check constraint "(.*?)"',
@@ -333,8 +363,8 @@ const prettifyConstraintError = (
 						break;
 				}
 			}
-			if (matches != null) {
-				const checkName = matches[1];
+			if (keyMatches != null) {
+				const checkName = keyMatches[1];
 				const check = table.checks!.find((c) => c.name === checkName);
 				if (check?.description != null) {
 					throw new BadRequestError(check.description);
