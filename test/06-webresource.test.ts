@@ -1097,6 +1097,186 @@ describe('06 webresources tests', function () {
 			});
 		},
 	);
+
+	describe('presigned upload', () => {
+		let organization: any;
+
+		it('uploads a file via S3 presigned URL', async () => {
+			const { body: org } = await supertest(testLocalServer)
+				.post(`/example/organization`)
+				.field('name', 'John')
+				.expect(201);
+
+			const { body: orgWithoutFile } = await supertest(testLocalServer)
+				.get(`/example/organization(${org.id})`)
+				.expect(200);
+
+			expect(orgWithoutFile.d[0].logo_image).to.be.null;
+
+			const uniqueFilename = `${randomUUID()}_test.png`;
+			const { body: uploadResponse } = await supertest(testLocalServer)
+				.post('/v1/webresources/get_upload_urls')
+				.query({
+					vocabulary: 'example',
+					resourceName: 'organization',
+					id: org.id,
+					fieldName: 'logo_image',
+				})
+				.send({
+					filename: uniqueFilename,
+					content_type: 'image/png',
+					size: 6291456,
+					chunkSize: 6000000,
+				})
+				.expect(200);
+
+			expect(uploadResponse.token).to.be.a('string');
+			expect(uploadResponse.uploadUrls).to.be.an('array').that.has.length(2);
+			expect(uploadResponse.uploadUrls[0].chunkSize).to.be.eq(6000000);
+			expect(uploadResponse.uploadUrls[0].partNumber).to.be.eq(1);
+			expect(uploadResponse.uploadUrls[1].chunkSize).to.be.eq(291456);
+			expect(uploadResponse.uploadUrls[1].partNumber).to.be.eq(2);
+
+			const token = uploadResponse.token;
+
+			const chunk1 = new File([Buffer.alloc(6000000)], 'test.png', {
+				type: 'image/png',
+			});
+			const chunk2 = new File([Buffer.alloc(291456)], 'test.png', {
+				type: 'image/png',
+			});
+
+			const res = await Promise.all([
+				fetch(uploadResponse.uploadUrls[0].url, {
+					method: 'PUT',
+					body: chunk1,
+				}),
+				fetch(uploadResponse.uploadUrls[1].url, {
+					method: 'PUT',
+					body: chunk2,
+				}),
+			]);
+
+			expect(res[0].status).to.be.eq(200);
+			expect(res[0].headers.get('Etag')).to.be.a('string');
+
+			expect(res[1].status).to.be.eq(200);
+			expect(res[1].headers.get('Etag')).to.be.a('string');
+
+			const { body: commitResponse } = await supertest(testLocalServer)
+				.post('/v1/webresources/commit')
+				.send({
+					token,
+					additionalCommitInfo: {
+						Parts: [
+							{
+								PartNumber: 1,
+								ETag: res[0].headers.get('Etag'),
+							},
+							{
+								PartNumber: 2,
+								ETag: res[1].headers.get('Etag'),
+							},
+						],
+					},
+				})
+				.expect(200);
+
+			await expectToExist(commitResponse.filename);
+			const { body: orgWithFile } = await supertest(testLocalServer)
+				.get(`/example/organization(${org.id})`)
+				.expect(200);
+
+			expect(orgWithFile.d[0].logo_image.href).to.be.a('string');
+			expect(orgWithFile.d[0].logo_image.size).to.be.eq(6291456);
+
+			organization = orgWithFile.d[0];
+		});
+
+		// TODO: remove all this duplication mess on the tests
+		it('deletes old file when patching a new one with S3 presigned URL', async () => {
+			const originalFileName = organization.logo_image.filename as string;
+			await expectToExist(originalFileName);
+
+			const uniqueFilename = `${randomUUID()}_test.png`;
+			const { body: uploadResponse } = await supertest(testLocalServer)
+				.post('/v1/webresources/get_upload_urls')
+				.query({
+					vocabulary: 'example',
+					resourceName: 'organization',
+					id: organization.id,
+					fieldName: 'logo_image',
+				})
+				.send({
+					filename: uniqueFilename,
+					content_type: 'image/png',
+					size: 7291456,
+					chunkSize: 6000000,
+				})
+				.expect(200);
+
+			expect(uploadResponse.token).to.be.a('string');
+			expect(uploadResponse.uploadUrls).to.be.an('array').that.has.length(2);
+			expect(uploadResponse.uploadUrls[0].chunkSize).to.be.eq(6000000);
+			expect(uploadResponse.uploadUrls[0].partNumber).to.be.eq(1);
+			expect(uploadResponse.uploadUrls[1].chunkSize).to.be.eq(1291456);
+			expect(uploadResponse.uploadUrls[1].partNumber).to.be.eq(2);
+
+			const token = uploadResponse.token;
+
+			const chunk1 = new File([Buffer.alloc(6000000)], 'test2.png', {
+				type: 'image/png',
+			});
+			const chunk2 = new File([Buffer.alloc(1291456)], 'test2.png', {
+				type: 'image/png',
+			});
+
+			const res = await Promise.all([
+				fetch(uploadResponse.uploadUrls[0].url, {
+					method: 'PUT',
+					body: chunk1,
+				}),
+				fetch(uploadResponse.uploadUrls[1].url, {
+					method: 'PUT',
+					body: chunk2,
+				}),
+			]);
+
+			expect(res[0].status).to.be.eq(200);
+			expect(res[0].headers.get('Etag')).to.be.a('string');
+
+			expect(res[1].status).to.be.eq(200);
+			expect(res[1].headers.get('Etag')).to.be.a('string');
+
+			const { body: commitResponse } = await supertest(testLocalServer)
+				.post('/v1/webresources/commit')
+				.send({
+					token,
+					additionalCommitInfo: {
+						Parts: [
+							{
+								PartNumber: 1,
+								ETag: res[0].headers.get('Etag'),
+							},
+							{
+								PartNumber: 2,
+								ETag: res[1].headers.get('Etag'),
+							},
+						],
+					},
+				})
+				.expect(200);
+			await expectToExist(commitResponse.filename);
+			const { body: orgWithFile } = await supertest(testLocalServer)
+				.get(`/example/organization(${organization.id})`)
+				.expect(200);
+
+			expect(orgWithFile.d[0].logo_image.href).to.be.a('string');
+			expect(orgWithFile.d[0].logo_image.size).to.be.eq(7291456);
+
+			expect(await isEventuallyDeleted(originalFileName)).to.be.true;
+		});
+	});
 });
 
 const removesSigning = (href: string): string => {
