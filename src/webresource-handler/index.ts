@@ -14,6 +14,7 @@ import {
 import { errors, permissions } from '../server-glue/module';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 import { TypedError } from 'typed-error';
+import memoize from 'memoizee';
 
 export * from './handlers';
 
@@ -30,10 +31,57 @@ export interface UploadResponse {
 	filename: string;
 }
 
+export interface WebResourceUploadParameters {
+	vocabulary: string;
+	resourceName: string;
+	id: number;
+	fieldName: string;
+}
+
+export interface WebResourceStartUploadPayload {
+	metadata: Pick<WebResource, 'filename' | 'content_type'>;
+}
+
+export interface WebResourceUploadPartPayload {
+	token: string;
+}
+export interface WebResourceUploadResponse {
+	token: string;
+}
+
+export interface WebResourceTokenPayload {
+	fileKey: string;
+	uploadParameters: WebResourceUploadParameters;
+	uploadId: string;
+	metadata: WebResourceStartUploadPayload['metadata'];
+}
+
+export interface UploadChunkPayload {
+	partNumber: number;
+	chunkSize: number;
+}
+
 export interface WebResourceHandler {
 	handleFile: (resource: IncomingFile) => Promise<UploadResponse>;
 	removeFile: (fileReference: string) => Promise<void>;
 	onPreRespond: (webResource: WebResource) => Promise<WebResource>;
+
+	// These are only used for presigned multipart url uploads
+	startUpload: (
+		uploadParameters: WebResourceUploadParameters,
+		metadata: WebResourceStartUploadPayload['metadata'],
+	) => Promise<WebResourceUploadResponse>;
+
+	getPartUploadUrl(
+		decodedPayload: WebResourceTokenPayload,
+		partNumber: number,
+		partSize?: number,
+	): Promise<string>;
+	decodeUploadToken: (token: string) => Promise<WebResourceTokenPayload>;
+	commitUpload: (
+		decodedPayload: WebResourceTokenPayload,
+		additionalCommitInfo?: any,
+	) => Promise<WebResource>;
 }
 
 export class WebResourceError extends TypedError {}
@@ -216,6 +264,251 @@ export const getUploaderMiddlware = (
 	};
 };
 
+const parseUploadParameters = (
+	params: any,
+): WebResourceUploadParameters | null => {
+	const { vocabulary, resourceName, id, fieldName } = params;
+	if (
+		typeof vocabulary !== 'string' ||
+		typeof resourceName !== 'string' ||
+		typeof fieldName !== 'string' ||
+		isNaN(Number(id))
+	) {
+		return null;
+	}
+	const parsedId: number = Number(id);
+	return {
+		vocabulary,
+		resourceName,
+		id: parsedId,
+		fieldName,
+	};
+};
+
+const validateStartUploadRequestBody = (
+	body: any,
+): WebResourceStartUploadPayload | null => {
+	const { metadata } = body;
+	if (
+		metadata == null ||
+		typeof metadata !== 'object' ||
+		typeof metadata.filename !== 'string' ||
+		typeof metadata.content_type !== 'string'
+	) {
+		return null;
+	}
+	return {
+		metadata,
+	};
+};
+
+const validateUploadPartRequestBody = (
+	body: any,
+): UploadChunkPayload[] | null => {
+	const { uploadChunks } = body;
+	if (
+		uploadChunks == null ||
+		!Array.isArray(uploadChunks) ||
+		uploadChunks.some(
+			(chunk) =>
+				typeof chunk !== 'object' ||
+				typeof chunk.partNumber !== 'number' ||
+				typeof chunk.chunkSize !== 'number',
+		)
+	) {
+		return null;
+	}
+	return uploadChunks;
+};
+
+// On purpose passing uploadParameters as individual parameters for memoization
+const memoizedHasUpdatePermissions = memoize(
+	async (
+		resourceName: WebResourceUploadParameters['resourceName'],
+		vocabulary: WebResourceUploadParameters['vocabulary'],
+		id: WebResourceUploadParameters['id'],
+		fieldName: WebResourceUploadParameters['fieldName'],
+	): Promise<boolean> => {
+		try {
+			const model = getModel(vocabulary);
+			if (model == null) {
+				return false;
+			}
+
+			const table = model.abstractSql.tables[odataNameToSqlName(resourceName)];
+			const fields = table.fields.filter(
+				(f) =>
+					f.dataType === 'WebResource' &&
+					f.fieldName === odataNameToSqlName(fieldName),
+			);
+
+			if (fields.length < 1) {
+				return false;
+			}
+
+			await sbvrUtils.api[vocabulary].post({
+				url: `${resourceName}(${id})/canAccess`,
+				body: { action: 'update' },
+			});
+
+			return true;
+		} catch (err) {
+			getLogger(vocabulary).warn(
+				'Failed to validate access for',
+				resourceName,
+				id,
+			);
+			return false;
+		}
+	},
+	{ promise: true, maxAge: 1000 * 60 * 5 },
+);
+
+const hasUploadPermissions = (
+	uploadParameters: WebResourceUploadParameters,
+) => {
+	return memoizedHasUpdatePermissions(
+		uploadParameters.resourceName,
+		uploadParameters.vocabulary,
+		uploadParameters.id,
+		uploadParameters.fieldName,
+	);
+};
+
+const startUpload: Express.RequestHandler = async (req, res, next) => {
+	const handler = getWebresourceHandler();
+	if (handler == null) {
+		return next(
+			new errors.BadRequestError('No webresource handler configured'),
+		);
+	}
+
+	const uploadParameters = parseUploadParameters(req.query);
+	if (uploadParameters == null) {
+		return next(new errors.BadRequestError('Invalid request parameters'));
+	}
+
+	const requestBody = validateStartUploadRequestBody(req.body);
+	if (requestBody == null) {
+		return next(new errors.BadRequestError('Invalid request body'));
+	}
+
+	const hasPermissions = await hasUploadPermissions(uploadParameters);
+	if (!hasPermissions) {
+		return next(new errors.ForbiddenError());
+	}
+
+	const { metadata } = requestBody;
+	const { token } = await handler.startUpload(uploadParameters, metadata);
+
+	res.status(200).json({ token });
+};
+
+const getUploadPartUrls: Express.RequestHandler = async (req, res, next) => {
+	const handler = getWebresourceHandler();
+	if (handler == null) {
+		return next(
+			new errors.BadRequestError('No webresource handler configured'),
+		);
+	}
+
+	const token = req.body.token;
+	if (token == null) {
+		return next(new errors.BadRequestError('Upload token is required'));
+	}
+
+	const uploadChunks = validateUploadPartRequestBody(req.body);
+	if (uploadChunks == null) {
+		return next(new errors.BadRequestError('Invalid upload chunks'));
+	}
+
+	const decodedPayload = await handler.decodeUploadToken(token);
+	const hasPermissions = await hasUploadPermissions(
+		decodedPayload.uploadParameters,
+	);
+	if (!hasPermissions) {
+		return next(new errors.ForbiddenError());
+	}
+	// Note that this has to be done in this order, first commit on the storage and then on the DB
+	// to ensure that we will only store metadata if the file is actually stored
+	try {
+		const presignedUrls = await Promise.all(
+			uploadChunks.map((chunk) => {
+				return handler.getPartUploadUrl(
+					decodedPayload,
+					chunk.partNumber,
+					chunk.chunkSize,
+				);
+			}),
+		);
+
+		return res.status(200).json({ presignedUrls });
+	} catch (err) {
+		getLogger(decodedPayload.uploadParameters.vocabulary).warn(
+			'Failed to commit upload',
+			err,
+		);
+		return next(new errors.ConflictError('Failed to get upload part url'));
+	}
+};
+
+const commitUpload: Express.RequestHandler = async (req, res, next) => {
+	const handler = getWebresourceHandler();
+	if (handler == null) {
+		return next(
+			new errors.BadRequestError('No webresource handler configured'),
+		);
+	}
+
+	const token = req.body.token;
+	if (token == null) {
+		return next(new errors.BadRequestError('Upload token is required'));
+	}
+
+	const additionalCommitInfo = req.body.additionalCommitInfo;
+
+	const decodedPayload = await handler.decodeUploadToken(token);
+	const hasPermissions = await hasUploadPermissions(
+		decodedPayload.uploadParameters,
+	);
+	if (!hasPermissions) {
+		return next(new errors.ForbiddenError());
+	}
+	// Note that this has to be done in this order, first commit on the storage and then on the DB
+	// to ensure that we will only store metadata if the file is actually stored
+	try {
+		const webresource = await handler.commitUpload(
+			decodedPayload,
+			additionalCommitInfo,
+		);
+
+		await sbvrUtils.api[decodedPayload.uploadParameters.vocabulary].patch({
+			passthrough: {
+				req: permissions.root,
+			},
+			resource: decodedPayload.uploadParameters.resourceName,
+			id: decodedPayload.uploadParameters.id,
+			body: { [decodedPayload.uploadParameters.fieldName]: webresource },
+		});
+		return res.status(200).json(webresource);
+	} catch (err) {
+		// TODO: do we want to invalidate the MultiPartUpload if the db tx fails?
+		getLogger(decodedPayload.uploadParameters.vocabulary).warn(
+			'Failed to commit upload',
+			err,
+		);
+		return next(new errors.ConflictError('Failed to commit upload'));
+	}
+};
+
+export const setupWebresourceUploadRoutes = (
+	app: Express.Application,
+): void => {
+	app.post('/v1/webresources/start_upload', startUpload);
+	app.post('/v1/webresources/get_upload_part_urls', getUploadPartUrls);
+	app.post('/v1/webresources/commit', commitUpload);
+};
+
 const getWebResourceFields = (
 	request: uriParser.ODataRequest,
 	useTranslations = true,
@@ -249,6 +542,7 @@ const throwIfWebresourceNotInMultipart = (
 	{ req, request }: HookArgs,
 ) => {
 	if (
+		req.user !== permissions.root.user &&
 		!req.is?.('multipart') &&
 		webResourceFields.some((field) => request.values[field] != null)
 	) {

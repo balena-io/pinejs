@@ -5,6 +5,10 @@ import {
 	type UploadResponse,
 	WebResourceError,
 	type WebResourceHandler,
+	type WebResourceUploadParameters,
+	type WebResourceStartUploadPayload,
+	type WebResourceUploadResponse,
+	type WebResourceTokenPayload,
 } from '..';
 import {
 	S3Client,
@@ -12,6 +16,10 @@ import {
 	DeleteObjectCommand,
 	type PutObjectCommandInput,
 	GetObjectCommand,
+	CreateMultipartUploadCommand,
+	UploadPartCommand,
+	CompleteMultipartUploadCommand,
+	HeadObjectCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -19,6 +27,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 import memoize from 'memoizee';
+import jsonwebtoken from 'jsonwebtoken';
 
 export interface S3HandlerProps {
 	region: string;
@@ -26,6 +35,7 @@ export interface S3HandlerProps {
 	secretKey: string;
 	endpoint: string;
 	bucket: string;
+	jwtSigningKey: string;
 	maxSize?: number;
 	signedUrlExpireTimeSeconds?: number;
 	signedUrlCacheExpireTimeSeconds?: number;
@@ -35,6 +45,7 @@ export class S3Handler implements WebResourceHandler {
 	private readonly config: S3ClientConfig;
 	private readonly bucket: string;
 	private readonly maxFileSize: number;
+	private readonly jwtSigningKey: string;
 
 	protected readonly signedUrlExpireTimeSeconds: number;
 	protected readonly signedUrlCacheExpireTimeSeconds: number;
@@ -52,6 +63,7 @@ export class S3Handler implements WebResourceHandler {
 			endpoint: config.endpoint,
 			forcePathStyle: true,
 		};
+		this.jwtSigningKey = config.jwtSigningKey;
 
 		this.signedUrlExpireTimeSeconds =
 			config.signedUrlExpireTimeSeconds ?? 86400; // 24h
@@ -71,9 +83,7 @@ export class S3Handler implements WebResourceHandler {
 
 	public async handleFile(resource: IncomingFile): Promise<UploadResponse> {
 		let size = 0;
-		const key = `${resource.fieldname}_${randomUUID()}_${
-			resource.originalname
-		}`;
+		const key = this.getFileKey(resource.fieldname, resource.originalname);
 		const params: PutObjectCommandInput = {
 			Bucket: this.bucket,
 			Key: key,
@@ -122,6 +132,114 @@ export class S3Handler implements WebResourceHandler {
 		return webResource;
 	}
 
+	public async startUpload(
+		uploadParameters: WebResourceUploadParameters,
+		metadata: WebResourceStartUploadPayload['metadata'],
+	): Promise<WebResourceUploadResponse> {
+		const fileKey = this.getFileKey(
+			uploadParameters.fieldName,
+			metadata.filename,
+		);
+
+		const createMultiPartResponse = await this.client.send(
+			new CreateMultipartUploadCommand({
+				Bucket: this.bucket,
+				Key: fileKey,
+				ContentType: metadata.content_type,
+			}),
+		);
+
+		if (createMultiPartResponse.UploadId == null) {
+			throw new WebResourceError('Failed to create multipart upload.');
+		}
+
+		const token = await this.generateMetadataJwt(
+			fileKey,
+			uploadParameters,
+			metadata,
+			createMultiPartResponse.UploadId,
+		);
+
+		return {
+			token,
+		};
+	}
+
+	public async decodeUploadToken(
+		token: string,
+	): Promise<WebResourceTokenPayload> {
+		return jsonwebtoken.verify(
+			token,
+			this.jwtSigningKey,
+		) as WebResourceTokenPayload;
+	}
+
+	public async getPartUploadUrl(
+		{ fileKey, uploadId }: WebResourceTokenPayload,
+		partNumber: number,
+		partSize?: number,
+	): Promise<string> {
+		const command = new UploadPartCommand({
+			Bucket: this.bucket,
+			Key: fileKey,
+			UploadId: uploadId,
+			PartNumber: partNumber,
+			ContentLength: partSize,
+		});
+
+		return getSignedUrl(this.client, command, {
+			expiresIn: this.signedUrlExpireTimeSeconds,
+		});
+	}
+
+	public async commitUpload(
+		{ fileKey, uploadId, metadata }: WebResourceTokenPayload,
+		additionalCommitInfo?: any,
+	): Promise<WebResource> {
+		await this.client.send(
+			new CompleteMultipartUploadCommand({
+				Bucket: this.bucket,
+				Key: fileKey,
+				UploadId: uploadId,
+				MultipartUpload: additionalCommitInfo,
+			}),
+		);
+
+		const headResult = await this.client.send(
+			new HeadObjectCommand({
+				Bucket: this.bucket,
+				Key: fileKey,
+			}),
+		);
+
+		return {
+			href: this.getS3URL(fileKey),
+			filename: metadata.filename,
+			size: headResult.ContentLength,
+			content_type: headResult.ContentType,
+		};
+	}
+
+	private async generateMetadataJwt(
+		fileKey: string,
+		uploadParameters: WebResourceUploadParameters,
+		metadata: WebResourceStartUploadPayload['metadata'],
+		uploadId: string,
+	): Promise<string> {
+		return jsonwebtoken.sign(
+			{
+				fileKey,
+				uploadId,
+				uploadParameters,
+				metadata,
+			},
+			this.jwtSigningKey,
+			{
+				expiresIn: this.signedUrlExpireTimeSeconds,
+			},
+		);
+	}
+
 	private s3SignUrl(fileKey: string): Promise<string> {
 		const command = new GetObjectCommand({
 			Bucket: this.bucket,
@@ -139,5 +257,9 @@ export class S3Handler implements WebResourceHandler {
 	private getKeyFromHref(href: string): string {
 		const hrefWithoutParams = normalizeHref(href);
 		return hrefWithoutParams.substring(hrefWithoutParams.lastIndexOf('/') + 1);
+	}
+
+	private getFileKey(fieldName: string, fileName: string) {
+		return `${fieldName}_${randomUUID()}_${fileName}`;
 	}
 }

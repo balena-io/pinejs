@@ -33,6 +33,7 @@ import {
 	type WebResourceHandler,
 	setupUploadHooks,
 	setupWebresourceHandler,
+	setupWebresourceUploadRoutes,
 } from '../webresource-handler';
 import type { AliasValidNodeType } from '../sbvr-api/translations';
 
@@ -435,6 +436,8 @@ export const setup = (app: Express.Application) => {
 			process.exit(1);
 		}
 	};
+
+	setupWebresourceUploadRoutes(app);
 
 	return {
 		loadConfig,
