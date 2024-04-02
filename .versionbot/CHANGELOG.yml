@@ -1,4 +1,151 @@
 - commits:
+    - subject: Add support for prettifying index constraint errors with their
+        description
+      hash: c664148d85c67b645954adc929c778a7ce81115f
+      body: |
+        Update @balena/abstract-sql-compiler from 9.0.4 to 9.1.0
+      footer:
+        Depends-on: https://github.com/balena-io-modules/abstract-sql-compiler/pull/237
+        depends-on: https://github.com/balena-io-modules/abstract-sql-compiler/pull/237
+        Change-type: minor
+        change-type: minor
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Export the generateRuleHashAcronym helper
+              hash: 6d00b7dba58690019cfb443e4c876d30e8d7ad98
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Thodoris Greasidis
+              nested: []
+            - subject: Add support for unique indexes with NOT DISTINCT NULLS
+              hash: cbd1177d14cd2266dd92f29755819a3139bf3bc1
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Thodoris Greasidis
+              nested: []
+            - subject: Add support for partial unique indexes
+              hash: e2c92b8d5022ad29b95dd1e0837ec9dddec24fa4
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-9.1.0
+          title: ""
+          date: 2024-03-26T09:29:57.519Z
+        - commits:
+            - subject: Update dependency @balena/odata-parser to v3
+              hash: d23614a1f7346edb262897ca8ff62abc2eaffff6
+              body: |
+                Update @balena/odata-parser from 2.5.0 to 3.0.3
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Self-hosted Renovate Bot
+              nested:
+                - commits:
+                    - subject: Optimize by moving constant values into global init
+                      hash: 94899b779fb879540f3675c3c9d7ca3f9d8af4bf
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: fisehara <harald@balena.io>
+                        signed-off-by: fisehara <harald@balena.io>
+                      author: fisehara
+                  version: odata-parser-3.0.3
+                  title: ""
+                  date: 2024-01-04T15:30:09.102Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: 0a7bd8ff2e506fa3988b6e1851e0098df5da3f86
+                      body: >
+                        - Update @balena/lint from 6.2.2 to 7.2.4
+
+                        - Delete `require-npm4-to-publish` as handled by
+                        `engines` parameter in `package.json`
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: fisehara <harald@balena.io>
+                        signed-off-by: fisehara <harald@balena.io>
+                      author: fisehara
+                  version: odata-parser-3.0.2
+                  title: ""
+                  date: 2024-01-04T10:16:56.896Z
+                - commits:
+                    - subject: Allow running CI on external PRs
+                      hash: 875af25a9e8ba9ade051f76f4500f5146db675a7
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: odata-parser-3.0.1
+                  title: ""
+                  date: 2023-09-25T10:50:13.648Z
+                - commits:
+                    - subject: Use optional chaining operator
+                      hash: 1fb39ef2497b964af0f2cbc953a3f0843936fe02
+                      body: ""
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                    - subject: Set minimum supported nodejs version to 16.13.0
+                      hash: 91b8f51691a9649e99f2dc64253cc5ce9b59035a
+                      body: ""
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Pagan Gazzard
+                  version: odata-parser-3.0.0
+                  title: ""
+                  date: 2023-04-26T14:57:49.416Z
+          version: abstract-sql-compiler-9.0.7
+          title: ""
+          date: 2024-03-22T13:08:03.336Z
+        - commits:
+            - subject: Update TypeScript to 5.4.3
+              hash: 29299180ecbcb5bcd26b47e52f86538fa9a1f0f8
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-9.0.6
+          title: ""
+          date: 2024-03-21T16:34:21.387Z
+        - commits:
+            - subject: Update `@balena/sbvr-types`
+              hash: 1822aa5e81736f18f2a4dd265e5754b589d4fd36
+              body: >
+                Updaet @balena/sbvr-types from 6.0.0 to 7.0.1
+
+
+                @balena/sbvr-types changes `fetchProcessing` and not validate.
+                No change in abstract-sql-compiler interfaces. => Patch
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Harald Fischer <harald@balena.io>
+                signed-off-by: Harald Fischer <harald@balena.io>
+              author: Harald Fischer
+              nested: []
+          version: abstract-sql-compiler-9.0.5
+          title: ""
+          date: 2024-03-05T19:12:37.779Z
+  version: 16.1.0
+  title: ""
+  date: 2024-04-02T15:33:20.424Z
+- commits:
     - subject: Replace `docker-compose` commands with `docker compose`
       hash: cee8cd7c503f656125d8d8603c0ad28dc1a848f9
       body: ""
