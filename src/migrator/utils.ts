@@ -326,16 +326,27 @@ WHERE "migration"."model name" = ${1}`,
 		return [];
 	}
 
-	/**
-	 * Should be
-	 * 	if ( Array.isArray(executedMigrations) && executedMigrations.every((migration) => typeof migration === 'string') ) {
-	 * 		return executedMigrations;
-	 *  }
-	 * but typescript does not infer that every element of the array is a string
-	 */
-	return sbvrUtils.sbvrTypes.JSON.fetchProcessing(
+	const executedMigrations = sbvrUtils.sbvrTypes.JSON.fetchProcessing(
 		data.executed_migrations,
-	) as string[];
+	);
+	if (!Array.isArray(executedMigrations)) {
+		throw new Error(
+			`"migration"."executed migrations" is expected to be an Array<string>, but the retrieved value was ${typeof executedMigrations}`,
+		);
+	}
+	if (
+		!executedMigrations.every(
+			(migration): migration is string => typeof migration === 'string',
+		)
+	) {
+		const nonStringMigrationValue = executedMigrations.find(
+			(migration) => typeof migration !== 'string',
+		);
+		throw new Error(
+			`"migration"."executed migrations" is expected to be an Array<string>, but the retrieved array included ${typeof nonStringMigrationValue}`,
+		);
+	}
+	return executedMigrations;
 };
 
 export const migrationTablesExist = async (tx: Tx) => {
