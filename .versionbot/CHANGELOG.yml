@@ -1,4 +1,24 @@
 - commits:
+    - subject: Replace `docker-compose` commands with `docker compose`
+      hash: cee8cd7c503f656125d8d8603c0ad28dc1a848f9
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Use a type guard for `"migration"."migration status"`
+      hash: d897e4c3b5496d666bb770e93dd87f85e8e007c4
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 16.0.2
+  title: ""
+  date: 2024-04-02T13:48:29.116Z
+- commits:
     - subject: Fix `migration` and `migration status` typings.
       hash: 6fcdec749c734f30347064a8ee6c30c74770c1bc
       body: ""
