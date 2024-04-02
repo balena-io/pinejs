@@ -1,4 +1,18 @@
 - commits:
+    - subject: Fix `migration` and `migration status` typings.
+      hash: 6fcdec749c734f30347064a8ee6c30c74770c1bc
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Harald Fischer <harald@balena.io>
+        signed-off-by: Harald Fischer <harald@balena.io>
+      author: Harald Fischer
+      nested: []
+  version: 16.0.1
+  title: ""
+  date: 2024-04-02T12:38:47.565Z
+- commits:
     - subject: Update `@balena/sbvr-types` to enable ISODatestring as internal pine
         API interface for date and date time fields.
       hash: f5e8e6ebfd0d3f590ef6ed3fa6b46d1b0861d409
