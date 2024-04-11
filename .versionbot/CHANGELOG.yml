@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency @balena/lint to v8
+      hash: 02ba2563aa4ac82ad90accc30534f744c00a0c16
+      body: |
+        Update @balena/lint from 7.3.0 to 8.0.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 16.1.1
+  title: ""
+  date: 2024-04-11T22:45:27.398Z
+- commits:
     - subject: Add support for prettifying index constraint errors with their
         description
       hash: c664148d85c67b645954adc929c778a7ce81115f
