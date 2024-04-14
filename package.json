@@ -12,7 +12,7 @@
   },
   "scripts": {
     "prepublish": "require-npm4-to-publish",
-    "prepare": "node -e \"try { require('husky').install() } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\" && npm run build",
+    "prepare": "node -e \"try { (await import('husky')).default() } catch (e) { if (e.code !== 'ERR_MODULE_NOT_FOUND') throw e }\" --input-type module && npm run build",
     "build": "grunt build",
     "webpack-browser": "grunt browser",
     "webpack-module": "grunt module",
@@ -88,7 +88,7 @@
     "grunt-text-replace": "^0.4.0",
     "grunt-ts": "^6.0.0-beta.22",
     "grunt-webpack": "^6.0.0",
-    "husky": "^8.0.3",
+    "husky": "^9.0.0",
     "lint-staged": "^15.2.0",
     "load-grunt-tasks": "^5.1.0",
     "mocha": "^10.2.0",
