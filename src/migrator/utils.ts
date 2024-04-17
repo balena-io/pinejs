@@ -1,7 +1,7 @@
 import type { Result, Tx } from '../database-layer/db';
 import type { Resolvable } from '../sbvr-api/common-types';
 
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import { Engines } from '@balena/abstract-sql-compiler';
 import _ from 'lodash';
 import { TypedError } from 'typed-error';
