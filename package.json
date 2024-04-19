@@ -123,7 +123,7 @@
     "serve-static": "^1.15.0"
   },
   "engines": {
-    "node": ">=16.13.0",
+    "node": ">=18.18.0",
     "npm": ">=8.0.0"
   },
   "lint-staged": {
