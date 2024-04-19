@@ -13,7 +13,6 @@ import {
 } from '@balena/odata-to-abstract-sql';
 import { errors, permissions } from '../server-glue/module';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
-import { TypedError } from 'typed-error';
 
 export * from './handlers';
 
@@ -34,15 +33,6 @@ export interface WebResourceHandler {
 	handleFile: (resource: IncomingFile) => Promise<UploadResponse>;
 	removeFile: (fileReference: string) => Promise<void>;
 	onPreRespond: (webResource: WebResource) => Promise<WebResource>;
-}
-
-export class WebResourceError extends TypedError {}
-
-export class FileSizeExceededError extends WebResourceError {
-	name = 'FileSizeExceededError';
-	constructor(maxSize: number) {
-		super(`File size exceeded the limit of ${maxSize} bytes.`);
-	}
 }
 
 type WebResourcesDbResponse = {
@@ -193,17 +183,12 @@ export const getUploaderMiddlware = (
 				next();
 			} catch (err: any) {
 				await clearFiles();
-
-				if (err instanceof FileSizeExceededError) {
-					return sbvrUtils.handleHttpErrors(
-						req,
-						res,
-						new errors.BadRequestError(err.message),
-					);
-				}
-
-				getLogger(getApiRoot(req)).error('Error uploading file', err);
-				next(err);
+				getLogger(getApiRoot(req)).warn('Error uploading file', err);
+				return sbvrUtils.handleHttpErrors(
+					req,
+					res,
+					new errors.BadRequestError(err),
+				);
 			}
 		});
 

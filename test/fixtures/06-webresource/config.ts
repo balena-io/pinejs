@@ -1,6 +1,6 @@
 import type { ConfigLoader } from '../../../src/server-glue/module';
 import type { WebResourceHandler } from '../../../src/webresource-handler';
-import { S3Handler } from '../../../src/webresource-handler/handlers/S3Handler';
+import { S3Handler } from '@balena/pinejs-webresource-s3';
 import { v1AbstractSqlModel, v1Translations } from './translations/v1';
 import { requiredVar, intVar } from '@balena/env-parsing';
 

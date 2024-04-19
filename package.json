@@ -63,7 +63,9 @@
     "typed-error": "^3.2.2"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.556.0",
     "@balena/lint": "^8.0.0",
+    "@balena/pinejs-webresource-s3": "^0.1.0",
     "@faker-js/faker": "^8.3.1",
     "@types/busboy": "^1.5.3",
     "@types/chai": "^4.3.11",
@@ -106,9 +108,6 @@
     "webpack-dev-server": "^4.15.1"
   },
   "optionalDependencies": {
-    "@aws-sdk/client-s3": "^3.490.0",
-    "@aws-sdk/lib-storage": "^3.490.0",
-    "@aws-sdk/s3-request-presigner": "^3.490.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "compression": "^1.7.4",
