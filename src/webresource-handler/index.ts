@@ -13,6 +13,7 @@ import {
 } from '@balena/odata-to-abstract-sql';
 import { errors, permissions } from '../server-glue/module';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
+import type { AnyObject } from 'pinejs-client-core';
 
 export * from './handlers';
 
@@ -29,10 +30,44 @@ export interface UploadResponse {
 	filename: string;
 }
 
+export interface BeginMultipartUploadPayload {
+	filename: string;
+	content_type: string;
+	size: number;
+	chunk_size: number;
+}
+
+export interface UploadPart {
+	url: string;
+	chunkSize: number;
+	partNumber: number;
+}
+
+export interface BeginMultipartUploadHandlerResponse {
+	uploadParts: UploadPart[];
+	fileKey: string;
+	uploadId: string;
+}
+
+export interface CommitMultipartUploadPayload {
+	fileKey: string;
+	uploadId: string;
+	filename: string;
+	providerCommitData?: AnyObject;
+}
+
 export interface WebResourceHandler {
 	handleFile: (resource: IncomingFile) => Promise<UploadResponse>;
 	removeFile: (fileReference: string) => Promise<void>;
 	onPreRespond: (webResource: WebResource) => Promise<WebResource>;
+
+	beginMultipartUpload: (
+		fieldName: string,
+		payload: BeginMultipartUploadPayload,
+	) => Promise<BeginMultipartUploadHandlerResponse>;
+	commitMultipartUpload: (
+		commitInfo: CommitMultipartUploadPayload,
+	) => Promise<WebResource>;
 }
 
 type WebResourcesDbResponse = {

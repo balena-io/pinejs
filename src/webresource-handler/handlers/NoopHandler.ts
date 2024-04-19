@@ -1,5 +1,10 @@
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
-import type { IncomingFile, UploadResponse, WebResourceHandler } from '..';
+import type {
+	BeginMultipartUploadHandlerResponse,
+	IncomingFile,
+	UploadResponse,
+	WebResourceHandler,
+} from '..';
 
 export class NoopHandler implements WebResourceHandler {
 	public async handleFile(resource: IncomingFile): Promise<UploadResponse> {
@@ -17,5 +22,13 @@ export class NoopHandler implements WebResourceHandler {
 
 	public async onPreRespond(webResource: WebResource): Promise<WebResource> {
 		return webResource;
+	}
+
+	public async beginMultipartUpload(): Promise<BeginMultipartUploadHandlerResponse> {
+		return { fileKey: 'noop', uploadId: 'noop', uploadParts: [] };
+	}
+
+	public async commitMultipartUpload(): Promise<WebResource> {
+		return { filename: 'noop', href: 'noop' };
 	}
 }
