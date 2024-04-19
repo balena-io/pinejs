@@ -14,6 +14,7 @@ import {
 import { errors, permissions } from '../server-glue/module';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 import type { AnyObject } from 'pinejs-client-core';
+import { multipartUploadHooks } from './multipartUpload';
 
 export * from './handlers';
 
@@ -236,7 +237,7 @@ export const getUploaderMiddlware = (
 	};
 };
 
-const getWebResourceFields = (
+export const getWebResourceFields = (
 	request: uriParser.ODataRequest,
 	useTranslations = true,
 ): string[] => {
@@ -269,6 +270,8 @@ const throwIfWebresourceNotInMultipart = (
 	{ req, request }: HookArgs,
 ) => {
 	if (
+		request.custom.isAction !== 'beginUpload' &&
+		request.custom.isAction !== 'commitUpload' &&
 		!req.is?.('multipart') &&
 		webResourceFields.some((field) => request.values[field] != null)
 	) {
@@ -467,4 +470,23 @@ export const setupUploadHooks = (
 		resourceName,
 		getCreateWebResourceHooks(handler),
 	);
+
+	sbvrUtils.addPureHook(
+		'POST',
+		apiRoot,
+		resourceName,
+		multipartUploadHooks(handler),
+	);
+};
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const webresourceModel: string = require('./webresource.sbvr');
+export const config = {
+	models: [
+		{
+			apiRoot: 'webresource',
+			modelText: webresourceModel,
+			modelName: 'webresource',
+		},
+	] as sbvrUtils.ExecutableModel[],
 };

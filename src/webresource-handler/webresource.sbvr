@@ -1,0 +1,63 @@
+Vocabulary: Auth
+
+Term: actor
+Term: expiry date
+	Concept Type: Date Time (Type)
+
+Vocabulary: webresource
+
+Term: uuid
+	Concept Type: Short Text (Type)
+Term: resource name
+	Concept Type: Short Text (Type)
+Term: field name
+	Concept Type: Short Text (Type)
+Term: resource id
+	Concept Type: Integer (Type)
+Term: upload id
+	Concept Type: Short Text (Type)
+Term: file key
+	Concept Type: Short Text (Type)
+Term: status
+	Concept Type: Short Text (Type)
+Term: filename
+	Concept Type: Short Text (Type)
+Term: content type
+	Concept Type: Short Text (Type)
+Term: size
+	Concept Type: Integer (Type)
+Term: chunk size
+	Concept Type: Integer (Type)
+Term: valid until date
+	Concept Type: Date Time (Type)
+
+Term: multipart upload
+Fact type: multipart upload has uuid
+	Necessity: each multipart upload has exactly one uuid
+	Necessity: each uuid is of exactly one multipart upload
+Fact type: multipart upload has resource name
+	Necessity: each multipart upload has exactly one resource name
+Fact type: multipart upload has field name
+	Necessity: each multipart upload has exactly one field name
+Fact type: multipart upload has resource id
+	Necessity: each multipart upload has exactly one resource id
+Fact type: multipart upload has upload id
+	Necessity: each multipart upload has exactly one upload id
+Fact type: multipart upload has file key
+	Necessity: each multipart upload has exactly one file key
+Fact type: multipart upload has status
+	Necessity: each multipart upload has exactly one status
+	Definition: "pending" or "completed" or "cancelled"
+Fact type: multipart upload has filename
+	Necessity: each multipart upload has exactly one filename
+Fact type: multipart upload has content type
+	Necessity: each multipart upload has exactly one content type
+Fact type: multipart upload has size
+	Necessity: each multipart upload has exactly one size
+Fact type: multipart upload has chunk size
+	Necessity: each multipart upload has exactly one chunk size
+Fact type: multipart upload has expiry date (Auth)
+	Necessity: each multipart upload has exactly one expiry date (Auth)
+Fact type: multipart upload is created by actor (Auth)
+	Necessity: each multipart upload is created by at most one actor (Auth)
+	Reference Type: informative
