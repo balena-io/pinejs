@@ -13,7 +13,8 @@ import {
 } from '@balena/odata-to-abstract-sql';
 import { errors, permissions } from '../server-glue/module';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
-import { TypedError } from 'typed-error';
+import type { AnyObject } from 'pinejs-client-core';
+import { multipartUploadHooks } from './multipartUpload';
 
 export * from './handlers';
 
@@ -30,19 +31,44 @@ export interface UploadResponse {
 	filename: string;
 }
 
+export interface BeginMultipartUploadPayload {
+	filename: string;
+	content_type: string;
+	size: number;
+	chunk_size: number;
+}
+
+export interface UploadPart {
+	url: string;
+	chunkSize: number;
+	partNumber: number;
+}
+
+export interface BeginMultipartUploadHandlerResponse {
+	uploadParts: UploadPart[];
+	fileKey: string;
+	uploadId: string;
+}
+
+export interface CommitMultipartUploadPayload {
+	fileKey: string;
+	uploadId: string;
+	filename: string;
+	providerCommitData?: AnyObject;
+}
+
 export interface WebResourceHandler {
 	handleFile: (resource: IncomingFile) => Promise<UploadResponse>;
 	removeFile: (fileReference: string) => Promise<void>;
 	onPreRespond: (webResource: WebResource) => Promise<WebResource>;
-}
 
-export class WebResourceError extends TypedError {}
-
-export class FileSizeExceededError extends WebResourceError {
-	name = 'FileSizeExceededError';
-	constructor(maxSize: number) {
-		super(`File size exceeded the limit of ${maxSize} bytes.`);
-	}
+	beginMultipartUpload: (
+		fieldName: string,
+		payload: BeginMultipartUploadPayload,
+	) => Promise<BeginMultipartUploadHandlerResponse>;
+	commitMultipartUpload: (
+		commitInfo: CommitMultipartUploadPayload,
+	) => Promise<WebResource>;
 }
 
 type WebResourcesDbResponse = {
@@ -193,17 +219,12 @@ export const getUploaderMiddlware = (
 				next();
 			} catch (err: any) {
 				await clearFiles();
-
-				if (err instanceof FileSizeExceededError) {
-					return sbvrUtils.handleHttpErrors(
-						req,
-						res,
-						new errors.BadRequestError(err.message),
-					);
-				}
-
-				getLogger(getApiRoot(req)).error('Error uploading file', err);
-				next(err);
+				getLogger(getApiRoot(req)).warn('Error uploading file', err);
+				return sbvrUtils.handleHttpErrors(
+					req,
+					res,
+					new errors.BadRequestError(err),
+				);
 			}
 		});
 
@@ -216,7 +237,7 @@ export const getUploaderMiddlware = (
 	};
 };
 
-const getWebResourceFields = (
+export const getWebResourceFields = (
 	request: uriParser.ODataRequest,
 	useTranslations = true,
 ): string[] => {
@@ -249,6 +270,8 @@ const throwIfWebresourceNotInMultipart = (
 	{ req, request }: HookArgs,
 ) => {
 	if (
+		request.custom.isAction !== 'beginUpload' &&
+		request.custom.isAction !== 'commitUpload' &&
 		!req.is?.('multipart') &&
 		webResourceFields.some((field) => request.values[field] != null)
 	) {
@@ -447,4 +470,23 @@ export const setupUploadHooks = (
 		resourceName,
 		getCreateWebResourceHooks(handler),
 	);
+
+	sbvrUtils.addPureHook(
+		'POST',
+		apiRoot,
+		resourceName,
+		multipartUploadHooks(handler),
+	);
+};
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const webresourceModel: string = require('./webresource.sbvr');
+export const config = {
+	models: [
+		{
+			apiRoot: 'webresource',
+			modelText: webresourceModel,
+			modelName: 'webresource',
+		},
+	] as sbvrUtils.ExecutableModel[],
 };
