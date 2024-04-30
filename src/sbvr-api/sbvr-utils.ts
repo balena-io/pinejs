@@ -38,7 +38,7 @@ import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser
 
 import * as asyncMigrator from '../migrator/async';
 import * as syncMigrator from '../migrator/sync';
-import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
+import { generateODataMetadataAsOpenApi } from '../odata-metadata/open-api-sepcification-generator';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const devModel = require('./dev.sbvr');
@@ -100,6 +100,8 @@ import {
 	type MigrationExecutionResult,
 	setExecutedMigrations,
 } from '../migrator/utils';
+import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
+import { metadataEndpoints } from './uri-parser';
 
 const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
 const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVersion}`;
@@ -1303,7 +1305,8 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 					const resolvedResourceName = resolveSynonym($request);
 					if (
 						abstractSqlModel.tables[resolvedResourceName] == null &&
-						!resolvedResourceName.endsWith('#canAccess')
+						!resolvedResourceName.endsWith('#canAccess') &&
+						!metadataEndpoints.includes(resolvedResourceName)
 					) {
 						throw new UnauthorizedError();
 					}
@@ -1802,10 +1805,35 @@ const respondGet = async (
 		return response;
 	} else {
 		if (request.resourceName === '$metadata') {
+			const permLookup = await permissions.getReqPermissions(req);
+			const spec = generateODataMetadata(
+				vocab,
+				models[vocab].abstractSql,
+				permLookup,
+			);
 			return {
 				statusCode: 200,
-				body: models[vocab].odataMetadata,
-				headers: { 'content-type': 'xml' },
+				body: spec,
+				headers: { 'content-type': 'application/json' },
+			};
+		} else if (request.resourceName === 'openapi.json') {
+			// https://docs.oasis-open.org/odata/odata-openapi/v1.0/cn01/odata-openapi-v1.0-cn01.html#sec_ProvidingOASDocumentsforanODataServi
+			// Following the OASIS OData to openapi translation guide the openapi.json is an independent resource
+			const permLookup = await permissions.getReqPermissions(req);
+			const spec = generateODataMetadata(
+				vocab,
+				models[vocab].abstractSql,
+				permLookup,
+			);
+			const openApispec = generateODataMetadataAsOpenApi(
+				spec,
+				req.originalUrl.replace('openapi.json', ''),
+				req.hostname,
+			);
+			return {
+				statusCode: 200,
+				body: openApispec,
+				headers: { 'content-type': 'application/json' },
 			};
 		} else {
 			// TODO: request.resourceName can be '$serviceroot' or a resource and we should return an odata xml document based on that

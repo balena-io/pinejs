@@ -263,7 +263,7 @@ const memoizedOdata2AbstractSQL = (() => {
 	};
 })();
 
-export const metadataEndpoints = ['$metadata', '$serviceroot'];
+export const metadataEndpoints = ['$metadata', '$serviceroot', 'openapi.json'];
 
 export function parseOData(
 	b: UnparsedRequest & { _isChangeSet?: false },
