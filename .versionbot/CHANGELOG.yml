@@ -1,4 +1,16 @@
 - commits:
+    - subject: "Tests: trap `INT` rather than `SIGINT` for broader shell support"
+      hash: 77d35219d88740218a123eb645953e463827d67e
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 16.1.4
+  title: ""
+  date: 2024-04-30T09:10:29.177Z
+- commits:
     - subject: Update @balena/odata-to-abstract-sql to 6.2.7
       hash: 76b2f842af0b49ef2956db23a22758fc0d1e50a0
       body: |
