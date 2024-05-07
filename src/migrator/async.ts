@@ -28,7 +28,7 @@ import {
 import { booleanToEnabledString } from '../config-loader/env';
 
 // log the startup condition of the async migration
-(sbvrUtils.api?.migrations?.logger.info ?? console.info)(
+(sbvrUtils.logger?.migrations?.info ?? console.info)(
 	`Async migration execution is ${booleanToEnabledString(
 		migratorEnv.asyncMigrationIsEnabled,
 	)}`,
@@ -153,7 +153,7 @@ const $run = async (
 					(await tx.executeSql(asyncMigrationSqlStatement)).rowsAffected;
 			} else {
 				// don't break the async migration b/c of one migration fails
-				(sbvrUtils.api.migrations?.logger.error ?? console.error)(
+				(sbvrUtils.logger.migrations?.error ?? console.error)(
 					`Invalid migration object: ${JSON.stringify(migration, null, 2)}`,
 				);
 				continue;
@@ -170,7 +170,7 @@ const $run = async (
 			asyncRunnerMigratorFn = async (tx: Tx) =>
 				(await tx.executeSql(migration)).rowsAffected;
 		} else {
-			(sbvrUtils.api.migrations?.logger.error ?? console.error)(
+			(sbvrUtils.logger.migrations?.error ?? console.error)(
 				`Invalid async migration object: ${JSON.stringify(migration, null, 2)}`,
 			);
 			continue;
@@ -210,7 +210,7 @@ const $run = async (
 									if (!migrationState) {
 										// migration status is unclear stop the migrator
 										// or migration should stop
-										(sbvrUtils.api.migrations?.logger.info ?? console.info)(
+										(sbvrUtils.logger.migrations?.info ?? console.info)(
 											`stopping async migration due to missing migration status: ${key}`,
 										);
 										return false;
@@ -246,7 +246,7 @@ const $run = async (
 														}
 													} catch (err) {
 														(
-															sbvrUtils.api.migrations?.logger.error ??
+															sbvrUtils.logger.migrations?.error ??
 															console.error
 														)(
 															`error rolling back pending async migration tx on mgmt tx end/rollback: ${key}: ${err}`,
@@ -280,14 +280,13 @@ const $run = async (
 													initMigrationState.errorThreshold ===
 												0
 											) {
-												(
-													sbvrUtils.api.migrations?.logger.error ??
-													console.error
-												)(`${key}: ${err.name} ${err.message}`);
+												(sbvrUtils.logger.migrations?.error ?? console.error)(
+													`${key}: ${err.name} ${err.message}`,
+												);
 												migrationState.is_backing_off = true;
 											}
 										} else {
-											(sbvrUtils.api.migrations?.logger.error ?? console.error)(
+											(sbvrUtils.logger.migrations?.error ?? console.error)(
 												`async migration error unknown: ${key}: ${err}`,
 											);
 										}
@@ -312,7 +311,7 @@ const $run = async (
 						setTimeout(asyncRunner, initMigrationState.delayMS);
 					}
 				} catch (err) {
-					(sbvrUtils.api.migrations?.logger.error ?? console.error)(
+					(sbvrUtils.logger.migrations?.error ?? console.error)(
 						`error running async migration: ${key}: ${err}`,
 					);
 					setTimeout(asyncRunner, initMigrationState.backoffDelayMS);
