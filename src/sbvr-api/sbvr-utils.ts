@@ -999,7 +999,7 @@ export type Passthrough = AnyObject & {
 	tx?: Db.Tx;
 };
 
-export class PinejsClient extends PinejsClientCore<PinejsClient> {
+export class PinejsClient extends PinejsClientCore {
 	// @ts-expect-error This is actually assigned by `super` so it is always declared but that isn't detected here
 	public passthrough: Passthrough;
 	public async _request({
