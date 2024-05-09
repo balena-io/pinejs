@@ -49,7 +49,7 @@ export const compileRequest = (request: ODataRequest) => {
 			request.sqlQuery = sqlQuery;
 			request.modifiedFields = modifiedFields;
 		} catch (err: any) {
-			sbvrUtils.api[request.vocabulary].logger.error(
+			sbvrUtils.logger[request.vocabulary].error(
 				'Failed to compile abstract sql: ',
 				request.abstractSqlQuery,
 				err,

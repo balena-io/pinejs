@@ -51,7 +51,7 @@ type WebResourcesDbResponse = {
 
 const getLogger = (vocab?: string): Console => {
 	if (vocab) {
-		return sbvrUtils.api[vocab]?.logger ?? console;
+		return sbvrUtils.logger[vocab] ?? console;
 	}
 	return console;
 };

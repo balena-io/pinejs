@@ -676,18 +676,19 @@ export const executeModels = async (
 				api[apiRoot].logger = { ...console };
 				if (model.logging != null) {
 					const defaultSetting = model.logging?.default ?? true;
-					const { logger } = api[apiRoot];
+					const { logger: log } = api[apiRoot];
 					for (const k of Object.keys(model.logging)) {
 						const key = k as keyof Console;
 						if (
 							key !== 'Console' &&
-							typeof logger[key] === 'function' &&
+							typeof log[key] === 'function' &&
 							!(model.logging?.[key] ?? defaultSetting)
 						) {
-							logger[key] = _.noop;
+							log[key] = _.noop;
 						}
 					}
 				}
+				logger[apiRoot] = api[apiRoot].logger;
 				return compiledModel;
 				// Only update the dev models once all models have finished executing.
 			}),
@@ -856,7 +857,7 @@ export const runRule = (() => {
 	translator.addTypes(sbvrTypes);
 	return async (vocab: string, rule: string) => {
 		const seModel = models[vocab].se;
-		const { logger } = api[vocab];
+		const log = logger[vocab];
 		let lfModel: LFModel;
 		let slfModel: LFModel;
 		let abstractSqlModel: AbstractSQLCompiler.AbstractSqlModel;
@@ -867,7 +868,7 @@ export const runRule = (() => {
 				'Process',
 			);
 		} catch (e) {
-			logger.error('Error parsing rule', rule, e);
+			log.error('Error parsing rule', rule, e);
 			throw new Error(`Error parsing rule'${rule}': ${e}`);
 		}
 
@@ -881,7 +882,7 @@ export const runRule = (() => {
 			translator.reset();
 			abstractSqlModel = translator.match(slfModel, 'Process');
 		} catch (e) {
-			logger.error('Error compiling rule', rule, e);
+			log.error('Error compiling rule', rule, e);
 			throw new Error(`Error compiling rule '${rule}': ${e}`);
 		}
 
@@ -1021,11 +1022,17 @@ export class PinejsClient extends PinejsClientCore {
 	}
 }
 
+/**
+ * @deprecated Use `logger[vocab]` instead of `api[vocab].logger`
+ */
 export type LoggingClient = PinejsClient & {
 	logger: Console;
 };
 export const api: {
 	[vocab: string]: LoggingClient;
+} = {};
+export const logger: {
+	[vocab: string]: Console;
 } = {};
 
 // We default to guest only permissions if no req object is passed in
@@ -1224,7 +1231,7 @@ export const getModel = (vocabulary: string) => {
 
 const runODataRequest = (req: Express.Request, vocabulary: string) => {
 	if (env.DEBUG) {
-		api[vocabulary].logger.log('Parsing', req.method, req.url);
+		logger[vocabulary].log('Parsing', req.method, req.url);
 	}
 
 	// Get the hooks for the current method/vocabulary as we know it,
@@ -1535,10 +1542,10 @@ const runRequest = async (
 	tx: Db.Tx,
 	request: uriParser.ODataRequest,
 ): Promise<Response> => {
-	const { logger } = api[request.vocabulary];
+	const log = logger[request.vocabulary];
 
 	if (env.DEBUG) {
-		logger.log('Running', req.method, req.url);
+		log.log('Running', req.method, req.url);
 	}
 	let result: Db.Result | number | undefined;
 
@@ -1566,7 +1573,7 @@ const runRequest = async (
 		} catch (err: any) {
 			if (err instanceof db.DatabaseError) {
 				prettifyConstraintError(err, request);
-				logger.error(err);
+				log.error(err);
 				// Override the error message so we don't leak any internal db info
 				err.message = 'Database error';
 				throw err;
@@ -1580,7 +1587,7 @@ const runRequest = async (
 				err instanceof TypeError ||
 				err instanceof URIError
 			) {
-				logger.error(err);
+				log.error(err);
 				throw new InternalRequestError();
 			}
 			throw err;
@@ -1740,7 +1747,7 @@ const runQuery = async (
 	);
 
 	if (env.DEBUG) {
-		api[vocabulary].logger.log(query, values);
+		logger[vocabulary].log(query, values);
 	}
 
 	// We only add the returning clause if it's been requested and `affectedIds` hasn't been populated yet
@@ -1848,7 +1855,7 @@ const respondPost = async (
 		id,
 	);
 	if (env.DEBUG) {
-		api[vocab].logger.log('Insert ID: ', request.resourceName, id);
+		logger[vocab].log('Insert ID: ', request.resourceName, id);
 	}
 
 	let result: AnyObject = { d: [{ id }] };

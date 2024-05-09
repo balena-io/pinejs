@@ -61,7 +61,7 @@ export function setup(app, sbvrUtils) {
 		sbvrUtils.addPureHook('PUT', modelName, 'all', {
 			async PRERUN({ tx, request }) {
 				const vocab = request.vocabulary;
-				const { logger } = sbvrUtils.api[vocab];
+				const log = sbvrUtils.logger[vocab];
 				const id = sbvrUtils.getID(vocab, request);
 				let result;
 				try {
@@ -77,7 +77,7 @@ SELECT NOT EXISTS(
 						[request.resourceName, id],
 					);
 				} catch (/** @type any */ err) {
-					logger.error('Unable to check resource locks', err);
+					log.error('Unable to check resource locks', err);
 					throw new Error('Unable to check resource locks');
 				}
 				if ([false, 0, '0'].includes(result.rows[0].result)) {

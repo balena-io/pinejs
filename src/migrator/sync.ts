@@ -29,7 +29,7 @@ export const postRun = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 	const modelName = model.apiRoot;
 	const modelIsNew = await sbvrUtils.isModelNew(tx, modelName);
 	if (modelIsNew) {
-		(sbvrUtils.api.migrations?.logger.info ?? console.info)(
+		(sbvrUtils.logger.migrations?.info ?? console.info)(
 			`First time executing '${modelName}', running init script`,
 		);
 
@@ -37,7 +37,7 @@ export const postRun = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 			try {
 				await tx.executeSql(initSql);
 			} catch (err: any) {
-				(sbvrUtils.api.migrations?.logger.error ?? console.error)(
+				(sbvrUtils.logger.migrations?.error ?? console.error)(
 					`initSql execution error ${err} `,
 				);
 				throw new MigrationError(err);
@@ -69,7 +69,7 @@ const $run = async (
 	// to make changes that can't be automatically applied
 	const modelIsNew = await sbvrUtils.isModelNew(tx, modelName);
 	if (modelIsNew) {
-		(sbvrUtils.api.migrations?.logger.info ?? console.info)(
+		(sbvrUtils.logger.migrations?.info ?? console.info)(
 			`First time model '${modelName}' has executed, skipping migrations`,
 		);
 		return await setExecutedMigrations(tx, modelName, Object.keys(migrations));
@@ -94,7 +94,7 @@ const $run = async (
 				...newlyExecutedMigrations,
 			]);
 		} catch (err: any) {
-			(sbvrUtils.api.migrations?.logger.error ?? console.error)(
+			(sbvrUtils.logger.migrations?.error ?? console.error)(
 				`Failed to executed synchronous migrations from api root model ${err}`,
 			);
 			throw new MigrationError(err);
@@ -111,7 +111,7 @@ const executeMigrations = async (
 			await executeMigration(tx, migration);
 		}
 	} catch (err: any) {
-		(sbvrUtils.api.migrations?.logger.error ?? console.error)(
+		(sbvrUtils.logger.migrations?.error ?? console.error)(
 			'Error while executing migrations, rolled back',
 		);
 		throw new MigrationError(err);
@@ -123,7 +123,7 @@ const executeMigration = async (
 	tx: Tx,
 	[key, migration]: MigrationTuple,
 ): Promise<void> => {
-	(sbvrUtils.api.migrations?.logger.info ?? console.info)(
+	(sbvrUtils.logger.migrations?.info ?? console.info)(
 		`Running migration ${JSON.stringify(key)}`,
 	);
 

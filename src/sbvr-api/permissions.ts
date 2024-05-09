@@ -1268,7 +1268,7 @@ export const getUserPermissions = async (
 	try {
 		return await $getUserPermissions(userId, tx);
 	} catch (err: any) {
-		sbvrUtils.api.Auth.logger.error('Error loading user permissions', err);
+		sbvrUtils.logger.Auth.error('Error loading user permissions', err);
 		throw err;
 	}
 };
@@ -1396,7 +1396,7 @@ export const getApiKeyPermissions = async (
 	try {
 		return await $getApiKeyPermissions(apiKey, tx);
 	} catch (err: any) {
-		sbvrUtils.api.Auth.logger.error('Error loading api key permissions', err);
+		sbvrUtils.logger.Auth.error('Error loading api key permissions', err);
 		throw err;
 	}
 };
@@ -1577,7 +1577,7 @@ export const checkPermissionsMiddleware =
 					);
 			}
 		} catch (err: any) {
-			sbvrUtils.api.Auth.logger.error('Error checking permissions', err);
+			sbvrUtils.logger.Auth.error('Error checking permissions', err);
 			res.status(503).end();
 		}
 	};
