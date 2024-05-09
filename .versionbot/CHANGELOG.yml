@@ -1,4 +1,16 @@
 - commits:
+    - subject: Deprecate LoggingClient in favor of a separate logger dictionary
+      hash: 0abc88cc06bfb3eaa4852c8e2b7534edd816005c
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 16.1.6
+  title: ""
+  date: 2024-05-09T00:19:29.108Z
+- commits:
     - subject: Update dependencies
       hash: 520cd49d9b5a982fe4e8ab844931d69d27627715
       body: |
