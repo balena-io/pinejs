@@ -17,7 +17,7 @@ const runCompile = async (inputFile: string, outputFile?: string) => {
 
 const generateTypes = async (inputFile: string, outputFile?: string) => {
 	const { abstractSqlToTypescriptTypes } = await import(
-		'@balena/abstract-sql-to-typescript'
+		'@balena/abstract-sql-to-typescript/generate'
 	);
 	const abstractSql = getAbstractSqlModelFromFile(inputFile);
 	const types = abstractSqlToTypescriptTypes(abstractSql);
