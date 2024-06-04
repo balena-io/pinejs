@@ -1061,9 +1061,10 @@ export class PinejsClient<
 	}
 }
 
-export const api: {
+export interface API {
 	[vocab: string]: PinejsClient;
-} = {};
+}
+export const api = {} as API;
 export const logger: {
 	[vocab: string]: Console;
 } = {};
@@ -1170,8 +1171,8 @@ const getIdField = (
 	// TODO: Should resolveSynonym also be using the finalAbstractSqlModel?
 	getFinalAbstractSqlModel(request).tables[resolveSynonym(request)].idField;
 
-export const getAffectedIds = async (
-	args: HookArgs & {
+export const getAffectedIds = async <Vocab extends string>(
+	args: HookArgs<Vocab> & {
 		tx: Db.Tx;
 	},
 ): Promise<number[]> => {
@@ -1193,11 +1194,11 @@ export const getAffectedIds = async (
 	return request.affectedIds;
 };
 
-const $getAffectedIds = async ({
+const $getAffectedIds = async <Vocab extends string>({
 	req,
 	request,
 	tx,
-}: HookArgs & {
+}: HookArgs<Vocab> & {
 	tx: Db.Tx;
 }): Promise<number[]> => {
 	if (!['PATCH', 'DELETE'].includes(request.method)) {
