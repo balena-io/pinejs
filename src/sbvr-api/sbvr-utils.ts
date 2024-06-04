@@ -992,6 +992,9 @@ export const runRule = (() => {
 	};
 })();
 
+/**
+ * This type shows the passthrough properties that the internal pinejs client instance accepts
+ */
 export type Passthrough = AnyObject & {
 	req?: {
 		user?: User;
@@ -1000,8 +1003,6 @@ export type Passthrough = AnyObject & {
 };
 
 export class PinejsClient extends PinejsClientCore {
-	// @ts-expect-error This is actually assigned by `super` so it is always declared but that isn't detected here
-	public passthrough: Passthrough;
 	public async _request({
 		method,
 		url,
