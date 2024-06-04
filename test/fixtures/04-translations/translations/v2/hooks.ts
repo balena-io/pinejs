@@ -11,9 +11,7 @@ const addHook = (
 
 addHook(['PUT', 'POST', 'PATCH'], 'student', {
 	async POSTPARSE({ request, api }) {
-		if (
-			Object.prototype.hasOwnProperty.call(request.values, 'studies_at__campus')
-		) {
+		if (Object.hasOwn(request.values, 'studies_at__campus')) {
 			const resinApi = sbvrUtils.api['v3'].clone({
 				passthrough: api.passthrough,
 			});
