@@ -5,6 +5,7 @@ import './sbvr-loader';
 import * as dbModule from '../database-layer/db';
 import * as configLoader from '../config-loader/config-loader';
 import * as migrator from '../migrator/sync';
+import * as webResourceHandler from '../webresource-handler';
 import type * as migratorUtils from '../migrator/utils';
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
@@ -63,6 +64,7 @@ export const init = async <T extends string>(
 		await sbvrUtils.setup(app, db);
 		const cfgLoader = await configLoader.setup(app);
 		await cfgLoader.loadConfig(migrator.config);
+		await cfgLoader.loadConfig(webResourceHandler.config);
 
 		const promises: Array<Promise<void>> = [];
 		if (process.env.SBVR_SERVER_ENABLED) {

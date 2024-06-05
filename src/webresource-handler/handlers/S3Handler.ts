@@ -6,17 +6,27 @@ import {
 	WebResourceError,
 	type WebResourceHandler,
 } from '..';
+import type {
+	BeginUploadHandlerResponse,
+	BeginUploadPayload,
+	CommitUploadHandlerPayload,
+	UploadUrl,
+} from '../multipartUpload';
 import {
 	S3Client,
 	type S3ClientConfig,
 	DeleteObjectCommand,
 	type PutObjectCommandInput,
 	GetObjectCommand,
+	CreateMultipartUploadCommand,
+	UploadPartCommand,
+	CompleteMultipartUploadCommand,
+	HeadObjectCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 import memoize from 'memoizee';
 
@@ -71,9 +81,7 @@ export class S3Handler implements WebResourceHandler {
 
 	public async handleFile(resource: IncomingFile): Promise<UploadResponse> {
 		let size = 0;
-		const key = `${resource.fieldname}_${randomUUID()}_${
-			resource.originalname
-		}`;
+		const key = this.getFileKey(resource.fieldname, resource.originalname);
 		const params: PutObjectCommandInput = {
 			Bucket: this.bucket,
 			Key: key,
@@ -122,6 +130,62 @@ export class S3Handler implements WebResourceHandler {
 		return webResource;
 	}
 
+	public async beginUpload(
+		fieldName: string,
+		payload: BeginUploadPayload,
+	): Promise<BeginUploadHandlerResponse> {
+		const fileKey = this.getFileKey(fieldName, payload.filename);
+
+		const createMultiPartResponse = await this.client.send(
+			new CreateMultipartUploadCommand({
+				Bucket: this.bucket,
+				Key: fileKey,
+				ContentType: payload.content_type,
+			}),
+		);
+
+		if (createMultiPartResponse.UploadId == null) {
+			throw new WebResourceError('Failed to create multipart upload.');
+		}
+
+		const uploadUrls = await this.getPartUploadUrls(
+			fileKey,
+			createMultiPartResponse.UploadId,
+			payload,
+		);
+		return { fileKey, uploadId: createMultiPartResponse.UploadId, uploadUrls };
+	}
+
+	public async commitUpload({
+		fileKey,
+		uploadId,
+		filename,
+		multipartUploadChecksums,
+	}: CommitUploadHandlerPayload): Promise<WebResource> {
+		await this.client.send(
+			new CompleteMultipartUploadCommand({
+				Bucket: this.bucket,
+				Key: fileKey,
+				UploadId: uploadId,
+				MultipartUpload: multipartUploadChecksums,
+			}),
+		);
+
+		const headResult = await this.client.send(
+			new HeadObjectCommand({
+				Bucket: this.bucket,
+				Key: fileKey,
+			}),
+		);
+
+		return {
+			href: this.getS3URL(fileKey),
+			filename: filename,
+			size: headResult.ContentLength,
+			content_type: headResult.ContentType,
+		};
+	}
+
 	private s3SignUrl(fileKey: string): Promise<string> {
 		const command = new GetObjectCommand({
 			Bucket: this.bucket,
@@ -136,8 +200,70 @@ export class S3Handler implements WebResourceHandler {
 		return `${this.config.endpoint}/${this.bucket}/${key}`;
 	}
 
+	private getFileKey(fieldName: string, fileName: string) {
+		return `${fieldName}_${randomUUID()}_${fileName}`;
+	}
+
 	private getKeyFromHref(href: string): string {
 		const hrefWithoutParams = normalizeHref(href);
 		return hrefWithoutParams.substring(hrefWithoutParams.lastIndexOf('/') + 1);
+	}
+
+	private async getPartUploadUrls(
+		fileKey: string,
+		uploadId: string,
+		payload: BeginUploadPayload,
+	): Promise<UploadUrl[]> {
+		const chunkSizesWithParts = await this.getChunkSizesWithParts(
+			payload.size,
+			payload.chunk_size,
+		);
+		return Promise.all(
+			chunkSizesWithParts.map(async ({ chunkSize, partNumber }) => ({
+				chunkSize,
+				partNumber,
+				url: await this.getPartUploadUrl(
+					fileKey,
+					uploadId,
+					partNumber,
+					chunkSize,
+				),
+			})),
+		);
+	}
+
+	private async getPartUploadUrl(
+		fileKey: string,
+		uploadId: string,
+		partNumber: number,
+		partSize: number,
+	): Promise<string> {
+		const command = new UploadPartCommand({
+			Bucket: this.bucket,
+			Key: fileKey,
+			UploadId: uploadId,
+			PartNumber: partNumber,
+			ContentLength: partSize,
+		});
+
+		return getSignedUrl(this.client, command, {
+			expiresIn: this.signedUrlExpireTimeSeconds,
+		});
+	}
+
+	private async getChunkSizesWithParts(
+		size: number,
+		chunkSize: number,
+	): Promise<Array<Pick<UploadUrl, 'chunkSize' | 'partNumber'>>> {
+		const chunkSizesWithParts = [];
+		let partNumber = 1;
+		let remainingSize = size;
+		while (remainingSize > 0) {
+			const currentChunkSize = Math.min(remainingSize, chunkSize);
+			chunkSizesWithParts.push({ chunkSize: currentChunkSize, partNumber });
+			remainingSize -= currentChunkSize;
+			partNumber += 1;
+		}
+		return chunkSizesWithParts;
 	}
 }

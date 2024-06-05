@@ -1,19 +1,25 @@
-import type * as Express from 'express';
-import busboy from 'busboy';
-import type * as stream from 'node:stream';
-import * as uriParser from '../sbvr-api/uri-parser';
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-import type { HookArgs } from '../sbvr-api/hooks';
-import { getApiRoot, getModel } from '../sbvr-api/sbvr-utils';
-import { checkPermissions } from '../sbvr-api/permissions';
-import { NoopHandler } from './handlers/NoopHandler';
 import {
 	odataNameToSqlName,
 	sqlNameToODataName,
 } from '@balena/odata-to-abstract-sql';
-import { errors, permissions } from '../server-glue/module';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
+import busboy from 'busboy';
+import type * as Express from 'express';
+import type * as stream from 'node:stream';
 import { TypedError } from 'typed-error';
+import type { HookArgs } from '../sbvr-api/hooks';
+import { checkPermissions } from '../sbvr-api/permissions';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+import { getApiRoot, getModel } from '../sbvr-api/sbvr-utils';
+import * as uriParser from '../sbvr-api/uri-parser';
+import { errors, permissions } from '../server-glue/module';
+import { NoopHandler } from './handlers/NoopHandler';
+import type {
+	BeginUploadHandlerResponse,
+	BeginUploadPayload,
+	CommitUploadHandlerPayload,
+} from './multipartUpload';
+import { multipartUploadHooks } from './multipartUpload';
 
 export * from './handlers';
 
@@ -34,6 +40,14 @@ export interface WebResourceHandler {
 	handleFile: (resource: IncomingFile) => Promise<UploadResponse>;
 	removeFile: (fileReference: string) => Promise<void>;
 	onPreRespond: (webResource: WebResource) => Promise<WebResource>;
+
+	beginUpload: (
+		fieldName: string,
+		payload: BeginUploadPayload,
+	) => Promise<BeginUploadHandlerResponse>;
+	commitUpload: (
+		commitInfo: CommitUploadHandlerPayload,
+	) => Promise<WebResource>;
 }
 
 export class WebResourceError extends TypedError {}
@@ -216,7 +230,7 @@ export const getUploaderMiddlware = (
 	};
 };
 
-const getWebResourceFields = (
+export const getWebResourceFields = (
 	request: uriParser.ODataRequest,
 	useTranslations = true,
 ): string[] => {
@@ -249,6 +263,8 @@ const throwIfWebresourceNotInMultipart = (
 	{ req, request }: HookArgs,
 ) => {
 	if (
+		request.custom.isAction !== 'beginUpload' &&
+		request.custom.isAction !== 'commitUpload' &&
 		!req.is?.('multipart') &&
 		webResourceFields.some((field) => request.values[field] != null)
 	) {
@@ -447,4 +463,23 @@ export const setupUploadHooks = (
 		resourceName,
 		getCreateWebResourceHooks(handler),
 	);
+
+	sbvrUtils.addPureHook(
+		'POST',
+		apiRoot,
+		resourceName,
+		multipartUploadHooks(handler),
+	);
+};
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const webresourceModel: string = require('./webresource.sbvr');
+export const config = {
+	models: [
+		{
+			apiRoot: 'webresource',
+			modelText: webresourceModel,
+			modelName: 'webresource',
+		},
+	] as sbvrUtils.ExecutableModel[],
 };

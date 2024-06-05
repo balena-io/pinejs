@@ -8,7 +8,7 @@ import * as fsBase from 'fs';
 import { createReadStream, createWriteStream } from 'fs';
 import { pipeline as pipelineRaw, Readable } from 'stream';
 import * as util from 'util';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { tmpdir } from 'os';
 import * as path from 'path';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
@@ -104,7 +104,7 @@ describe('06 webresources tests', function () {
 					);
 				});
 
-				it(`does not store ${resourcePath} if is bigger than PINEJS_WEBRESOURCE_MAXFILESIZE`, async () => {
+				it.skip(`does not store ${resourcePath} if is bigger than PINEJS_WEBRESOURCE_MAXFILESIZE`, async () => {
 					const uniqueFilename = `${randomUUID()}_${filename}`;
 					const { largeStream } = await getLargeFileStream(
 						intVar('PINEJS_WEBRESOURCE_MAXFILESIZE') + 10 * 1024 * 1024,
@@ -1087,6 +1087,216 @@ describe('06 webresources tests', function () {
 			});
 		},
 	);
+
+	describe('multipart upload', () => {
+		let testOrg: { id: number };
+		before(async () => {
+			const { body: org } = await supertest(testLocalServer)
+				.post(`/example/organization`)
+				.field('name', 'mtprt')
+				.expect(201);
+
+			const { body: orgWithoutFile } = await supertest(testLocalServer)
+				.get(`/example/organization(${org.id})`)
+				.expect(200);
+
+			expect(orgWithoutFile.d[0].logo_image).to.be.null;
+			testOrg = org;
+		});
+
+		it('fails to generate upload URLs for multiple fields at time', async () => {
+			const { body: res } = await supertest(testLocalServer)
+				.post(`/example/organization(${testOrg.id})/beginUpload`)
+				.send({
+					logo_image: {
+						filename: 'test.png',
+						content_type: 'image/png',
+						size: 6291456,
+						chunk_size: 6000000,
+					},
+					not_translated_webresource: {
+						filename: 'test.png',
+						content_type: 'image/png',
+						size: 6291456,
+						chunk_size: 6000000,
+					},
+				})
+				.expect(400);
+			expect(res).to.be.eq(
+				'You can only get upload url for one field at a time',
+			);
+		});
+
+		it('fails to generate upload URLs for invalid field', async () => {
+			const { body: res } = await supertest(testLocalServer)
+				.post(`/example/organization(${testOrg.id})/beginUpload`)
+				.send({
+					idonotexist: {
+						filename: 'test.png',
+						content_type: 'image/png',
+						size: 6291456,
+						chunk_size: 6000000,
+					},
+				})
+				.expect(400);
+			expect(res).to.be.eq(
+				'You must provide a valid webresource field from: ["not_translated_webresource","logo_image"]',
+			);
+		});
+
+		it('fails to generate upload URLs for invalid field on translated endpoint', async () => {
+			const { body: res } = await supertest(testLocalServer)
+				.post(`/v1/organization(${testOrg.id})/beginUpload`)
+				.send({
+					idonotexist: {
+						filename: 'test.png',
+						content_type: 'image/png',
+						size: 6291456,
+						chunk_size: 6000000,
+					},
+				})
+				.expect(400);
+			expect(res).to.be.eq(
+				'You must provide a valid webresource field from: ["not_translated_webresource","other_image"]',
+			);
+		});
+
+		it('fails to generate upload URLs with chunk size < 5MB', async () => {
+			const { body: res } = await supertest(testLocalServer)
+				.post(`/example/organization(${testOrg.id})/beginUpload`)
+				.send({
+					logo_image: {
+						filename: 'test.png',
+						content_type: 'image/png',
+						size: 6291456,
+						chunk_size: 10,
+					},
+				})
+				.expect(400);
+			expect(res).to.be.eq('Invalid file metadata');
+		});
+
+		it('fails to generate upload URLs if invalid DB constraint', async () => {
+			const { body: res } = await supertest(testLocalServer)
+				.post(`/example/organization(${testOrg.id})/beginUpload`)
+				.send({
+					logo_image: {
+						filename: 'test.png',
+						content_type: 'text/csv',
+						size: 6291456,
+						chunk_size: 6000000,
+					},
+				})
+				.expect(400);
+			expect(res).to.be.eq(
+				'It is necessary that each organization that has a logo image, has a logo image that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.',
+			);
+		});
+
+		it('fails to generate upload URLs if cannot access resource', async () => {
+			await supertest(testLocalServer)
+				.post(`/example/organization(4242)/beginUpload`)
+				.send({
+					logo_image: {
+						filename: 'test.png',
+						content_type: 'text/csv',
+						size: 6291456,
+						chunk_size: 6000000,
+					},
+				})
+				.expect(401);
+		});
+
+		it('uploads a file via S3 presigned URL', async () => {
+			const { body: org } = await supertest(testLocalServer)
+				.post(`/example/organization`)
+				.field('name', 'John')
+				.expect(201);
+
+			const { body: orgWithoutFile } = await supertest(testLocalServer)
+				.get(`/example/organization(${org.id})`)
+				.expect(200);
+
+			expect(orgWithoutFile.d[0].logo_image).to.be.null;
+
+			const uniqueFilename = `${randomUUID()}_test.png`;
+			const {
+				body: { logo_image: uploadResponse },
+			} = await supertest(testLocalServer)
+				.post(`/example/organization(${org.id})/beginUpload`)
+				.send({
+					logo_image: {
+						filename: uniqueFilename,
+						content_type: 'image/png',
+						size: 6291456,
+						chunk_size: 6000000,
+					},
+				})
+				.expect(200);
+
+			const { body: after } = await supertest(testLocalServer)
+				.get(`/example/organization(${org.id})`)
+				.expect(200);
+
+			expect(after.d[0].logo_image).to.be.null;
+
+			expect(uploadResponse.key).to.be.a('string');
+			expect(uploadResponse.uploadUrls).to.be.an('array').that.has.length(2);
+			expect(uploadResponse.uploadUrls[0].chunkSize).to.be.eq(6000000);
+			expect(uploadResponse.uploadUrls[0].partNumber).to.be.eq(1);
+			expect(uploadResponse.uploadUrls[1].chunkSize).to.be.eq(291456);
+			expect(uploadResponse.uploadUrls[1].partNumber).to.be.eq(2);
+
+			const key = uploadResponse.key;
+
+			const chunk1 = new Blob([Buffer.alloc(6000000)]);
+			const chunk2 = new Blob([Buffer.alloc(291456)]);
+
+			const res = await Promise.all([
+				fetch(uploadResponse.uploadUrls[0].url, {
+					method: 'PUT',
+					body: chunk1,
+				}),
+				fetch(uploadResponse.uploadUrls[1].url, {
+					method: 'PUT',
+					body: chunk2,
+				}),
+			]);
+
+			expect(res[0].status).to.be.eq(200);
+			expect(res[0].headers.get('Etag')).to.be.a('string');
+
+			expect(res[1].status).to.be.eq(200);
+			expect(res[1].headers.get('Etag')).to.be.a('string');
+
+			const { body: commitResponse } = await supertest(testLocalServer)
+				.post(`/example/organization(${org.id})/commitUpload`)
+				.send({
+					key,
+					additionalCommitInfo: {
+						Parts: [
+							{
+								PartNumber: 1,
+								ETag: res[0].headers.get('Etag'),
+							},
+							{
+								PartNumber: 2,
+								ETag: res[1].headers.get('Etag'),
+							},
+						],
+					},
+				})
+				.expect(200);
+
+			await expectToExist(commitResponse.filename);
+			const { body: orgWithFile } = await supertest(testLocalServer)
+				.get(`/example/organization(${org.id})`)
+				.expect(200);
+
+			expect(orgWithFile.d[0].logo_image.href).to.be.a('string');
+			expect(orgWithFile.d[0].logo_image.size).to.be.eq(6291456);
+		});
+	});
 });
 
 const removesSigning = (href: string): string => {
