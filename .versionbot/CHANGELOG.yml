@@ -1,4 +1,67 @@
 - commits:
+    - subject: Update dependencies
+      hash: 1feda2bf5d4580d62398d4cb87c16b2a88a0816a
+      body: |
+        Update @balena/odata-parser from 3.0.7 to 3.0.8
+        Update @balena/sbvr-types from 7.1.0 to 7.1.1
+        Update pinejs-client-core from 6.14.4 to 6.14.6
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Fix type checking of the declaration file
+              hash: 17dc377da3031f28bb5f2ffaff9b2185d65159aa
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-3.0.8
+          title: ""
+          date: 2024-06-04T09:56:51.182Z
+        - commits:
+            - subject: Type $count/$any/$all as needing to be nested in a navigation property
+              hash: 278681eeed59a175159446ec9e036e9f66f879dc
+              body: |
+                eg `$filter: { references__resource: { $any: { ... } } }`
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-6.14.6
+          title: ""
+          date: 2024-05-28T17:39:25.074Z
+        - commits:
+            - subject: Use readonly arrays for typings for better compatibility with `as
+                const`
+              hash: aef91ea270e4110ef11a8ee76929acc7e8804b36
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-6.14.5
+          title: ""
+          date: 2024-05-28T15:11:57.306Z
+        - commits:
+            - subject: Accept `Date` for the write types of `Date Time`/`Date`/`Time`
+              hash: eb03c8fb593fad76c74dad57a3d45625daf44d76
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-7.1.1
+          title: ""
+          date: 2024-06-04T09:59:12.864Z
+  version: 16.1.7
+  title: ""
+  date: 2024-06-05T08:35:19.986Z
+- commits:
     - subject: Deprecate LoggingClient in favor of a separate logger dictionary
       hash: 0abc88cc06bfb3eaa4852c8e2b7534edd816005c
       body: ""
