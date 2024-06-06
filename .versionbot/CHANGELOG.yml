@@ -1,4 +1,181 @@
 - commits:
+    - subject: Update tsconfig target to es2022
+      hash: 046eab19f98a3424b601ffef8de31b05645f77b6
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Fix internal pinejs client class when used with es2022
+      hash: 4b41168ee7ade40d166b1f714e56ff29f39f93e0
+      body: |
+        We remove `passthrough` override from internal pinejs client class
+        because in es2022 it is actually defined and overrides the parent
+        version rather than just affecting typings, and that override causes
+        problems
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Update minimum supported nodejs version to 20.14.0
+      hash: 41847fe04cc359e41625226afe39b22135d31bc9
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Update @balena/abstract-sql-to-typescript to 3.x
+      hash: 1b5dd833e6285fe24acce479b0333df5dcf983d9
+      body: |
+        Update @balena/abstract-sql-to-typescript from 2.4.0 to 3.1.1
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Include reference aliases in generated types
+              hash: abcd6845207b15fc862afb9f870282db0fbe6074
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-3.1.1
+          title: ""
+          date: 2024-06-06T00:08:51.817Z
+        - commits:
+            - subject: Add a default export which maps OData names to typescript interfaces
+              hash: 877a7987da8cdbaf1f1bfaa4ddd1eff0792692ff
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-3.1.0
+          title: ""
+          date: 2024-05-28T15:19:24.280Z
+        - commits:
+            - subject: Improve `Resource` typing
+              hash: ba1301734f1a71dc2a920d1f378173a6bfa7c4a5
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-3.0.2
+          title: ""
+          date: 2024-05-09T20:07:35.620Z
+        - commits:
+            - subject: Use `[A] | []` rather than `[A?]` for singular references
+              hash: 0b9661d460138a2e93e30974bb792f2f452290b0
+              body: >
+                This is a more accurate representation because the result will
+                never
+
+                contain `undefined` and will either be length of 0 or 1
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Fix `Resource` typing to allow for null
+              hash: 9e1e5f606cbeb6b9e9739444291f43b80b480d3a
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Fix `Resource` typing for expandable properties
+              hash: 8f79d7379e132d17817b8420b01b198e2c1e7ae5
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-3.0.1
+          title: ""
+          date: 2024-05-04T04:34:02.941Z
+        - commits:
+            - subject: Export a `Resource` type which all resources should conform to
+              hash: 188ac11c28a722c202732b0ee71760e6e0c0d4e4
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+            - subject: Separate the generation code from the exported type helpers
+              hash: 0a9d4165461690b19ce6735cfc80c7a0cf11cf77
+              body: ""
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+              nested: []
+            - subject: Use types directly from sbvr-types
+              hash: 3ee00d89c1c41ed7f4c6ddfc7a77dea2c2361b35
+              body: >
+                This uses the typescript types exported from @balena/sbvr-types
+                so that
+
+                new types can be dynamically picked up and the types we expose
+                will
+
+                match those that sbvr-types expects, avoiding any potential
+                issues if
+
+                our hardcoded types were to diverge from the types sbvr-types
+                actually
+
+                expects
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+              nested: []
+            - subject: Expose read vs write selection in generated types
+              hash: 46a6b741771a1eb2aa4520445b40e61ef57bcd53
+              body: >
+                This allows easily choosing read vs write types with just one
+                set of
+
+                types with no need to generate/manage two separate sets of
+                typings. It
+
+                also allows these typings to be passed as generics to other
+                functions
+
+                and they will also be able to distinguish read vs write
+              footer:
+                Change-type: major
+                change-type: major
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-3.0.0
+          title: ""
+          date: 2024-05-02T11:30:52.814Z
+    - subject: Remove deprecated logging functionality from exported API clients
+      hash: 6f0e45fed1ef7756733063d7a56ae15d263655aa
+      body: |
+        This functionality can be accessed via the logger export instead
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+  version: 17.0.0
+  title: ""
+  date: 2024-06-06T11:18:26.966Z
+- commits:
     - subject: Update dependencies
       hash: 1feda2bf5d4580d62398d4cb87c16b2a88a0816a
       body: |
