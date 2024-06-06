@@ -671,12 +671,12 @@ export const executeModels = async (
 					await validateModel(tx, apiRoot);
 				}
 
-				// TODO: Can we do this without the cast?
-				api[apiRoot] = new PinejsClient('/' + apiRoot + '/') as LoggingClient;
-				api[apiRoot].logger = { ...console };
+				api[apiRoot] = new PinejsClient('/' + apiRoot + '/');
+
+				logger[apiRoot] = { ...console };
 				if (model.logging != null) {
 					const defaultSetting = model.logging?.default ?? true;
-					const { logger: log } = api[apiRoot];
+					const log = logger[apiRoot];
 					for (const k of Object.keys(model.logging)) {
 						const key = k as keyof Console;
 						if (
@@ -688,7 +688,6 @@ export const executeModels = async (
 						}
 					}
 				}
-				logger[apiRoot] = api[apiRoot].logger;
 				return compiledModel;
 				// Only update the dev models once all models have finished executing.
 			}),
@@ -993,6 +992,9 @@ export const runRule = (() => {
 	};
 })();
 
+/**
+ * This type shows the passthrough properties that the internal pinejs client instance accepts
+ */
 export type Passthrough = AnyObject & {
 	req?: {
 		user?: User;
@@ -1001,8 +1003,6 @@ export type Passthrough = AnyObject & {
 };
 
 export class PinejsClient extends PinejsClientCore {
-	// @ts-expect-error This is actually assigned by `super` so it is always declared but that isn't detected here
-	public passthrough: Passthrough;
 	public async _request({
 		method,
 		url,
@@ -1022,14 +1022,8 @@ export class PinejsClient extends PinejsClientCore {
 	}
 }
 
-/**
- * @deprecated Use `logger[vocab]` instead of `api[vocab].logger`
- */
-export type LoggingClient = PinejsClient & {
-	logger: Console;
-};
 export const api: {
-	[vocab: string]: LoggingClient;
+	[vocab: string]: PinejsClient;
 } = {};
 export const logger: {
 	[vocab: string]: Console;

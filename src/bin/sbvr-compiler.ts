@@ -42,7 +42,7 @@ const generateTypes = async (inputFile: string, outputFile?: string) => {
 		program.opts().engine,
 	);
 	const { abstractSqlToTypescriptTypes } = await import(
-		'@balena/abstract-sql-to-typescript'
+		'@balena/abstract-sql-to-typescript/generate'
 	);
 	const types = abstractSqlToTypescriptTypes(models.abstractSql);
 
