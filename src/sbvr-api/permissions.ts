@@ -429,7 +429,7 @@ const convertToLambda = (filter: AnyObject, identifier: string) => {
 			}
 		}
 
-		if (Object.prototype.hasOwnProperty.call(object, 'name')) {
+		if (Object.hasOwn(object, 'name')) {
 			object.property = { ...object };
 			object.name = identifier;
 			delete object.lambda;
@@ -725,7 +725,7 @@ const deepFreezeExceptDefinition = (obj: AnyObject) => {
 		// We skip the definition because we know it's a property we've defined that will throw an error in some cases
 		if (
 			prop !== 'definition' &&
-			Object.prototype.hasOwnProperty.call(obj, prop) &&
+			Object.hasOwn(obj, prop) &&
 			obj[prop] !== null &&
 			!['object', 'function'].includes(typeof obj[prop])
 		) {

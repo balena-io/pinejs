@@ -165,20 +165,19 @@ export const process = async (
 
 	const fetchProcessingFields = getFetchProcessingFields(table);
 	const processedFields = fieldNames.filter((fieldName) =>
-		Object.prototype.hasOwnProperty.call(fetchProcessingFields, fieldName),
+		Object.hasOwn(fetchProcessingFields, fieldName),
 	);
 
 	const localFields = getLocalFields(table);
 	// We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
 	// and hence not known to this resource
 	const expandableFields = fieldNames.filter(
-		(fieldName) =>
-			!Object.prototype.hasOwnProperty.call(localFields, fieldName),
+		(fieldName) => !Object.hasOwn(localFields, fieldName),
 	);
 
 	const webresourceFields = getWebResourceFields(table);
 	const requiredSigningFields = fieldNames.filter((fieldName) =>
-		Object.prototype.hasOwnProperty.call(webresourceFields, fieldName),
+		Object.hasOwn(webresourceFields, fieldName),
 	);
 
 	const odataIdField = sqlNameToODataName(table.idField);

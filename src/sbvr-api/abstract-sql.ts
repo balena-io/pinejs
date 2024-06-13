@@ -116,7 +116,7 @@ export const getAndCheckBindValues = async (
 					[dataType, value] = odataBinds[bindValue];
 					field = { dataType };
 				} else if (typeof bindValue === 'string') {
-					if (!Object.prototype.hasOwnProperty.call(odataBinds, bindValue)) {
+					if (!Object.hasOwn(odataBinds, bindValue)) {
 						console.error(
 							`Invalid binding '${bindValue}' for binds: `,
 							odataBinds,
