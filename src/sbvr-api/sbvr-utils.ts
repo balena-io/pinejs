@@ -45,6 +45,7 @@ import * as asyncMigrator from '../migrator/async';
 import * as syncMigrator from '../migrator/sync';
 import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
 
+import type DevModel from './dev';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const devModel = require('./dev.sbvr');
 import * as permissions from './permissions';
@@ -715,7 +716,7 @@ export const executeModels = async (
 							},
 						});
 					}
-					const result = (await api.dev.get({
+					const result = await api.dev.get({
 						resource: 'model',
 						passthrough: {
 							tx,
@@ -728,7 +729,7 @@ export const executeModels = async (
 								model_type: modelType,
 							},
 						},
-					})) as Array<{ id: number }>;
+					});
 
 					let method: SupportedMethod = 'POST';
 					let uri = '/dev/model';
@@ -1981,47 +1982,51 @@ const runDelete = async (
 	}
 };
 
+export interface API {
+	[devModelConfig.apiRoot]: PinejsClient<DevModel>;
+}
+const devModelConfig = {
+	apiRoot: 'dev',
+	modelText: devModel,
+	logging: {
+		log: false,
+	},
+	migrations: {
+		'11.0.0-modified-at': `
+			ALTER TABLE "model"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+		`,
+		'15.0.0-data-types': async ($tx, sbvrUtils) => {
+			switch (sbvrUtils.db.engine) {
+				case 'mysql':
+					await $tx.executeSql(`\
+						ALTER TABLE "model"
+						MODIFY "model value" JSON NOT NULL;
+
+						UPDATE "model"
+						SET "model value" = CAST('{"value":' || CAST("model value" AS CHAR) || '}' AS JSON)
+						WHERE "model type" IN ('se', 'odataMetadata')
+						AND CAST("model value" AS CHAR) LIKE '"%';`);
+					break;
+				case 'postgres':
+					await $tx.executeSql(`\
+						ALTER TABLE "model"
+						ALTER COLUMN "model value" SET DATA TYPE JSONB USING "model value"::JSONB;
+
+						UPDATE "model"
+						SET "model value" = CAST('{"value":' || CAST("model value" AS TEXT) || '}' AS JSON)
+						WHERE "model type" IN ('se', 'odataMetadata')
+						AND CAST("model value" AS TEXT) LIKE '"%';`);
+					break;
+				// No need to migrate for websql
+			}
+		},
+	},
+} as const satisfies ExecutableModel;
 export const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
 	try {
 		// dev model must run first
-		await executeModel(tx, {
-			apiRoot: 'dev',
-			modelText: devModel,
-			logging: {
-				log: false,
-			},
-			migrations: {
-				'11.0.0-modified-at': `
-					ALTER TABLE "model"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-				`,
-				'15.0.0-data-types': async ($tx, sbvrUtils) => {
-					switch (sbvrUtils.db.engine) {
-						case 'mysql':
-							await $tx.executeSql(`\
-								ALTER TABLE "model"
-								MODIFY "model value" JSON NOT NULL;
-
-								UPDATE "model"
-								SET "model value" = CAST('{"value":' || CAST("model value" AS CHAR) || '}' AS JSON)
-								WHERE "model type" IN ('se', 'odataMetadata')
-								AND CAST("model value" AS CHAR) LIKE '"%';`);
-							break;
-						case 'postgres':
-							await $tx.executeSql(`\
-								ALTER TABLE "model"
-								ALTER COLUMN "model value" SET DATA TYPE JSONB USING "model value"::JSONB;
-
-								UPDATE "model"
-								SET "model value" = CAST('{"value":' || CAST("model value" AS TEXT) || '}' AS JSON)
-								WHERE "model type" IN ('se', 'odataMetadata')
-								AND CAST("model value" AS TEXT) LIKE '"%';`);
-							break;
-						// No need to migrate for websql
-					}
-				},
-			},
-		});
+		await executeModel(tx, devModelConfig);
 		await executeModels(tx, permissions.config.models);
 		console.info('Successfully executed standard models.');
 	} catch (err: any) {
