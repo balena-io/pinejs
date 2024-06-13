@@ -1,4 +1,16 @@
 - commits:
+    - subject: Switch from `Object.prototype.hasOwnProperty.call` to `Object.hasOwn`
+      hash: 1343f0d463bf4271846343ee98de4d8afb9402f3
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 17.0.1
+  title: ""
+  date: 2024-06-13T13:34:05.242Z
+- commits:
     - subject: Update tsconfig target to es2022
       hash: 046eab19f98a3424b601ffef8de31b05645f77b6
       body: ""
