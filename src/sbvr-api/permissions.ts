@@ -1,3 +1,4 @@
+import type AuthModel from './user';
 import type {
 	AbstractSqlModel,
 	AbstractSqlQuery,
@@ -51,6 +52,7 @@ import {
 	type ODataRequest,
 } from './uri-parser';
 import memoizeWeak = require('memoizee/weak');
+import type { Config } from '../config-loader/config-loader';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const userModel: string = require('./user.sbvr');
@@ -1118,7 +1120,7 @@ const memoizedGetConstrainedModel = (
 	getBoundConstrainedMemoizer(abstractSqlModel)(permissionsLookup, vocabulary);
 
 const getCheckPasswordQuery = _.once(() =>
-	sbvrUtils.api.Auth.prepare<{ username: string }>({
+	sbvrUtils.api.Auth.prepare<{ username: string }, 'user'>({
 		resource: 'user',
 		passthrough: {
 			req: rootRead,
@@ -1164,7 +1166,7 @@ export const checkPassword = async (
 
 const $getUserPermissions = (() => {
 	const getUserPermissionsQuery = _.once(() =>
-		sbvrUtils.api.Auth.prepare<{ userId: number }>({
+		sbvrUtils.api.Auth.prepare<{ userId: number }, 'permission'>({
 			resource: 'permission',
 			passthrough: {
 				req: rootRead,
@@ -1275,7 +1277,7 @@ export const getUserPermissions = async (
 
 const $getApiKeyPermissions = (() => {
 	const getApiKeyPermissionsQuery = _.once(() =>
-		sbvrUtils.api.Auth.prepare<{ apiKey: string }>({
+		sbvrUtils.api.Auth.prepare<{ apiKey: string }, 'permission'>({
 			resource: 'permission',
 			passthrough: {
 				req: rootRead,
@@ -1403,7 +1405,7 @@ export const getApiKeyPermissions = async (
 
 const getApiKeyActorId = (() => {
 	const getApiKeyActorIdQuery = _.once(() =>
-		sbvrUtils.api.Auth.prepare<{ apiKey: string }>({
+		sbvrUtils.api.Auth.prepare<{ apiKey: string }, 'api_key'>({
 			resource: 'api_key',
 			passthrough: {
 				req: rootRead,
@@ -1586,7 +1588,7 @@ let guestPermissionsInitialized = false;
 const getGuestPermissions = memoize(
 	async () => {
 		// Get guest user
-		const result = (await sbvrUtils.api.Auth.get({
+		const result = await sbvrUtils.api.Auth.get({
 			resource: 'user',
 			passthrough: {
 				req: rootRead,
@@ -1597,7 +1599,7 @@ const getGuestPermissions = memoize(
 			options: {
 				$select: 'id',
 			},
-		})) as { id: number } | undefined;
+		});
 		if (result == null) {
 			throw new Error('No guest user');
 		}
@@ -1686,49 +1688,53 @@ export const addPermissions = async (
 	}
 };
 
+declare module './sbvr-utils' {
+	export interface API {
+		[authModelConfig.apiRoot]: PinejsClient<AuthModel>;
+	}
+}
+const authModelConfig = {
+	apiRoot: 'Auth',
+	modelText: userModel,
+	customServerCode: exports,
+	migrations: {
+		'11.0.0-modified-at': `
+			ALTER TABLE "actor"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+
+			ALTER TABLE "api key"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+			ALTER TABLE "api key-has-permission"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+			ALTER TABLE "api key-has-role"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+
+			ALTER TABLE "permission"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+
+			ALTER TABLE "role"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+
+			ALTER TABLE "user"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+			ALTER TABLE "user-has-role"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+			ALTER TABLE "user-has-permission"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+		`,
+		'11.0.1-modified-at': `
+			ALTER TABLE "role-has-permission"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+		`,
+		'14.42.0-api-key-expiry-date': `
+			ALTER TABLE "api key"
+			ADD COLUMN IF NOT EXISTS "expiry date" TIMESTAMP NULL;
+		`,
+	},
+} as const satisfies sbvrUtils.ExecutableModel;
 export const config = {
-	models: [
-		{
-			apiRoot: 'Auth',
-			modelText: userModel,
-			customServerCode: exports,
-			migrations: {
-				'11.0.0-modified-at': `
-					ALTER TABLE "actor"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-
-					ALTER TABLE "api key"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-					ALTER TABLE "api key-has-permission"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-					ALTER TABLE "api key-has-role"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-
-					ALTER TABLE "permission"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-
-					ALTER TABLE "role"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-
-					ALTER TABLE "user"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-					ALTER TABLE "user-has-role"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-					ALTER TABLE "user-has-permission"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-				`,
-				'11.0.1-modified-at': `
-					ALTER TABLE "role-has-permission"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-				`,
-				'14.42.0-api-key-expiry-date': `
-					ALTER TABLE "api key"
-					ADD COLUMN IF NOT EXISTS "expiry date" TIMESTAMP NULL;
-				`,
-			},
-		},
-	] as sbvrUtils.ExecutableModel[],
-};
+	models: [authModelConfig],
+} satisfies Config;
 export const setup = () => {
 	addHook('all', 'all', 'all', {
 		sideEffects: false,
