@@ -1,3 +1,4 @@
+import type MigrationsModel from './migrations';
 import {
 	type MigrationTuple,
 	MigrationError,
@@ -16,7 +17,7 @@ import _ from 'lodash';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const modelText = require('./migrations.sbvr');
+const migrationsModel = require('./migrations.sbvr');
 
 type ApiRootModel = Model & { apiRoot: string };
 
@@ -136,45 +137,49 @@ const executeMigration = async (
 	}
 };
 
-export const config: Config = {
-	models: [
-		{
-			modelName: 'migrations',
-			apiRoot: 'migrations',
-			modelText,
-			migrations: {
-				'11.0.0-modified-at': `
-					ALTER TABLE "migration"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-				`,
-				'11.0.1-modified-at': `
-					ALTER TABLE "migration lock"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-				`,
-				'15.0.0-data-types': async (tx, { db }) => {
-					switch (db.engine) {
-						case 'mysql':
-							await tx.executeSql(`\
-								ALTER TABLE "migration"
-								MODIFY "executed migrations" JSON NOT NULL;`);
-							await tx.executeSql(`\
-								ALTER TABLE "migration status"
-								MODIFY "is backing off" BOOLEAN NOT NULL;`);
-							break;
-						case 'postgres':
-							await tx.executeSql(`\
-								ALTER TABLE "migration"
-								ALTER COLUMN "executed migrations" SET DATA TYPE JSONB USING "executed migrations"::JSONB;`);
-							await tx.executeSql(`\
-								ALTER TABLE "migration status"
-								ALTER COLUMN "is backing off" DROP DEFAULT,
-								ALTER COLUMN "is backing off" SET DATA TYPE BOOLEAN USING "is backing off"::BOOLEAN,
-								ALTER COLUMN "is backing off" SET DEFAULT FALSE;`);
-							break;
-						// No need to migrate for websql
-					}
-				},
-			},
+declare module '../sbvr-api/sbvr-utils' {
+	export interface API {
+		[migrationModelConfig.apiRoot]: PinejsClient<MigrationsModel>;
+	}
+}
+const migrationModelConfig = {
+	modelName: 'migrations',
+	apiRoot: 'migrations',
+	modelText: migrationsModel,
+	migrations: {
+		'11.0.0-modified-at': `
+			ALTER TABLE "migration"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+		`,
+		'11.0.1-modified-at': `
+			ALTER TABLE "migration lock"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+		`,
+		'15.0.0-data-types': async (tx, { db }) => {
+			switch (db.engine) {
+				case 'mysql':
+					await tx.executeSql(`\
+						ALTER TABLE "migration"
+						MODIFY "executed migrations" JSON NOT NULL;`);
+					await tx.executeSql(`\
+						ALTER TABLE "migration status"
+						MODIFY "is backing off" BOOLEAN NOT NULL;`);
+					break;
+				case 'postgres':
+					await tx.executeSql(`\
+						ALTER TABLE "migration"
+						ALTER COLUMN "executed migrations" SET DATA TYPE JSONB USING "executed migrations"::JSONB;`);
+					await tx.executeSql(`\
+						ALTER TABLE "migration status"
+						ALTER COLUMN "is backing off" DROP DEFAULT,
+						ALTER COLUMN "is backing off" SET DATA TYPE BOOLEAN USING "is backing off"::BOOLEAN,
+						ALTER COLUMN "is backing off" SET DEFAULT FALSE;`);
+					break;
+				// No need to migrate for websql
+			}
 		},
-	],
+	},
+} as const satisfies sbvrUtils.ExecutableModel;
+export const config: Config = {
+	models: [migrationModelConfig],
 };
