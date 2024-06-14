@@ -1,4 +1,16 @@
 - commits:
+    - subject: Avoid duplicate types when using sbvr-compiler to generate model types
+      hash: fd522e4ae75be1a7c7c927303d631c967d4bd9b9
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 17.0.2
+  title: ""
+  date: 2024-06-14T16:43:39.038Z
+- commits:
     - subject: Switch from `Object.prototype.hasOwnProperty.call` to `Object.hasOwn`
       hash: 1343f0d463bf4271846343ee98de4d8afb9402f3
       body: ""
