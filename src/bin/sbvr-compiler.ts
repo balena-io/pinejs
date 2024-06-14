@@ -35,16 +35,16 @@ const runCompile = async (inputFile: string, outputFile?: string) => {
 };
 
 const generateTypes = async (inputFile: string, outputFile?: string) => {
-	const { generateModels } = await import('../sbvr-api/sbvr-utils.js');
-	const seModel = getSE(inputFile);
-	const models = generateModels(
-		{ apiRoot: 'sbvr-compiler', modelText: seModel },
-		program.opts().engine,
+	const { generateLfModel, generateAbstractSqlModel } = await import(
+		'../sbvr-api/sbvr-utils.js'
 	);
+	const seModel = getSE(inputFile);
+	const lfModel = generateLfModel(seModel);
+	const abstractSql = generateAbstractSqlModel(lfModel);
 	const { abstractSqlToTypescriptTypes } = await import(
 		'@balena/abstract-sql-to-typescript/generate'
 	);
-	const types = abstractSqlToTypescriptTypes(models.abstractSql);
+	const types = abstractSqlToTypescriptTypes(abstractSql);
 
 	writeAll(types, outputFile);
 };
