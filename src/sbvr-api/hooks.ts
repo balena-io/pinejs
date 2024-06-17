@@ -1,5 +1,5 @@
 import type { OptionalField, Resolvable } from './common-types';
-import type { Tx } from '../database-layer/db';
+import type { Result, Tx } from '../database-layer/db';
 import type { ODataRequest, ParsedODataRequest } from './uri-parser';
 import type { AnyObject } from 'pinejs-client-core';
 import type { TypedError } from 'typed-error';
@@ -44,12 +44,14 @@ export interface Hooks {
 	POSTPARSE?: (options: HookArgs) => HookResponse;
 	PRERUN?: (options: HookArgs & { tx: Tx }) => HookResponse;
 	/** These are run in reverse translation order from newest to oldest */
-	POSTRUN?: (options: HookArgs & { tx: Tx; result: any }) => HookResponse;
+	POSTRUN?: (
+		options: HookArgs & { tx: Tx; result: Result | number | undefined },
+	) => HookResponse;
 	/** These are run in reverse translation order from newest to oldest */
 	PRERESPOND?: (
 		options: HookArgs & {
 			tx: Tx;
-			result: any;
+			result?: Result | number | AnyObject;
 			/** This can be mutated to modify the response sent to the client */
 			response: Response;
 		},

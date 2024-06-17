@@ -1541,7 +1541,8 @@ const runRequest = async (
 	if (env.DEBUG) {
 		log.log('Running', req.method, req.url);
 	}
-	let result: Db.Result | number | undefined;
+	let resultGet: Db.Result | undefined;
+	let resultPost: number | undefined;
 
 	try {
 		try {
@@ -1550,18 +1551,18 @@ const runRequest = async (
 
 			switch (request.method) {
 				case 'GET':
-					result = await runGet(req, request, tx);
+					resultGet = await runGet(req, request, tx);
 					break;
 				case 'POST':
-					result = await runPost(req, request, tx);
+					resultPost = await runPost(req, request, tx);
 					break;
 				case 'PUT':
 				case 'PATCH':
 				case 'MERGE':
-					result = await runPut(req, request, tx);
+					await runPut(req, request, tx);
 					break;
 				case 'DELETE':
-					result = await runDelete(req, request, tx);
+					await runDelete(req, request, tx);
 					break;
 			}
 		} catch (err: any) {
@@ -1587,7 +1588,12 @@ const runRequest = async (
 			throw err;
 		}
 
-		await runHooks('POSTRUN', request.hooks, { req, request, result, tx });
+		await runHooks('POSTRUN', request.hooks, {
+			req,
+			request,
+			result: resultGet ?? resultPost,
+			tx,
+		});
 	} catch (err: any) {
 		await runHooks('POSTRUN-ERROR', request.hooks, {
 			req,
@@ -1597,7 +1603,23 @@ const runRequest = async (
 		});
 		throw err;
 	}
-	return await prepareResponse(req, request, result, tx);
+
+	switch (request.method) {
+		case 'GET':
+			return await respondGet(req, request, resultGet, tx);
+		case 'POST':
+			return await respondPost(req, request, resultPost, tx);
+		case 'PUT':
+		case 'PATCH':
+		case 'MERGE':
+			return await respondPut(req, request, tx);
+		case 'DELETE':
+			return await respondDelete(req, request, tx);
+		case 'OPTIONS':
+			return await respondOptions(req, request, tx);
+		default:
+			throw new MethodNotAllowedError();
+	}
 };
 
 const runChangeSet =
@@ -1643,30 +1665,6 @@ const updateBinds = (
 		}
 	}
 	return request;
-};
-
-const prepareResponse = async (
-	req: Express.Request,
-	request: uriParser.ODataRequest,
-	result: any,
-	tx: Db.Tx,
-): Promise<Response> => {
-	switch (request.method) {
-		case 'GET':
-			return await respondGet(req, request, result, tx);
-		case 'POST':
-			return await respondPost(req, request, result, tx);
-		case 'PUT':
-		case 'PATCH':
-		case 'MERGE':
-			return await respondPut(req, request, result, tx);
-		case 'DELETE':
-			return await respondDelete(req, request, result, tx);
-		case 'OPTIONS':
-			return await respondOptions(req, request, result, tx);
-		default:
-			throw new MethodNotAllowedError();
-	}
 };
 
 const checkReadOnlyRequests = (request: uriParser.ODataRequest) => {
@@ -1770,11 +1768,17 @@ const runGet = async (
 const respondGet = async (
 	req: Express.Request,
 	request: uriParser.ODataRequest,
-	result: any,
+	result: Db.Result | undefined,
 	tx: Db.Tx,
 ): Promise<Response> => {
 	const vocab = request.vocabulary;
 	if (request.sqlQuery != null) {
+		if (result == null) {
+			// This shouldn't be able to happen because the result should only be null if there's no sqlQuery
+			throw new Error(
+				'Null result passed to respond GET that has a sqlQuery defined',
+			);
+		}
 		const format = request.odataQuery.options?.$format;
 		const metadata =
 			format != null && typeof format === 'object'
@@ -1839,7 +1843,7 @@ const runPost = async (
 const respondPost = async (
 	req: Express.Request,
 	request: uriParser.ODataRequest,
-	id: number,
+	id: number | undefined,
 	tx: Db.Tx,
 ): Promise<Response> => {
 	const vocab = request.vocabulary;
@@ -1889,7 +1893,7 @@ const runPut = async (
 	_req: Express.Request,
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
-): Promise<undefined> => {
+): Promise<void> => {
 	let rowsAffected: number;
 	// If request.sqlQuery is an array it means it's an UPSERT, ie two queries: [InsertQuery, UpdateQuery]
 	if (Array.isArray(request.sqlQuery)) {
@@ -1905,13 +1909,11 @@ const runPut = async (
 	if (rowsAffected > 0) {
 		await validateModel(tx, _.last(request.translateVersions)!, request);
 	}
-	return undefined;
 };
 
 const respondPut = async (
 	req: Express.Request,
 	request: uriParser.ODataRequest,
-	result: any,
 	tx: Db.Tx,
 ): Promise<Response> => {
 	const response = {
@@ -1920,7 +1922,6 @@ const respondPut = async (
 	await runHooks('PRERESPOND', request.hooks, {
 		req,
 		request,
-		result,
 		response,
 		tx,
 	});
@@ -1933,13 +1934,11 @@ const runDelete = async (
 	_req: Express.Request,
 	request: uriParser.ODataRequest,
 	tx: Db.Tx,
-): Promise<undefined> => {
+): Promise<void> => {
 	const { rowsAffected } = await runQuery(tx, request, undefined, true);
 	if (rowsAffected > 0) {
 		await validateModel(tx, _.last(request.translateVersions)!, request);
 	}
-
-	return undefined;
 };
 
 export const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
