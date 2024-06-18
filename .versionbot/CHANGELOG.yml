@@ -1,4 +1,16 @@
 - commits:
+    - subject: Improve `result` typing for `POSTRUN`/`PRERESPOND` hooks
+      hash: adec8e6cfb12d75109627a582c948d6f950d0989
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 17.0.3
+  title: ""
+  date: 2024-06-18T17:07:46.137Z
+- commits:
     - subject: Avoid duplicate types when using sbvr-compiler to generate model types
       hash: fd522e4ae75be1a7c7c927303d631c967d4bd9b9
       body: ""
