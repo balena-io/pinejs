@@ -76,11 +76,21 @@ const checkForExpansion = async (
 	}
 };
 
-export const resourceURI = (
+export function resourceURI(
 	vocab: string,
 	resourceName: string,
 	id: string | number,
-): string | undefined => {
+): string;
+export function resourceURI(
+	vocab: string,
+	resourceName: string,
+	id: string | number | null | undefined,
+): string | undefined;
+export function resourceURI(
+	vocab: string,
+	resourceName: string,
+	id: string | number | null | undefined,
+): string | undefined {
 	if (id == null) {
 		return;
 	}
@@ -88,7 +98,7 @@ export const resourceURI = (
 		id = "'" + encodeURIComponent(id) + "'";
 	}
 	return `/${vocab}/${resourceName}(@id)?@id=${id}`;
-};
+}
 
 const getLocalFields = (table: AbstractSqlTable) => {
 	if (table.localFields == null) {
