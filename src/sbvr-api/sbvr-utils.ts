@@ -2,6 +2,10 @@ import type * as Express from 'express';
 import type * as Db from '../database-layer/db';
 import type { Model } from '../config-loader/config-loader';
 import type { AnyObject, RequiredField } from './common-types';
+import type {
+	PickDeferred,
+	Resource,
+} from '@balena/abstract-sql-to-typescript';
 
 // Augment the Express typings
 declare global {
@@ -32,6 +36,7 @@ import {
 } from '@balena/odata-to-abstract-sql';
 import sbvrTypes from '@balena/sbvr-types';
 import deepFreeze = require('deep-freeze');
+import type { AnyResource, Params } from 'pinejs-client-core';
 import { PinejsClientCore, type PromiseResultTypes } from 'pinejs-client-core';
 
 import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
@@ -40,6 +45,7 @@ import * as asyncMigrator from '../migrator/async';
 import * as syncMigrator from '../migrator/sync';
 import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
 
+import type DevModel from './dev';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const devModel = require('./dev.sbvr');
 import * as permissions from './permissions';
@@ -710,7 +716,7 @@ export const executeModels = async (
 							},
 						});
 					}
-					const result = (await api.dev.get({
+					const result = await api.dev.get({
 						resource: 'model',
 						passthrough: {
 							tx,
@@ -723,7 +729,7 @@ export const executeModels = async (
 								model_type: modelType,
 							},
 						},
-					})) as Array<{ id: number }>;
+					});
 
 					let method: SupportedMethod = 'POST';
 					let uri = '/dev/model';
@@ -1002,7 +1008,16 @@ export type Passthrough = AnyObject & {
 	tx?: Db.Tx;
 };
 
-export class PinejsClient extends PinejsClientCore {
+export class PinejsClient<
+	M extends {
+		[key in keyof M]: Resource;
+	} = {
+		[key in string]: {
+			Read: AnyObject;
+			Write: AnyObject;
+		};
+	},
+> extends PinejsClientCore<unknown, M> {
 	public async _request({
 		method,
 		url,
@@ -1020,11 +1035,37 @@ export class PinejsClient extends PinejsClientCore {
 	}) {
 		return (await runURI(method, url, body, tx, req, custom)) as object;
 	}
+
+	public post<TResource extends keyof M & string>(
+		params: {
+			resource: TResource;
+			options?: Params<M[TResource]>['options'] & { returnResource?: true };
+		} & Params<M[TResource]>,
+	): Promise<PickDeferred<M[TResource]['Read']>>;
+	public post<TResource extends keyof M & string>(
+		params: {
+			resource: TResource;
+			options: Params<M[TResource]>['options'] & { returnResource: boolean };
+		} & Params<M[TResource]>,
+	): Promise<Pick<M[TResource]['Read'], 'id'>>; // TODO: This should use the primary key rather than hardcoding `id`
+	/**
+	 * @deprecated POSTing via `url` is deprecated
+	 */
+	public post<T extends Resource = AnyResource>(
+		params: {
+			resource?: undefined;
+			url: NonNullable<Params<T>['url']>;
+		} & Params<T>,
+	): Promise<AnyObject>;
+	public post(params: Params<AnyResource>): Promise<AnyObject> {
+		return super.post(params as Parameters<PinejsClient['post']>[0]);
+	}
 }
 
-export const api: {
+export interface API {
 	[vocab: string]: PinejsClient;
-} = {};
+}
+export const api = {} as API;
 export const logger: {
 	[vocab: string]: Console;
 } = {};
@@ -1131,8 +1172,8 @@ const getIdField = (
 	// TODO: Should resolveSynonym also be using the finalAbstractSqlModel?
 	getFinalAbstractSqlModel(request).tables[resolveSynonym(request)].idField;
 
-export const getAffectedIds = async (
-	args: HookArgs & {
+export const getAffectedIds = async <Vocab extends string>(
+	args: HookArgs<Vocab> & {
 		tx: Db.Tx;
 	},
 ): Promise<number[]> => {
@@ -1154,11 +1195,11 @@ export const getAffectedIds = async (
 	return request.affectedIds;
 };
 
-const $getAffectedIds = async ({
+const $getAffectedIds = async <Vocab extends string>({
 	req,
 	request,
 	tx,
-}: HookArgs & {
+}: HookArgs<Vocab> & {
 	tx: Db.Tx;
 }): Promise<number[]> => {
 	if (!['PATCH', 'DELETE'].includes(request.method)) {
@@ -1941,47 +1982,51 @@ const runDelete = async (
 	}
 };
 
+export interface API {
+	[devModelConfig.apiRoot]: PinejsClient<DevModel>;
+}
+const devModelConfig = {
+	apiRoot: 'dev',
+	modelText: devModel,
+	logging: {
+		log: false,
+	},
+	migrations: {
+		'11.0.0-modified-at': `
+			ALTER TABLE "model"
+			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
+		`,
+		'15.0.0-data-types': async ($tx, sbvrUtils) => {
+			switch (sbvrUtils.db.engine) {
+				case 'mysql':
+					await $tx.executeSql(`\
+						ALTER TABLE "model"
+						MODIFY "model value" JSON NOT NULL;
+
+						UPDATE "model"
+						SET "model value" = CAST('{"value":' || CAST("model value" AS CHAR) || '}' AS JSON)
+						WHERE "model type" IN ('se', 'odataMetadata')
+						AND CAST("model value" AS CHAR) LIKE '"%';`);
+					break;
+				case 'postgres':
+					await $tx.executeSql(`\
+						ALTER TABLE "model"
+						ALTER COLUMN "model value" SET DATA TYPE JSONB USING "model value"::JSONB;
+
+						UPDATE "model"
+						SET "model value" = CAST('{"value":' || CAST("model value" AS TEXT) || '}' AS JSON)
+						WHERE "model type" IN ('se', 'odataMetadata')
+						AND CAST("model value" AS TEXT) LIKE '"%';`);
+					break;
+				// No need to migrate for websql
+			}
+		},
+	},
+} as const satisfies ExecutableModel;
 export const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
 	try {
 		// dev model must run first
-		await executeModel(tx, {
-			apiRoot: 'dev',
-			modelText: devModel,
-			logging: {
-				log: false,
-			},
-			migrations: {
-				'11.0.0-modified-at': `
-					ALTER TABLE "model"
-					ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
-				`,
-				'15.0.0-data-types': async ($tx, sbvrUtils) => {
-					switch (sbvrUtils.db.engine) {
-						case 'mysql':
-							await $tx.executeSql(`\
-								ALTER TABLE "model"
-								MODIFY "model value" JSON NOT NULL;
-
-								UPDATE "model"
-								SET "model value" = CAST('{"value":' || CAST("model value" AS CHAR) || '}' AS JSON)
-								WHERE "model type" IN ('se', 'odataMetadata')
-								AND CAST("model value" AS CHAR) LIKE '"%';`);
-							break;
-						case 'postgres':
-							await $tx.executeSql(`\
-								ALTER TABLE "model"
-								ALTER COLUMN "model value" SET DATA TYPE JSONB USING "model value"::JSONB;
-
-								UPDATE "model"
-								SET "model value" = CAST('{"value":' || CAST("model value" AS TEXT) || '}' AS JSON)
-								WHERE "model type" IN ('se', 'odataMetadata')
-								AND CAST("model value" AS TEXT) LIKE '"%';`);
-							break;
-						// No need to migrate for websql
-					}
-				},
-			},
-		});
+		await executeModel(tx, devModelConfig);
 		await executeModels(tx, permissions.config.models);
 		console.info('Successfully executed standard models.');
 	} catch (err: any) {

@@ -9,7 +9,6 @@ import _ from 'lodash';
 import { settleMapSeries } from './control-flow';
 import memoize from 'memoizee';
 import {
-	type PinejsClient,
 	type User,
 	type ApiKey,
 	resolveSynonym,
@@ -31,25 +30,27 @@ export interface HookReq {
 	hooks?: InstantiatedHooks;
 	is?: (type: string | string[]) => string | false | null;
 }
-export interface HookArgs {
+export interface HookArgs<Vocab extends string = string> {
 	req: HookReq;
 	request: ODataRequest;
-	api: PinejsClient;
+	api: (typeof api)[Vocab];
 	tx?: Tx | undefined;
 }
 export type HookResponse = PromiseLike<any> | null | void;
 
-export interface Hooks {
-	PREPARSE?: (options: Omit<HookArgs, 'request' | 'api'>) => HookResponse;
-	POSTPARSE?: (options: HookArgs) => HookResponse;
-	PRERUN?: (options: HookArgs & { tx: Tx }) => HookResponse;
+export interface Hooks<Vocab extends string = string> {
+	PREPARSE?: (
+		options: Omit<HookArgs<Vocab>, 'request' | 'api'>,
+	) => HookResponse;
+	POSTPARSE?: (options: HookArgs<Vocab>) => HookResponse;
+	PRERUN?: (options: HookArgs<Vocab> & { tx: Tx }) => HookResponse;
 	/** These are run in reverse translation order from newest to oldest */
 	POSTRUN?: (
-		options: HookArgs & { tx: Tx; result: Result | number | undefined },
+		options: HookArgs<Vocab> & { tx: Tx; result: Result | number | undefined },
 	) => HookResponse;
 	/** These are run in reverse translation order from newest to oldest */
 	PRERESPOND?: (
-		options: HookArgs & {
+		options: HookArgs<Vocab> & {
 			tx: Tx;
 			result?: Result | number | AnyObject;
 			/** This can be mutated to modify the response sent to the client */
@@ -58,7 +59,7 @@ export interface Hooks {
 	) => HookResponse;
 	/** These are run in reverse translation order from newest to oldest */
 	'POSTRUN-ERROR'?: (
-		options: HookArgs & { tx: Tx; error: TypedError | any },
+		options: HookArgs<Vocab> & { tx: Tx; error: TypedError | any },
 	) => HookResponse;
 }
 export type HookBlueprints = {
@@ -264,9 +265,9 @@ const apiHooks = {
 // Share hooks between merge and patch since they are the same operation,
 // just MERGE was the OData intermediary until the HTTP spec added PATCH.
 apiHooks.MERGE = apiHooks.PATCH;
-export const addHook = (
+export const addHook = <Vocab extends string>(
 	method: keyof typeof apiHooks,
-	vocabulary: string,
+	vocabulary: Vocab,
 	resourceName: string,
 	hooks:
 		| { [key in keyof Hooks]: HookBlueprint<NonNullable<Hooks[key]>> }
@@ -345,11 +346,11 @@ export const addHook = (
 	getHooks.clear();
 };
 
-export const addSideEffectHook = (
+export const addSideEffectHook = <Vocab extends string>(
 	method: HookMethod,
-	apiRoot: string,
+	apiRoot: Vocab,
 	resourceName: string,
-	hooks: Hooks,
+	hooks: Hooks<NoInfer<Vocab>>,
 ): void => {
 	addHook(method, apiRoot, resourceName, {
 		...hooks,
@@ -358,11 +359,11 @@ export const addSideEffectHook = (
 	});
 };
 
-export const addPureHook = (
+export const addPureHook = <Vocab extends string>(
 	method: HookMethod,
-	apiRoot: string,
+	apiRoot: Vocab,
 	resourceName: string,
-	hooks: Hooks,
+	hooks: Hooks<NoInfer<Vocab>>,
 ): void => {
 	addHook(method, apiRoot, resourceName, {
 		...hooks,
