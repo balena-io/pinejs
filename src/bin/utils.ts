@@ -76,10 +76,10 @@ export const getAbstractSqlModelFromFile = (
 		} else if ('modelFile' in configModel && configModel.modelFile != null) {
 			seModel = fs.readFileSync(require.resolve(configModel.modelFile), 'utf8');
 		} else {
-			throw new Error('Unrecognised config file');
+			throw new Error('Unrecognized config file');
 		}
 	} else {
-		throw new Error('Unrecognised config file');
+		throw new Error('Unrecognized config file');
 	}
 	const { generateLfModel, generateAbstractSqlModel } =
 		// eslint-disable-next-line @typescript-eslint/no-var-requires

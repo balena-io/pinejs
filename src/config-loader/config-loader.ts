@@ -415,7 +415,7 @@ export const setup = (app: Express.Application) => {
 										break;
 									default:
 										console.error(
-											`Unrecognised migration file extension, skipping: ${path.extname(
+											`Unrecognized migration file extension, skipping: ${path.extname(
 												filename,
 											)}`,
 										);
