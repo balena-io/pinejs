@@ -31,10 +31,51 @@ export interface UploadResponse {
 	filename: string;
 }
 
+export interface BeginMultipartUploadPayload {
+	filename: string;
+	content_type: string;
+	size: number;
+	chunk_size: number;
+}
+
+export interface UploadPart {
+	url: string;
+	chunkSize: number;
+	partNumber: number;
+}
+
+export interface BeginMultipartUploadHandlerResponse {
+	uploadParts: UploadPart[];
+	fileKey: string;
+	uploadId: string;
+}
+
+export interface CommitMultipartUploadPayload {
+	fileKey: string;
+	uploadId: string;
+	filename: string;
+	providerCommitData?: Record<string, any>;
+}
+
+export interface CancelMultipartUploadPayload {
+	fileKey: string;
+	uploadId: string;
+}
+
 export interface WebResourceHandler {
 	handleFile: (resource: IncomingFile) => Promise<UploadResponse>;
 	removeFile: (fileReference: string) => Promise<void>;
 	onPreRespond: (webResource: WebResource) => Promise<WebResource>;
+	multipartUpload?: {
+		begin: (
+			fieldName: string,
+			payload: BeginMultipartUploadPayload,
+		) => Promise<BeginMultipartUploadHandlerResponse>;
+		commit: (commitInfo: CommitMultipartUploadPayload) => Promise<WebResource>;
+		cancel: (cancelInfo: CancelMultipartUploadPayload) => Promise<void>;
+		getMinimumPartSize: () => number;
+		getDefaultPartSize: () => number;
+	};
 }
 
 export class WebResourceError extends TypedError {}
