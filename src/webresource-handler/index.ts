@@ -274,14 +274,12 @@ const getCreateWebResourceHooks = (
 	};
 };
 
-const isDefined = <T>(x: T | undefined | null): x is T => x != null;
-
 const getWebResourcesHrefs = (
 	webResources?: WebResourcesDbResponse[] | null,
 ): string[] => {
 	const hrefs = (webResources ?? []).flatMap((resource) =>
 		Object.values(resource ?? {})
-			.filter(isDefined)
+			.filter((resourceKey) => resourceKey != null)
 			.map((resourceKey) => normalizeHref(resourceKey.href)),
 	);
 	return hrefs;
@@ -297,7 +295,7 @@ const getWebResourcesKeysFromRequest = (
 ): string[] => {
 	return webResourceFields
 		.map((field) => values[field]?.href)
-		.filter(isDefined);
+		.filter((href) => href != null);
 };
 
 const getRemoveWebResourceHooks = (
