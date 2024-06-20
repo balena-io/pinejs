@@ -1,4 +1,16 @@
 - commits:
+    - subject: Improve test assertion for undefined fields
+      hash: e679610d4967f545c42f909b2be9eb5d9ef0e015
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 17.1.1
+  title: ""
+  date: 2024-06-20T10:53:41.022Z
+- commits:
     - subject: Add dev model typings
       hash: c276ef4fb8482a246c25940d617d76b76847eff8
       body: ""
