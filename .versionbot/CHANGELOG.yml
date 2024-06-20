@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update TypeScript to 5.5.2
+      hash: a68100fef918a589df620077ffb043b7ca2e3719
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 17.1.4
+  title: ""
+  date: 2024-06-20T22:15:16.931Z
+- commits:
     - subject: Fix unrecognized migration & config typo
       hash: da4e0d350c01af9274f238ac7bb7900dc5478cfe
       body: ""
