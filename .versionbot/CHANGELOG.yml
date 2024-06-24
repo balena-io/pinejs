@@ -1,4 +1,16 @@
 - commits:
+    - subject: Rollback sbvr-types back to v7
+      hash: b61ee61f7b7318b0dd4269646d0272be820e806b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 17.1.5
+  title: ""
+  date: 2024-06-24T13:26:42.675Z
+- commits:
     - subject: Update TypeScript to 5.5.2
       hash: a68100fef918a589df620077ffb043b7ca2e3719
       body: ""
