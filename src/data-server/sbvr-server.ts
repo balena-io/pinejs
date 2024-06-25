@@ -1,4 +1,8 @@
 import * as permissions from '../sbvr-api/permissions';
+import type { Resolvable } from '../sbvr-api/common-types';
+import type { Handler } from 'express';
+import type { Config, SetupFunction } from '../config-loader/config-loader';
+import type { Tx } from '../database-layer/db';
 
 const uiModel = `\
 Vocabulary: ui
@@ -19,12 +23,11 @@ Fact type:  textarea has text
 
 // Middleware
 const isServerOnAir = (() => {
-	/** @type { ((thenableOrResult?: import('../sbvr-api/common-types').Resolvable<boolean>) => void) | undefined } */
-	let resolve;
-	let promise = new Promise(($resolve) => {
+	let resolve: ((thenableOrResult?: Resolvable<boolean>) => void) | undefined;
+	let promise = new Promise<boolean>(($resolve) => {
 		resolve = $resolve;
 	});
-	return (/** @type {boolean} */ value) => {
+	return (value?: boolean) => {
 		if (value != null) {
 			if (resolve != null) {
 				resolve(value);
@@ -37,8 +40,7 @@ const isServerOnAir = (() => {
 	};
 })();
 
-/** @type { import('express').Handler } */
-const serverIsOnAir = async (_req, _res, next) => {
+const serverIsOnAir: Handler = async (_req, _res, next) => {
 	const onAir = await isServerOnAir();
 	if (onAir) {
 		next();
@@ -47,48 +49,10 @@ const serverIsOnAir = async (_req, _res, next) => {
 	}
 };
 
-/** @type {import('../config-loader/config-loader').Config} */
-export const config = {
-	models: [
-		{
-			modelName: 'ui',
-			modelText: uiModel,
-			apiRoot: 'ui',
-			customServerCode: { setup },
-			migrations: {
-				'11.0.0-modified-at': `\
-ALTER TABLE "textarea"
-ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;\
-`,
-				'15.0.0-data-types': async (tx, sbvrUtils) => {
-					switch (sbvrUtils.db.engine) {
-						case 'mysql':
-							await tx.executeSql(`\
-								ALTER TABLE "textarea"
-								MODIFY "is disabled" BOOLEAN NOT NULL;`);
-							break;
-						case 'postgres':
-							await tx.executeSql(`\
-								ALTER TABLE "textarea"
-								ALTER COLUMN "is disabled" DROP DEFAULT,
-								ALTER COLUMN "is disabled" SET DATA TYPE BOOLEAN USING "is disabled"::BOOLEAN,
-								ALTER COLUMN "is disabled" SET DEFAULT FALSE;`);
-							break;
-						// No need to migrate for websql
-					}
-				},
-			},
-		},
-	],
-};
-
-/** @type { import('../config-loader/config-loader').SetupFunction } */
-export async function setup(app, sbvrUtils, db) {
+export const setup: SetupFunction = async (app, sbvrUtils, db) => {
 	const uiApi = sbvrUtils.api.ui;
 	const devApi = sbvrUtils.api.dev;
-	const setupModels = async (
-		/** @type { import('../database-layer/db').Tx } */ tx,
-	) => {
+	const setupModels = async (tx: Tx) => {
 		try {
 			const uiApiTx = uiApi.clone({
 				passthrough: {
@@ -138,10 +102,10 @@ export async function setup(app, sbvrUtils, db) {
 						throw new Error('No SE data model found');
 					}
 					const instance = result[0];
+					const modelValue = instance.model_value as { [key: string]: string };
 					await sbvrUtils.executeModel(tx, {
 						apiRoot: instance.is_of__vocabulary,
-						// prettier-ignore
-						modelText: /** @type { string } */ (instance.model_value.value),
+						modelText: modelValue.value,
 					});
 				});
 			await isServerOnAir(true);
@@ -411,4 +375,38 @@ export async function setup(app, sbvrUtils, db) {
 	});
 
 	await db.transaction(setupModels);
-}
+};
+
+export const config: Config = {
+	models: [
+		{
+			modelName: 'ui',
+			modelText: uiModel,
+			apiRoot: 'ui',
+			customServerCode: { setup },
+			migrations: {
+				'11.0.0-modified-at': `\
+ALTER TABLE "textarea"
+ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;\
+`,
+				'15.0.0-data-types': async (tx, sbvrUtils) => {
+					switch (sbvrUtils.db.engine) {
+						case 'mysql':
+							await tx.executeSql(`\
+								ALTER TABLE "textarea"
+								MODIFY "is disabled" BOOLEAN NOT NULL;`);
+							break;
+						case 'postgres':
+							await tx.executeSql(`\
+								ALTER TABLE "textarea"
+								ALTER COLUMN "is disabled" DROP DEFAULT,
+								ALTER COLUMN "is disabled" SET DATA TYPE BOOLEAN USING "is disabled"::BOOLEAN,
+								ALTER COLUMN "is disabled" SET DEFAULT FALSE;`);
+							break;
+						// No need to migrate for websql
+					}
+				},
+			},
+		},
+	],
+};
