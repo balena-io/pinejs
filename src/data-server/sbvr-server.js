@@ -138,10 +138,11 @@ export async function setup(app, sbvrUtils, db) {
 						throw new Error('No SE data model found');
 					}
 					const instance = result[0];
+					// prettier-ignore
+					const modelValue = /** @type { {[key: string]: string} } */ (instance.model_value);
 					await sbvrUtils.executeModel(tx, {
 						apiRoot: instance.is_of__vocabulary,
-						// prettier-ignore
-						modelText: /** @type { string } */ (instance.model_value.value),
+						modelText: modelValue.value,
 					});
 				});
 			await isServerOnAir(true);
