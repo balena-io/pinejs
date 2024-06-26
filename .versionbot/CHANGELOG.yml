@@ -1,4 +1,16 @@
 - commits:
+    - subject: Migrate sbvr-server to typescript
+      hash: ed2267c4b4cbe448b6062263b90a97492176663c
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 17.1.6
+  title: ""
+  date: 2024-06-26T10:08:02.246Z
+- commits:
     - subject: Rollback sbvr-types back to v7
       hash: b61ee61f7b7318b0dd4269646d0272be820e806b
       body: ""
