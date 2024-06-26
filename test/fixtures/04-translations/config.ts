@@ -10,7 +10,7 @@ import { v1AbstractSqlModel, v1Translations } from './translations/v1';
 import { v2AbstractSqlModel, v2Translations } from './translations/v2';
 import { v3AbstractSqlModel, v3Translations } from './translations/v3';
 
-export const abstractSql = getAbstractSqlModelFromFile(modelFile);
+export const abstractSql = getAbstractSqlModelFromFile(modelFile, undefined);
 
 abstractSql.tables['student'].fields.push({
 	fieldName: 'computed field',

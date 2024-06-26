@@ -9,7 +9,10 @@ import { program } from 'commander';
 
 const runCompile = async (inputFile: string, outputFile?: string) => {
 	const { generateSqlModel } = await import('../sbvr-api/sbvr-utils.js');
-	const abstractSql = getAbstractSqlModelFromFile(inputFile);
+	const abstractSql = getAbstractSqlModelFromFile(
+		inputFile,
+		program.opts().model,
+	);
 	const sqlModel = generateSqlModel(abstractSql, program.opts().engine);
 
 	writeSqlModel(sqlModel, outputFile);
@@ -19,7 +22,10 @@ const generateTypes = async (inputFile: string, outputFile?: string) => {
 	const { abstractSqlToTypescriptTypes } = await import(
 		'@balena/abstract-sql-to-typescript/generate'
 	);
-	const abstractSql = getAbstractSqlModelFromFile(inputFile);
+	const abstractSql = getAbstractSqlModelFromFile(
+		inputFile,
+		program.opts().model,
+	);
 	const types = abstractSqlToTypescriptTypes(abstractSql);
 
 	writeAll(types, outputFile);
@@ -32,6 +38,10 @@ program
 		'The target database engine (postgres|websql|mysql), default: postgres',
 		/postgres|websql|mysql/,
 		'postgres',
+	)
+	.option(
+		'-m, --model <model-name>',
+		'The target model for config files with multiple models, default: first model',
 	);
 
 program

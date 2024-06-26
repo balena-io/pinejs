@@ -1,9 +1,15 @@
 import { getAbstractSqlModelFromFile, version, writeAll } from './utils';
-import type { SqlResult } from '@balena/abstract-sql-compiler';
+import type {
+	AbstractSqlModel,
+	SqlResult,
+} from '@balena/abstract-sql-compiler';
 
 import { program } from 'commander';
 
-const generateAbstractSqlQuery = async (modelFile: string, odata: string) => {
+const generateAbstractSqlQuery = async (
+	abstractSqlModel: AbstractSqlModel,
+	odata: string,
+) => {
 	const { memoizedParseOdata, translateUri } = await import(
 		'../sbvr-api/uri-parser.js'
 	);
@@ -19,7 +25,7 @@ const generateAbstractSqlQuery = async (modelFile: string, odata: string) => {
 		odataBinds: odataAST.binds,
 		values: {},
 		vocabulary,
-		abstractSqlModel: getAbstractSqlModelFromFile(modelFile),
+		abstractSqlModel,
 		custom: {},
 		translateVersions: [vocabulary],
 	});
@@ -37,7 +43,10 @@ const translateOData = async (
 	odata: string,
 	outputFile?: string,
 ) => {
-	const request = await generateAbstractSqlQuery(modelFile, odata);
+	const request = await generateAbstractSqlQuery(
+		getAbstractSqlModelFromFile(modelFile, program.opts().model),
+		odata,
+	);
 	const json = JSON.stringify(request.abstractSqlQuery, null, 2);
 	writeAll(json, outputFile);
 };
@@ -58,7 +67,10 @@ const compileOData = async (
 	odata: string,
 	outputFile?: string,
 ) => {
-	const translatedRequest = await generateAbstractSqlQuery(modelFile, odata);
+	const translatedRequest = await generateAbstractSqlQuery(
+		getAbstractSqlModelFromFile(modelFile, program.opts().model),
+		odata,
+	);
 	const { compileRequest } = await import('../sbvr-api/abstract-sql.js');
 	const compiledRequest = compileRequest(translatedRequest);
 	let output;
@@ -88,11 +100,19 @@ program
 program
 	.command('translate <model-file> <input-url> [output-file]')
 	.description('translate the input OData URL into abstract SQL')
+	.option(
+		'-m, --model <model-name>',
+		'The target model for config files with multiple models, default: first model',
+	)
 	.action(translateOData);
 
 program
 	.command('compile <model-file> <input-url> [output-file]')
 	.description('compile the input OData URL into SQL')
+	.option(
+		'-m, --model <model-name>',
+		'The target model for config files with multiple models, default: first model',
+	)
 	.action(compileOData);
 
 program

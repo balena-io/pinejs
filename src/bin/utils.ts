@@ -48,8 +48,31 @@ ${rule.sql}`,
 	writeAll(output, outputFile);
 };
 
+const getConfigModel = (
+	fileContents: Model | AbstractSqlModel | Config,
+	modelName?: string,
+): Model | AbstractSqlModel => {
+	if ('models' in fileContents) {
+		if (fileContents.models.length === 0) {
+			throw new Error('No models found in config file');
+		}
+		if (modelName != null) {
+			const model = fileContents.models.find((m) => m.modelName === modelName);
+			if (model == null) {
+				throw new Error(
+					`Could not find model with name '${modelName}', found: ${fileContents.models.map((m) => m.modelName).join(', ')}`,
+				);
+			}
+			return model;
+		}
+		return fileContents.models[0];
+	}
+	return fileContents;
+};
+
 export const getAbstractSqlModelFromFile = (
 	modelFile: string,
+	modelName: string | undefined,
 ): AbstractSqlModel => {
 	let fileContents: string | Model | AbstractSqlModel | Config;
 	try {
@@ -67,8 +90,7 @@ export const getAbstractSqlModelFromFile = (
 		if ('tables' in fileContents) {
 			return fileContents;
 		}
-		const configModel =
-			'models' in fileContents ? fileContents.models[0] : fileContents;
+		const configModel = getConfigModel(fileContents, modelName);
 		if ('abstractSql' in configModel && configModel.abstractSql != null) {
 			return configModel.abstractSql as AbstractSqlModel;
 		} else if ('modelText' in configModel && configModel.modelText != null) {

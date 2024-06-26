@@ -7,6 +7,7 @@ import type {
 
 export const v2AbstractSqlModel = getAbstractSqlModelFromFile(
 	__dirname + '/university.sbvr',
+	undefined,
 );
 
 export const toVersion = 'v3';
