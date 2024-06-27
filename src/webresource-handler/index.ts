@@ -1,6 +1,7 @@
 import type * as Express from 'express';
 import busboy from 'busboy';
 import type * as stream from 'node:stream';
+import type { AnyObject } from '../sbvr-api/common-types';
 import * as uriParser from '../sbvr-api/uri-parser';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import type { HookArgs } from '../sbvr-api/hooks';
@@ -30,10 +31,43 @@ export interface UploadResponse {
 	filename: string;
 }
 
+export interface BeginMultipartUploadPayload {
+	filename: string;
+	content_type: string;
+	size: number;
+	chunk_size: number;
+}
+
+export interface UploadPart {
+	url: string;
+	chunkSize: number;
+	partNumber: number;
+}
+
+export interface BeginMultipartUploadHandlerResponse {
+	uploadParts: UploadPart[];
+	fileKey: string;
+	uploadId: string;
+}
+
+export interface CommitMultipartUploadPayload {
+	fileKey: string;
+	uploadId: string;
+	filename: string;
+	providerCommitData?: AnyObject;
+}
+
 export interface WebResourceHandler {
 	handleFile: (resource: IncomingFile) => Promise<UploadResponse>;
 	removeFile: (fileReference: string) => Promise<void>;
 	onPreRespond: (webResource: WebResource) => Promise<WebResource>;
+	beginMultipartUpload?: (
+		fieldName: string,
+		payload: BeginMultipartUploadPayload,
+	) => Promise<BeginMultipartUploadHandlerResponse>;
+	commitMultipartUpload?: (
+		commitInfo: CommitMultipartUploadPayload,
+	) => Promise<WebResource>;
 }
 
 export class WebResourceError extends TypedError {}
