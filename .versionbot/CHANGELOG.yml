@@ -1,4 +1,19 @@
 - commits:
+    - subject: "odata/abstract-sql-compiler: Add support for specifying the model name
+        for config files"
+      hash: 31181277c9653e465bee64ae6275df025d4b546c
+      body: |
+        This allows choosing which model to use when the config file contains
+        multiple models
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 17.2.0
+  title: ""
+  date: 2024-06-27T13:40:31.167Z
+- commits:
     - subject: Migrate sbvr-server to typescript
       hash: ed2267c4b4cbe448b6062263b90a97492176663c
       body: ""
