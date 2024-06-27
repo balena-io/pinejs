@@ -4,6 +4,7 @@ import type { AbstractSqlQuery } from '@balena/abstract-sql-compiler';
 
 export const v3AbstractSqlModel = getAbstractSqlModelFromFile(
 	__dirname + '/university.sbvr',
+	undefined,
 );
 
 export const toVersion = 'university';

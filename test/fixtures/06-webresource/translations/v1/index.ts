@@ -5,6 +5,7 @@ export const toVersion = 'example';
 
 export const v1AbstractSqlModel = getAbstractSqlModelFromFile(
 	__dirname + '/example.sbvr',
+	undefined,
 );
 
 v1AbstractSqlModel.relationships['version'] = { v1: {} };

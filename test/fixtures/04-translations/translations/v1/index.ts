@@ -6,6 +6,7 @@ export const toVersion = 'v2';
 
 export const v1AbstractSqlModel = getAbstractSqlModelFromFile(
 	__dirname + '/university.sbvr',
+	undefined,
 );
 
 v1AbstractSqlModel.tables['student'].fields.push({
