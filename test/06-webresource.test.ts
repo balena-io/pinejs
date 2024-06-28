@@ -18,6 +18,7 @@ import {
 	DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
 import { intVar, requiredVar } from '@balena/env-parsing';
+import { assertExists } from './lib/common';
 
 const pipeline = util.promisify(pipelineRaw);
 const fs = fsBase.promises;
@@ -669,7 +670,7 @@ describe('06 webresources tests', function () {
 						.expect(200);
 
 					expect(org[firstResourcePath]).to.be.null;
-					expect(org[secondResourcePath].filename).to.not.be.null;
+					assertExists(org[secondResourcePath].filename);
 
 					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
 					await expectToExist(otherUniqueFilename);
