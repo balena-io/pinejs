@@ -6,10 +6,7 @@ import { expect } from 'chai';
 import type { AnyObject } from 'pinejs-client-core';
 
 import { PineTest } from 'pinejs-client-supertest';
-
-function expectNotUndefined<T>(value: T | undefined): asserts value is T {
-	expect(value).to.not.be.undefined;
-}
+import { assertExists } from './lib/common';
 
 describe('04 native translation tests', function () {
 	let pineServer: Awaited<ReturnType<typeof testInit>>;
@@ -70,7 +67,7 @@ describe('04 native translation tests', function () {
 			delete v1StudentCreated.lastname;
 
 			expect(v1StudentCreated.computed_field).to.equal('v1_computed_field');
-			expectNotUndefined(v2StudentCreated);
+			assertExists(v2StudentCreated);
 			expect(v2StudentCreated.computed_field).to.equal('v2_computed_field');
 			delete v1StudentCreated.computed_field;
 			delete v2StudentCreated.computed_field;
@@ -120,14 +117,14 @@ describe('04 native translation tests', function () {
 					},
 				})
 				.expect(200);
-			expectNotUndefined(vLatestStudent);
+			assertExists(vLatestStudent);
 
 			const { body: v1StudentCreated } = await pineTest.get({
 				apiPrefix: 'v1/',
 				resource: 'student',
 				id: { matrix_number: vLatestStudent.matrix_number },
 			});
-			expectNotUndefined(v1StudentCreated);
+			assertExists(v1StudentCreated);
 
 			// translate the objects and test for deep equality
 			vLatestStudent.lastname = vLatestStudent.last_name;
@@ -180,14 +177,14 @@ describe('04 native translation tests', function () {
 				resource: 'student',
 				id: { matrix_number: v2StudentCreated.matrix_number },
 			});
-			expectNotUndefined(v3StudentCreated);
+			assertExists(v3StudentCreated);
 
 			const { body: v3Campus } = await pineTest.get({
 				apiPrefix: 'v3/',
 				resource: 'campus',
 				id: { name: v2StudentCreated.studies_at__campus },
 			});
-			expectNotUndefined(v3Campus);
+			assertExists(v3Campus);
 
 			expect(v2StudentCreated.studies_at__campus).to.equal(v3Campus.name);
 			expect(v3StudentCreated.studies_at__campus)
@@ -232,14 +229,14 @@ describe('04 native translation tests', function () {
 					},
 				})
 				.expect(200);
-			expectNotUndefined(vLatestStudent);
+			assertExists(vLatestStudent);
 
 			const { body: v2StudentCreated } = await pineTest.get({
 				apiPrefix: 'v2/',
 				resource: 'student',
 				id: { matrix_number: vLatestStudent.matrix_number },
 			});
-			expectNotUndefined(v2StudentCreated);
+			assertExists(v2StudentCreated);
 
 			// translate the objects and test for deep equality
 			vLatestStudent.studies_at__campus =
@@ -305,7 +302,7 @@ describe('04 native translation tests', function () {
 					},
 				})
 				.expect(200);
-			expectNotUndefined(v3Student);
+			assertExists(v3Student);
 
 			const { body: vLatestStudentCreated } = await pineTest.get({
 				apiPrefix: 'university/',
@@ -319,7 +316,7 @@ describe('04 native translation tests', function () {
 					},
 				},
 			});
-			expectNotUndefined(vLatestStudentCreated);
+			assertExists(vLatestStudentCreated);
 
 			const { body: v3Campus } = await pineTest.get({
 				apiPrefix: 'v3/',
