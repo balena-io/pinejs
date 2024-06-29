@@ -7,7 +7,7 @@ export const v3AbstractSqlModel = getAbstractSqlModelFromFile(
 	undefined,
 );
 
-export const toVersion = 'university';
+export const toVersion = 'v4';
 
 v3AbstractSqlModel.tables['student'].fields.push({
 	fieldName: 'computed field',
