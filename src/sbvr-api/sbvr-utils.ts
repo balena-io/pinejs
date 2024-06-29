@@ -1166,9 +1166,13 @@ const getIdField = (
 		| 'resourceName'
 		| 'vocabulary'
 	>,
-) =>
-	// TODO: Should resolveSynonym also be using the finalAbstractSqlModel?
-	getFinalAbstractSqlModel(request).tables[resolveSynonym(request)].idField;
+) => {
+	const resolvedSynonym = resolveSynonym(request);
+	const translatedTable = getAbstractSqlModel(request).tables[resolvedSynonym];
+	const resourceName =
+		translatedTable != null ? translatedTable.resourceName : resolvedSynonym;
+	return getFinalAbstractSqlModel(request).tables[resourceName].idField;
+};
 
 export const getAffectedIds = async <Vocab extends string>(
 	args: HookArgs<Vocab> & {
