@@ -1,4 +1,24 @@
 - commits:
+    - subject: Update generated types abstract-sql-to-typescript v3.3.0
+      hash: 22e1eb1d8b704bc85941ca3fa6838114f28fb0b6
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+    - subject: Use assertExists in place of expectNotUndefined
+      hash: 3950b351c42698367de84a6608275e882adaaf56
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 17.2.1
+  title: ""
+  date: 2024-07-03T16:30:18.482Z
+- commits:
     - subject: "odata/abstract-sql-compiler: Add support for specifying the model name
         for config files"
       hash: 31181277c9653e465bee64ae6275df025d4b546c
