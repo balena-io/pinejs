@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add transaction timeoutMS override option
+      hash: 0bde78ad62377ef7d3f11aa695ce9ce5088f7e27
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Josh Bowling
+      nested: []
+  version: 17.3.0
+  title: ""
+  date: 2024-07-19T12:48:00.066Z
+- commits:
     - subject: Update generated types abstract-sql-to-typescript v3.3.0
       hash: 22e1eb1d8b704bc85941ca3fa6838114f28fb0b6
       body: ""
