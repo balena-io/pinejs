@@ -17,7 +17,10 @@ export interface CodedError extends Error {
 	code: number | string;
 }
 
-type CreateTransactionFn = (stackTraceErr?: Error) => Promise<Tx>;
+type CreateTransactionFn = (
+	stackTraceErr?: Error,
+	timeoutMS?: number,
+) => Promise<Tx>;
 type CloseTransactionFn = () => void;
 export interface Row {
 	[fieldName: string]: any;
@@ -85,7 +88,12 @@ const alwaysExport = {
 type BaseDatabase = typeof alwaysExport;
 
 interface TransactionFn {
-	<T>(fn: (tx: Tx) => Resolvable<T>): Promise<T>;
+	<T>(
+		fn: (tx: Tx) => Resolvable<T>,
+		options?: {
+			timeoutMS?: number;
+		},
+	): Promise<T>;
 	(): Promise<Tx>;
 }
 
@@ -215,13 +223,18 @@ class AutomaticClose {
 	private automaticCloseTimeout: ReturnType<typeof setTimeout>;
 	private automaticClose: () => void;
 	private pending: false | number = 0;
+	private timeoutMS = env.db.timeoutMS;
 	constructor(
 		tx: Tx,
 		private stackTraceErr?: Error,
+		timeoutMS?: number,
 	) {
+		if (timeoutMS != null && timeoutMS > 0) {
+			this.timeoutMS = timeoutMS;
+		}
 		this.automaticClose = () => {
 			console.error(
-				`Transaction still open after ${env.db.timeoutMS}ms without an execute call.`,
+				`Transaction still open after ${this.timeoutMS}ms without an execute call.`,
 			);
 			if (this.stackTraceErr) {
 				console.error(this.stackTraceErr.stack);
@@ -230,7 +243,7 @@ class AutomaticClose {
 		};
 		this.automaticCloseTimeout = setTimeout(
 			this.automaticClose,
-			env.db.timeoutMS,
+			this.timeoutMS,
 		);
 	}
 	public incrementPending() {
@@ -249,7 +262,7 @@ class AutomaticClose {
 		if (this.pending === 0) {
 			this.automaticCloseTimeout = setTimeout(
 				this.automaticClose,
-				env.db.timeoutMS,
+				this.timeoutMS,
 			);
 		} else if (this.pending < 0) {
 			console.error('Pending transactions is less than 0, wtf?');
@@ -265,21 +278,23 @@ class AutomaticClose {
 
 export abstract class Tx {
 	private closed = false;
-	protected automaticClose: AutomaticClose;
+	protected automaticClose: AutomaticClose | undefined;
 
 	constructor(
 		protected readOnly: boolean,
 		stackTraceErr?: Error | AutomaticClose,
+		timeoutMS?: number,
 	) {
 		if (stackTraceErr instanceof AutomaticClose) {
 			this.automaticClose = stackTraceErr;
-		} else {
-			this.automaticClose = new AutomaticClose(this, stackTraceErr);
+		} else if (timeoutMS != null && timeoutMS > 0) {
+			// Disable automatic closing if timeoutMS is 0
+			this.automaticClose = new AutomaticClose(this, stackTraceErr, timeoutMS);
 		}
 	}
 
 	private closeTransaction(message: string): void {
-		this.automaticClose.cancelPending();
+		this.automaticClose?.cancelPending();
 		const { executeSql, rollback } = getRejectedFunctions(message);
 		this.executeSql = executeSql;
 		this.rollback = this.end = rollback;
@@ -321,7 +336,7 @@ export abstract class Tx {
 		bindings: Bindings = [],
 		...args: any[]
 	): Promise<Result> {
-		this.automaticClose.incrementPending();
+		this.automaticClose?.incrementPending();
 
 		const t0 = Date.now();
 		try {
@@ -329,7 +344,7 @@ export abstract class Tx {
 		} catch (err: any) {
 			throw wrapDatabaseError(err);
 		} finally {
-			this.automaticClose.decrementPending();
+			this.automaticClose?.decrementPending();
 			const queryTime = Date.now() - t0;
 			metrics.emit('db_query_time', {
 				queryTime,
@@ -376,7 +391,7 @@ export abstract class Tx {
 		this.clearListeners();
 	}
 	public disableAutomaticClose(): void {
-		this.automaticClose.cancelPending();
+		this.automaticClose?.cancelPending();
 	}
 
 	private listeners: {
@@ -439,11 +454,16 @@ const getStackTraceErr: () => Error | undefined = env.DEBUG
 	: (_.noop as () => undefined);
 
 const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
-	return async <T>(fn?: (tx: Tx) => Resolvable<T>): Promise<T | Tx> => {
+	return async <T>(
+		fn?: (tx: Tx) => Resolvable<T>,
+		options?: {
+			timeoutMS?: number;
+		},
+	): Promise<T | Tx> => {
 		const stackTraceErr = getStackTraceErr();
 		let tx;
 		try {
-			tx = await createFunc(stackTraceErr);
+			tx = await createFunc(stackTraceErr, options?.timeoutMS);
 		} catch (err: any) {
 			throw wrapDatabaseError(err);
 		}
@@ -560,8 +580,9 @@ if (maybePg != null) {
 				private db: Pg.PoolClient,
 				readOnly: boolean,
 				stackTraceErr?: Error | AutomaticClose,
+				timeoutMS?: number,
 			) {
-				super(readOnly, stackTraceErr);
+				super(readOnly, stackTraceErr, timeoutMS);
 			}
 
 			protected clone(readOnly = this.readOnly) {
@@ -689,15 +710,15 @@ if (maybePg != null) {
 		return {
 			engine: Engines.postgres,
 			executeSql: atomicExecuteSql,
-			transaction: createTransaction(async (stackTraceErr) => {
+			transaction: createTransaction(async (stackTraceErr, timeoutMS) => {
 				const client = await pool.connect();
-				const tx = new PostgresTx(client, false, stackTraceErr);
+				const tx = new PostgresTx(client, false, stackTraceErr, timeoutMS);
 				void tx.executeSql('START TRANSACTION;');
 				return tx;
 			}),
-			readTransaction: createTransaction(async (stackTraceErr) => {
+			readTransaction: createTransaction(async (stackTraceErr, timeoutMS) => {
 				const client = await replica.connect();
-				const tx = new PostgresTx(client, false, stackTraceErr);
+				const tx = new PostgresTx(client, false, stackTraceErr, timeoutMS);
 				void tx.executeSql('START TRANSACTION READ ONLY;');
 				return tx.asReadOnly();
 			}),
@@ -747,8 +768,9 @@ if (maybeMysql != null) {
 				private close: CloseTransactionFn,
 				readOnly: boolean,
 				stackTraceErr?: Error | AutomaticClose,
+				timeoutMS?: number,
 			) {
-				super(readOnly, stackTraceErr);
+				super(readOnly, stackTraceErr, timeoutMS);
 			}
 
 			protected clone(readOnly = this.readOnly) {
@@ -810,17 +832,17 @@ if (maybeMysql != null) {
 		return {
 			engine: Engines.mysql,
 			executeSql: atomicExecuteSql,
-			transaction: createTransaction(async (stackTraceErr) => {
+			transaction: createTransaction(async (stackTraceErr, timeoutMS) => {
 				const client = await getConnectionAsync();
 				const close = () => client.release();
-				const tx = new MySqlTx(client, close, false, stackTraceErr);
+				const tx = new MySqlTx(client, close, false, stackTraceErr, timeoutMS);
 				void tx.executeSql('START TRANSACTION;');
 				return tx;
 			}),
-			readTransaction: createTransaction(async (stackTraceErr) => {
+			readTransaction: createTransaction(async (stackTraceErr, timeoutMS) => {
 				const client = await getConnectionAsync();
 				const close = () => client.release();
-				const tx = new MySqlTx(client, close, false, stackTraceErr);
+				const tx = new MySqlTx(client, close, false, stackTraceErr, timeoutMS);
 				void tx.executeSql('START TRANSACTION READ ONLY;');
 				return tx.asReadOnly();
 			}),
