@@ -114,7 +114,7 @@ const isFileInValidPath = async (
 export const getUploaderMiddlware = (
 	handler: WebResourceHandler,
 ): Express.RequestHandler => {
-	return async (req, res, next) => {
+	return (req, res, next) => {
 		if (!req.is('multipart')) {
 			return next();
 		}
@@ -228,7 +228,7 @@ const getWebResourceFields = (
 	const sqlResourceName = odataNameToSqlName(resourceName);
 	const model = sbvrUtils.getAbstractSqlModel(request).tables[sqlResourceName];
 	const fields = useTranslations
-		? model.modifyFields ?? model.fields
+		? (model.modifyFields ?? model.fields)
 		: model.fields;
 
 	return fields

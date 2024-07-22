@@ -33,7 +33,7 @@ export const checkPassword: PassportLocal.VerifyFunction = async (
 	}
 };
 
-const setup: ConfigLoader.SetupFunction = async (app: Express.Application) => {
+const setup: ConfigLoader.SetupFunction = (app: Express.Application) => {
 	if (!process.browser) {
 		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const passport: typeof Passport = require('passport');

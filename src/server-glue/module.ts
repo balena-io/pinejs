@@ -61,7 +61,7 @@ export const init = async <T extends string>(
 			PINEJS_ADVISORY_LOCK.namespaceId,
 		);
 		await sbvrUtils.setup(app, db);
-		const cfgLoader = await configLoader.setup(app);
+		const cfgLoader = configLoader.setup(app);
 		await cfgLoader.loadConfig(migrator.config);
 
 		const promises: Array<Promise<void>> = [];
