@@ -1166,7 +1166,7 @@ const expectToBeUnreachable = async (href: string) => {
 
 const deleteFileInS3 = async (
 	filename: string,
-	bucket: string = 'balena-pine-web-resources',
+	bucket = 'balena-pine-web-resources',
 ) => {
 	const s3client = getS3Client(bucket);
 	const deleteCommand = new DeleteObjectCommand({
@@ -1203,7 +1203,7 @@ const getLargeFileStream = async (size: number, filePathToRepeat: string) => {
 };
 
 const listAllFilesInBucket = async (
-	bucket: string = 'balena-pine-web-resources',
+	bucket = 'balena-pine-web-resources',
 ): Promise<string[]> => {
 	const s3client = getS3Client(bucket);
 	const command = new ListObjectsV2Command({ Bucket: bucket });

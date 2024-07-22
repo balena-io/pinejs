@@ -423,7 +423,7 @@ export abstract class Tx {
 		/* eslint-disable @typescript-eslint/no-unused-vars */
 		_namespaceKey: string,
 		_key: number,
-		_blocking: boolean = true,
+		_blocking = true,
 		/* eslint-enable @typescript-eslint/no-unused-vars */
 	): Promise<boolean> {
 		throw new Error(
@@ -663,7 +663,7 @@ if (maybePg != null) {
 			public override async getTxLevelLock(
 				namespaceKey: string,
 				key: number,
-				blocking: boolean = true,
+				blocking = true,
 			) {
 				validateTransactionLockParameter(key, 'key');
 				const namespaceId = transactionLockNamespaceMap[namespaceKey];
@@ -693,7 +693,7 @@ if (maybePg != null) {
 				}
 			}
 
-			public async tableList(extraWhereClause: string = '') {
+			public async tableList(extraWhereClause = '') {
 				if (extraWhereClause !== '') {
 					extraWhereClause = 'WHERE ' + extraWhereClause;
 				}
@@ -811,7 +811,7 @@ if (maybeMysql != null) {
 				await promise;
 			}
 
-			public async tableList(extraWhereClause: string = '') {
+			public async tableList(extraWhereClause = '') {
 				if (extraWhereClause !== '') {
 					extraWhereClause = ' WHERE ' + extraWhereClause;
 				}
@@ -834,14 +834,18 @@ if (maybeMysql != null) {
 			executeSql: atomicExecuteSql,
 			transaction: createTransaction(async (stackTraceErr, timeoutMS) => {
 				const client = await getConnectionAsync();
-				const close = () => client.release();
+				const close = () => {
+					client.release();
+				};
 				const tx = new MySqlTx(client, close, false, stackTraceErr, timeoutMS);
 				void tx.executeSql('START TRANSACTION;');
 				return tx;
 			}),
 			readTransaction: createTransaction(async (stackTraceErr, timeoutMS) => {
 				const client = await getConnectionAsync();
-				const close = () => client.release();
+				const close = () => {
+					client.release();
+				};
 				const tx = new MySqlTx(client, close, false, stackTraceErr, timeoutMS);
 				void tx.executeSql('START TRANSACTION READ ONLY;');
 				return tx.asReadOnly();
@@ -926,14 +930,14 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			}
 
 			protected async _rollback(): Promise<void> {
-				return await this.tx.rollback();
+				await this.tx.rollback();
 			}
 
 			protected async _commit() {
 				this.tx.commit();
 			}
 
-			public async tableList(extraWhereClause: string = '') {
+			public async tableList(extraWhereClause = '') {
 				if (extraWhereClause !== '') {
 					extraWhereClause = ' AND ' + extraWhereClause;
 				}
@@ -987,7 +991,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 			}
 
 			public async rollback(): Promise<void> {
-				return await new Promise((resolve) => {
+				await new Promise<void>((resolve) => {
 					const successCallback: SQLStatementCallback = () => {
 						resolve();
 						throw new Error('Rollback');

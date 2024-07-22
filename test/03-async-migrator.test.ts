@@ -61,8 +61,8 @@ const getResourceWithOdataParams = async function (
 
 const updateOneTableRow = async function (
 	resource: string,
-	id: number = 1,
-	fact: string = 'name',
+	id = 1,
+	fact = 'name',
 ) {
 	await supertest(testLocalServer)
 		.patch(`/example/${resource}(${id})`)

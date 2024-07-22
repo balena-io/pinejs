@@ -80,7 +80,7 @@ const app = (function () {
 			},
 		};
 		console.log(method, uri, body);
-		if (uri.slice(-1) === '/') {
+		if (uri.endsWith('/')) {
 			uri = uri.slice(0, uri.length - 1);
 		}
 		uri = uri.toLowerCase();
@@ -142,10 +142,7 @@ const app = (function () {
 			const checkMethodHandlers = () => {
 				i++;
 				if (i < methodHandlers.length) {
-					if (
-						uri.slice(0, methodHandlers[i].match.length) ===
-						methodHandlers[i].match
-					) {
+					if (uri.startsWith(methodHandlers[i].match)) {
 						j = -1;
 						// Reset params that may have been added on previous routes that failed in middleware
 						req.params = {};

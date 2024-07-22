@@ -101,7 +101,7 @@ class Hook<T extends HookFn> {
 
 class SideEffectHook<T extends HookFn> extends Hook<T> {
 	private rollbackFns: RollbackAction[] = [];
-	private rolledBack: boolean = false;
+	private rolledBack = false;
 
 	public registerRollback(fn: RollbackAction): void {
 		if (this.rolledBack) {
@@ -243,7 +243,9 @@ export const getHooks = (
 		),
 	);
 };
-getHooks.clear = () => getMethodHooks.clear();
+getHooks.clear = () => {
+	getMethodHooks.clear();
+};
 
 interface VocabHooks {
 	[resourceName: string]: HookBlueprints;
@@ -339,7 +341,7 @@ export const addHook = <Vocab extends string>(
 		const hook = hooks[hookType];
 		resourceHooks[hookType] ??= [];
 		if (hook != null) {
-			resourceHooks[hookType]!.push(hook);
+			resourceHooks[hookType].push(hook);
 		}
 	}
 
