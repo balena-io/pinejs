@@ -27,7 +27,7 @@ async function executeModelBeforeMigrations(
 		deleteDb: true,
 	});
 	try {
-		await testDeInit(executeModelsOnceBeforeTesting);
+		testDeInit(executeModelsOnceBeforeTesting);
 	} catch (err: any) {
 		console.log(err);
 	}
@@ -37,14 +37,14 @@ async function executeModelBeforeMigrations(
 function delay(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
-const getDbUnderTest = async function () {
+const getDbUnderTest = function () {
 	const initDbOptions = {
 		engine:
 			process.env.DATABASE_URL?.slice(
 				0,
 				process.env.DATABASE_URL?.indexOf(':'),
-			) || 'postgres',
-		params: process.env.DATABASE_URL || 'localhost',
+			) ?? 'postgres',
+		params: process.env.DATABASE_URL ?? 'localhost',
 	};
 	return dbModule.connect(initDbOptions);
 };
@@ -95,7 +95,7 @@ const getMigrationStatus = async function (): Promise<MigrationStatus[]> {
 	return res?.body?.d || [];
 };
 
-describe('03 Async Migrations', async function () {
+describe('03 Async Migrations', function () {
 	describe('standard async migrations', function () {
 		let pineFirstInstace: ChildProcess;
 
@@ -105,8 +105,8 @@ describe('03 Async Migrations', async function () {
 			pineFirstInstace = await testInit({ configPath, deleteDb: false });
 		});
 
-		after(async () => {
-			await testDeInit(pineFirstInstace);
+		after(() => {
+			testDeInit(pineFirstInstace);
 		});
 
 		it('check /ping route is OK', async () => {
@@ -207,8 +207,8 @@ describe('03 Async Migrations', async function () {
 	describe('async migration environment and runtime switches', function () {
 		let pineFirstInstace: ChildProcess;
 
-		afterEach(async () => {
-			await testDeInit(pineFirstInstace);
+		afterEach(() => {
+			testDeInit(pineFirstInstace);
 		});
 
 		it('should not run async migrators until switch on via SIGUSR2', async function () {
@@ -264,8 +264,8 @@ describe('03 Async Migrations', async function () {
 			pineFirstInstace = await testInit({ configPath, deleteDb: true });
 		});
 
-		after(async () => {
-			await testDeInit(pineFirstInstace);
+		after(() => {
+			testDeInit(pineFirstInstace);
 		});
 
 		it('should mark only finalized and sync migrations as executed', async () => {
@@ -301,9 +301,9 @@ describe('03 Async Migrations', async function () {
 			}); // start a parallel instance.
 		});
 
-		after(async () => {
-			await testDeInit(pineFirstInstace);
-			await testDeInit(pineSecondInstace);
+		after(() => {
+			testDeInit(pineFirstInstace);
+			testDeInit(pineSecondInstace);
 		});
 
 		it('should start 2 migrations competitive', async function () {
@@ -393,8 +393,8 @@ describe('03 Async Migrations', async function () {
 			pineFirstInstace = await testInit({ configPath, deleteDb: false });
 		});
 
-		after(async () => {
-			await testDeInit(pineFirstInstace);
+		after(() => {
+			testDeInit(pineFirstInstace);
 		});
 
 		it('should not run async migrations but sync migration', async function () {
@@ -423,7 +423,7 @@ describe('03 Async Migrations', async function () {
 		});
 	});
 
-	describe('error handling in async migrations', async function () {
+	describe('error handling in async migrations', function () {
 		let pineFirstInstace: ChildProcess;
 		before(async function () {
 			await executeModelBeforeMigrations();
@@ -431,8 +431,8 @@ describe('03 Async Migrations', async function () {
 			pineFirstInstace = await testInit({ configPath, deleteDb: false });
 		});
 
-		after(async () => {
-			await testDeInit(pineFirstInstace);
+		after(() => {
+			testDeInit(pineFirstInstace);
 		});
 
 		it('should report error in error count', async function () {
@@ -546,7 +546,7 @@ describe('03 Async Migrations', async function () {
 
 			try {
 				// just use the db directly to create a new table for the test
-				const dbUnderTest = await getDbUnderTest();
+				const dbUnderTest = getDbUnderTest();
 				await dbUnderTest.executeSql(createNonExistingTableAgain);
 			} catch (err: any) {
 				console.log(`err: ${err}`);
@@ -575,8 +575,8 @@ describe('03 Async Migrations', async function () {
 			pineFirstInstace = await testInit({ configPath, deleteDb: false });
 		});
 
-		after(async () => {
-			await testDeInit(pineFirstInstace);
+		after(() => {
+			testDeInit(pineFirstInstace);
 		});
 
 		it('should complete / catch up massive data in one async migrator', async function () {
@@ -626,14 +626,10 @@ describe('03 Async Migrations', async function () {
 		});
 	});
 
-	describe('error handling in async migrations setup', async function () {
+	describe('error handling in async migrations setup', function () {
 		let pineErrorInstance: ChildProcess;
-		after(async () => {
-			try {
-				await testDeInit(pineErrorInstance);
-			} catch {
-				// will fail in good case. Calling it to stop all potential async migrators if the tests have started some.
-			}
+		after(() => {
+			testDeInit(pineErrorInstance);
 		});
 		it('should fail to start pine instance with wrong async migration file definition', async function () {
 			try {
@@ -641,7 +637,7 @@ describe('03 Async Migrations', async function () {
 				pineErrorInstance = await testInit({ configPath, deleteDb: false });
 				expect(pineErrorInstance).to.not.exist;
 			} catch (err: any) {
-				expect(err).to.equal('exit');
+				expect(err.message).to.equal('exit');
 			}
 		});
 
@@ -652,12 +648,12 @@ describe('03 Async Migrations', async function () {
 				pineErrorInstance = await testInit({ configPath, deleteDb: true });
 				expect(pineErrorInstance).to.not.exist;
 			} catch (err: any) {
-				expect(err).to.equal('exit');
+				expect(err.message).to.equal('exit');
 			}
 		});
 	});
 
-	describe('avoid starvation of sync migration because of an aggressive async migration', async function () {
+	describe('avoid starvation of sync migration because of an aggressive async migration', function () {
 		const startPort = 1338;
 
 		const asyncInstaces: ChildProcess[] = [];
@@ -675,11 +671,11 @@ describe('03 Async Migrations', async function () {
 			}
 		});
 
-		after(async () => {
+		after(() => {
 			for (const instance of asyncInstaces) {
-				await testDeInit(instance);
+				testDeInit(instance);
 			}
-			await testDeInit(syncMigrationInstance);
+			testDeInit(syncMigrationInstance);
 		});
 
 		it('should start a third pine instance with sync migration without starvation', async function () {

@@ -46,7 +46,7 @@ describe('06 webresources tests', function () {
 		newFileSize = newFileInfo.size;
 	});
 
-	after(async () => {
+	after(() => {
 		testDeInit(pineServer);
 	});
 

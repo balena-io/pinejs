@@ -9,8 +9,8 @@ describe('01 basic constrain tests', function () {
 		pineServer = await testInit({ configPath, deleteDb: true });
 	});
 
-	after(async () => {
-		await testDeInit(pineServer);
+	after(() => {
+		testDeInit(pineServer);
 	});
 
 	describe('Basic', () => {

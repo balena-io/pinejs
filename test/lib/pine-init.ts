@@ -80,8 +80,8 @@ async function cleanInit(deleteDb = false) {
 				process.env.DATABASE_URL?.slice(
 					0,
 					process.env.DATABASE_URL?.indexOf(':'),
-				) || 'postgres',
-			params: process.env.DATABASE_URL || 'localhost',
+				) ?? 'postgres',
+			params: process.env.DATABASE_URL ?? 'localhost',
 		};
 		const initDb = pine.dbModule.connect(initDbOptions);
 		await initDb.executeSql(

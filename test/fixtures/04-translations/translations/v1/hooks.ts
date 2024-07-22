@@ -11,7 +11,7 @@ const addHook = (
 };
 
 addHook(['PUT', 'POST', 'PATCH'], 'student', {
-	async POSTPARSE({ request }) {
+	POSTPARSE({ request }) {
 		request.values.last_name = request.values.lastname;
 		delete request.values.lastname;
 	},

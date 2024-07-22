@@ -39,10 +39,10 @@ export async function testInit(
 				}
 			});
 			testServer.on('error', () => {
-				reject('error');
+				reject(new Error('error'));
 			});
 			testServer.on('exit', () => {
-				reject('exit');
+				reject(new Error('exit'));
 			});
 		});
 		return testServer;

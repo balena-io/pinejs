@@ -13,7 +13,7 @@ describe('07 permissions tests', function () {
 		});
 	});
 
-	after(async () => {
+	after(() => {
 		testDeInit(pineServer);
 	});
 

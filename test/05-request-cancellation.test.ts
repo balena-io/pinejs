@@ -14,7 +14,7 @@ const requestAsync = (
 ) => {
 	let req: ReturnType<typeof request>;
 	const promise = new Promise((resolve, reject) => {
-		req = request(opts, (err, response) => {
+		req = request(opts, (err: Error, response) => {
 			if (err) {
 				reject(err);
 				return;
@@ -65,8 +65,8 @@ describe('05 request cancellation tests', function () {
 			.expect(200);
 	});
 
-	after(async () => {
-		await testDeInit(pineServer);
+	after(() => {
+		testDeInit(pineServer);
 	});
 
 	describe('OData requests', function () {
