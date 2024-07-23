@@ -1,4 +1,16 @@
 - commits:
+    - subject: Remove unnecessary async/await statements
+      hash: e92bd01e59731134b5a129b6bcd5dfe16f1ea654
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 17.3.1
+  title: ""
+  date: 2024-07-23T04:14:54.834Z
+- commits:
     - subject: Add transaction timeoutMS override option
       hash: 0bde78ad62377ef7d3f11aa695ce9ce5088f7e27
       body: ""
