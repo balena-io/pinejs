@@ -764,12 +764,10 @@ export const executeModels = async (
 				await asyncMigrator.run(tx, model);
 			}),
 		);
-	} catch (err: any) {
-		await Promise.all(
-			execModels.map(async ({ apiRoot }) => {
-				await cleanupModel(apiRoot);
-			}),
-		);
+	} catch (err) {
+		for (const { apiRoot } of execModels) {
+			cleanupModel(apiRoot);
+		}
 		throw err;
 	}
 };
@@ -821,7 +819,7 @@ export const deleteModel = async (vocabulary: string) => {
 			);
 		});
 	}
-	await cleanupModel(vocabulary);
+	cleanupModel(vocabulary);
 };
 
 const isWhereNode = (
@@ -1382,8 +1380,8 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 							}
 						}
 					}
-					const translatedRequest = await uriParser.translateUri($request);
-					return await compileRequest(translatedRequest);
+					const translatedRequest = uriParser.translateUri($request);
+					return compileRequest(translatedRequest);
 				} catch (err: any) {
 					rollbackRequestHooks(reqHooks);
 					rollbackRequestHooks($request.hooks);
@@ -2043,7 +2041,7 @@ export const setup = async (
 	try {
 		await db.transaction(async (tx) => {
 			await executeStandardModels(tx);
-			await permissions.setup();
+			permissions.setup();
 		});
 	} catch (err: any) {
 		console.error('Could not execute standard models', err);
