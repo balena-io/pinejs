@@ -55,7 +55,6 @@ import {
 	HttpError,
 	InternalRequestError,
 	MethodNotAllowedError,
-	NotFoundError,
 	ParsingError,
 	PermissionError,
 	PermissionParsingError,
@@ -1567,7 +1566,7 @@ const convertToHttpError = (err: any): HttpError => {
 	}
 
 	console.error('Unexpected response error type', err);
-	return new NotFoundError(err);
+	return new InternalRequestError();
 };
 
 const runRequest = async (
