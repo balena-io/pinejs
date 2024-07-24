@@ -1,4 +1,19 @@
 - commits:
+    - subject: Convert unknown errors to 500 errors rather than 404 for clarity
+      hash: 4a48c5467fc9f48e4744846dc8cd055abb01f808
+      body: |
+        500 internal request error is far more accurate to the reality than a
+        404 not found, and removing the error message also adds safety to these
+        unexpected errors
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 17.3.2
+  title: ""
+  date: 2024-07-24T23:35:58.421Z
+- commits:
     - subject: Remove unnecessary async/await statements
       hash: e92bd01e59731134b5a129b6bcd5dfe16f1ea654
       body: ""
