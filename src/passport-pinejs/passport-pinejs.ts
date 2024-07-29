@@ -68,7 +68,8 @@ const setup: ConfigLoader.SetupFunction = (app: Express.Application) => {
 		logout = (req, _res, next) => {
 			req.logout((error) => {
 				if (error) {
-					return next(error);
+					next(error);
+					return;
 				}
 				next();
 			});
@@ -83,7 +84,7 @@ const setup: ConfigLoader.SetupFunction = (app: Express.Application) => {
 			next();
 		});
 
-		login = (fn) => (req, res, next) =>
+		login = (fn) => (req, res, next) => {
 			checkPassword(req.body.username, req.body.password, (err, user) => {
 				if (user) {
 					loggedIn = true;
@@ -91,6 +92,7 @@ const setup: ConfigLoader.SetupFunction = (app: Express.Application) => {
 				}
 				fn(err, user, req, res, next);
 			});
+		};
 
 		logout = (req, _res, next) => {
 			delete req.user;

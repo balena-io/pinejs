@@ -209,7 +209,7 @@ const memoizedResolveNavigationResource = memoizeWeak(
 		const mapping = _.get(
 			abstractSqlModel.relationships[resolvedResourceName],
 			navigation,
-		) as undefined | AbstractSQLCompiler.RelationshipMapping;
+		);
 		if (mapping == null) {
 			throw new Error(
 				`Cannot navigate from '${resourceName}' to '${navigationName}'`,
@@ -701,7 +701,7 @@ export const executeModels = async (
 			compiledModels.map(async (model: CompiledModel) => {
 				const updateModel = async (modelType: keyof CompiledModel) => {
 					if (model[modelType] == null) {
-						return await api.dev.delete({
+						await api.dev.delete({
 							resource: 'model',
 							passthrough: {
 								tx,
@@ -714,6 +714,7 @@ export const executeModels = async (
 								},
 							},
 						});
+						return;
 					}
 					const result = await api.dev.get({
 						resource: 'model',
@@ -1054,7 +1055,7 @@ export class PinejsClient<
 			url: NonNullable<Params<T>['url']>;
 		} & Params<T>,
 	): Promise<AnyObject>;
-	public post(params: Params<AnyResource>): Promise<AnyObject> {
+	public post(params: Params): Promise<AnyObject> {
 		return super.post(params as Parameters<PinejsClient['post']>[0]);
 	}
 }
@@ -1137,7 +1138,7 @@ export const runURI = async (
 		throw new HttpError(statusCode, undefined, responseBody, headers);
 	}
 
-	return responseBody as AnyObject | undefined;
+	return responseBody;
 };
 
 export const getAbstractSqlModel = (
@@ -1458,7 +1459,8 @@ export const getApiRoot = (req: Express.Request): string | undefined => {
 export const handleODataRequest: Express.Handler = async (req, res, next) => {
 	const apiRoot = getApiRoot(req);
 	if (apiRoot == null || models[apiRoot] == null) {
-		return next('route');
+		next('route');
+		return;
 	}
 
 	try {
@@ -1479,7 +1481,7 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 
 			// Otherwise its a multipart request and we reply with the appropriate multipart response
 		} else {
-			(res.status(200) as any).sendMulti(
+			res.status(200).sendMulti(
 				responses.map((response) => {
 					if (response instanceof HttpError) {
 						return httpErrorToResponse(response);
@@ -1521,7 +1523,7 @@ export const handleHttpErrors = (
 	return false;
 };
 const handleResponse = (res: Express.Response, response: Response): void => {
-	const { body, headers, statusCode } = response as Response;
+	const { body, headers, statusCode } = response;
 	res.set(headers);
 	res.status(statusCode);
 	if (!body) {
@@ -1751,7 +1753,7 @@ const runQuery = async (
 	tx: Db.Tx,
 	request: uriParser.ODataRequest,
 	queryIndex?: number,
-	addReturning: boolean = false,
+	addReturning = false,
 ): Promise<Db.Result> => {
 	const { vocabulary } = request;
 	let { sqlQuery } = request;
@@ -1873,7 +1875,7 @@ const runPost = async (
 	if (rowsAffected === 0) {
 		throw new PermissionError();
 	}
-	await validateModel(tx, _.last(request.translateVersions)!, request);
+	await validateModel(tx, _.last(request.translateVersions), request);
 
 	return insertId;
 };
@@ -1945,7 +1947,7 @@ const runPut = async (
 		({ rowsAffected } = await runQuery(tx, request, undefined, true));
 	}
 	if (rowsAffected > 0) {
-		await validateModel(tx, _.last(request.translateVersions)!, request);
+		await validateModel(tx, _.last(request.translateVersions), request);
 	}
 };
 
@@ -1975,7 +1977,7 @@ const runDelete = async (
 ): Promise<void> => {
 	const { rowsAffected } = await runQuery(tx, request, undefined, true);
 	if (rowsAffected > 0) {
-		await validateModel(tx, _.last(request.translateVersions)!, request);
+		await validateModel(tx, _.last(request.translateVersions), request);
 	}
 };
 

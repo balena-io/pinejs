@@ -282,7 +282,7 @@ export function parseOData(
 			// We sort the CS set once, we must assure that requests which reference
 			// other requests in the changeset are placed last. Once they are sorted
 			// Map will guarantee retrival of results in insertion order
-			const sortedCS = _.sortBy(b.changeSet, (el) => el.url[0] !== '/');
+			const sortedCS = _.sortBy(b.changeSet, (el) => !el.url.startsWith('/'));
 			const csReferences = new Map<
 				ParsedODataRequest['id'],
 				ParsedODataRequest
@@ -338,7 +338,7 @@ const parseODataChangeset = (
 	let apiRoot: string;
 	let url;
 
-	if (b.url[0] === '/') {
+	if (b.url.startsWith('/')) {
 		({ url, apiRoot } = splitApiRoot(b.url));
 		odata = memoizedParseOdata(url);
 		defer = false;

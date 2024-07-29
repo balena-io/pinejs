@@ -12,11 +12,7 @@ export const mountLoginRouter = async (
 		configLoader.loadConfig(PinejsSessionStore.config),
 	]);
 
-	if (
-		typeof process === 'undefined' ||
-		process == null ||
-		!process.env.DISABLE_DEFAULT_AUTH
-	) {
+	if (typeof process === 'undefined' || !process?.env.DISABLE_DEFAULT_AUTH) {
 		expressApp.post(
 			'/login',
 			passportPinejs.login((err, user, req, res) => {

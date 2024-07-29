@@ -92,7 +92,7 @@ export const getAbstractSqlModelFromFile = (
 		}
 		const configModel = getConfigModel(fileContents, modelName);
 		if ('abstractSql' in configModel && configModel.abstractSql != null) {
-			return configModel.abstractSql as AbstractSqlModel;
+			return configModel.abstractSql;
 		} else if ('modelText' in configModel && configModel.modelText != null) {
 			seModel = configModel.modelText;
 		} else if ('modelFile' in configModel && configModel.modelFile != null) {

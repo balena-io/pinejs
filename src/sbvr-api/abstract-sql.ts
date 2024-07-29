@@ -77,7 +77,7 @@ export const getAndCheckBindValues = async (
 	const sqlModelTables = sbvrUtils.getAbstractSqlModel(request).tables;
 	return await Promise.all(
 		bindings.map(async (binding) => {
-			let fieldName: string = '';
+			let fieldName = '';
 			let field: { dataType: string };
 			let value: any;
 			if (binding[0] === 'Bind') {

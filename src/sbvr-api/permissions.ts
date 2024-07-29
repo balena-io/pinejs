@@ -334,12 +334,7 @@ const getPermissionsLookup = env.createCache(
 				permissionsLookup[target] = true;
 			} else if (permissionsLookup[target] !== true) {
 				permissionsLookup[target] ??= [];
-				(
-					permissionsLookup[target] as Exclude<
-						PermissionLookup[typeof target],
-						true
-					>
-				).push(condition);
+				permissionsLookup[target].push(condition);
 			}
 		}
 		// Ensure there are no duplicate conditions as applying both would be wasteful
@@ -705,7 +700,7 @@ const onceGetter = <T, U extends keyof T>(
 				throw thrownErr;
 			}
 			try {
-				const result = nullableFn!();
+				const result = nullableFn();
 				// We need the delete first as the current property is read-only
 				// and the delete removes that restriction
 				delete this[propName];
@@ -946,7 +941,7 @@ const rewriteRelationships = (
 	);
 
 	const newRelationships = _.cloneDeep(relationships);
-	_.forOwn(newRelationships, (value, name) =>
+	_.forOwn(newRelationships, (value, name) => {
 		rewriteRelationship(
 			value,
 			name,
@@ -954,8 +949,8 @@ const rewriteRelationships = (
 			permissionsLookup,
 			vocabulary,
 			odata2AbstractSQL,
-		),
-	);
+		);
+	});
 
 	return newRelationships;
 };
@@ -1640,7 +1635,7 @@ const getReqPermissions = async (
 	if (req.user?.permissions != null) {
 		addActorPermissions(req.user.actor, req.user.permissions);
 	} else if (req.apiKey?.permissions != null) {
-		addActorPermissions(req.apiKey.actor!, req.apiKey.permissions);
+		addActorPermissions(req.apiKey.actor, req.apiKey.permissions);
 	}
 
 	return getPermissionsLookup(actorPermissions, guestPermissions);

@@ -38,8 +38,12 @@ export async function testInit(
 					resolve(msg.init);
 				}
 			});
-			testServer.on('error', () => reject('error'));
-			testServer.on('exit', () => reject('exit'));
+			testServer.on('error', () => {
+				reject('error');
+			});
+			testServer.on('exit', () => {
+				reject('exit');
+			});
 		});
 		return testServer;
 	} catch (err: any) {
