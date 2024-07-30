@@ -1,4 +1,28 @@
 - commits:
+    - subject: Update dependency @balena/sbvr-types to v8
+      hash: 60c62f98e11d91aa89f67f36c91c66d197024bd8
+      body: |
+        Update @balena/sbvr-types from 7.1.3 to 8.0.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested:
+        - commits:
+            - subject: Improve BigInteger and BigSerial support
+              hash: b9b1fc31b91220e66dcb23f43b92036d6e758045
+              body: ""
+              footer:
+                Change-type: major
+                change-type: major
+              author: Josh Bowling
+          version: sbvr-types-8.0.0
+          title: ""
+          date: 2024-06-12T22:37:59.778Z
+  version: 17.3.3
+  title: ""
+  date: 2024-07-30T01:45:25.517Z
+- commits:
     - subject: Convert unknown errors to 500 errors rather than 404 for clarity
       hash: 4a48c5467fc9f48e4744846dc8cd055abb01f808
       body: |
