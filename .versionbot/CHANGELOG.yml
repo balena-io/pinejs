@@ -1,4 +1,16 @@
 - commits:
+    - subject: Rollback @balena/sbvr-types to v7
+      hash: 911495b41b7b0bd32273478fe33230fc5e20d014
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 17.3.4
+  title: ""
+  date: 2024-07-30T22:15:28.797Z
+- commits:
     - subject: Update dependency @balena/sbvr-types to v8
       hash: 60c62f98e11d91aa89f67f36c91c66d197024bd8
       body: |
