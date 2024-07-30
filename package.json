@@ -60,7 +60,7 @@
     "express-session": "^1.18.0",
     "lodash": "^4.17.21",
     "memoizee": "^0.4.17",
-    "pinejs-client-core": "^6.15.1",
+    "pinejs-client-core": "6.15.7-build-simplify-get-typings-4bfc2b97e9a495bdbddc8aceeb1a9683860f58b9-1",
     "randomstring": "^1.3.0",
     "typed-error": "^3.2.2"
   },
