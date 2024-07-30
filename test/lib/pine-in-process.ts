@@ -14,6 +14,7 @@ export async function forkInit() {
 			processArgs.listenPort,
 			processArgs.deleteDb,
 			processArgs.withLoginRoute,
+			processArgs.exposeAuthEndpoints,
 		);
 
 		// load hooks
