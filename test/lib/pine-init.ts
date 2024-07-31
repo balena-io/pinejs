@@ -15,8 +15,8 @@ export type PineTestOptions = {
 export async function init(
 	initConfig: pine.ConfigLoader.Config,
 	initPort: number,
-	deleteDb: boolean = false,
-	withLoginRoute: boolean = false,
+	deleteDb = false,
+	withLoginRoute = false,
 ) {
 	const app = express();
 	app.use(express.urlencoded({ extended: true }));
@@ -69,7 +69,7 @@ export async function init(
 	}
 }
 
-async function cleanInit(deleteDb: boolean = false) {
+async function cleanInit(deleteDb = false) {
 	if (!deleteDb) {
 		return;
 	}
@@ -80,8 +80,8 @@ async function cleanInit(deleteDb: boolean = false) {
 				process.env.DATABASE_URL?.slice(
 					0,
 					process.env.DATABASE_URL?.indexOf(':'),
-				) || 'postgres',
-			params: process.env.DATABASE_URL || 'localhost',
+				) ?? 'postgres',
+			params: process.env.DATABASE_URL ?? 'localhost',
 		};
 		const initDb = pine.dbModule.connect(initDbOptions);
 		await initDb.executeSql(

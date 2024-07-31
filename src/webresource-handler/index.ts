@@ -116,7 +116,8 @@ export const getUploaderMiddlware = (
 ): Express.RequestHandler => {
 	return (req, res, next) => {
 		if (!req.is('multipart')) {
-			return next();
+			next();
+			return;
 		}
 		const uploadedFilePaths: string[] = [];
 		const completeUploads: Array<Promise<void>> = [];

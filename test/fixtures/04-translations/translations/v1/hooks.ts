@@ -5,11 +5,13 @@ const addHook = (
 	resource: string,
 	hook: sbvrUtils.Hooks,
 ) => {
-	methods.map((method) => sbvrUtils.addPureHook(method, 'v1', resource, hook));
+	methods.map((method) => {
+		sbvrUtils.addPureHook(method, 'v1', resource, hook);
+	});
 };
 
 addHook(['PUT', 'POST', 'PATCH'], 'student', {
-	async POSTPARSE({ request }) {
+	POSTPARSE({ request }) {
 		request.values.last_name = request.values.lastname;
 		delete request.values.lastname;
 	},

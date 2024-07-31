@@ -23,10 +23,10 @@ async function executeModelBeforeMigrations(
 		configPath: modelFixturePath,
 		deleteDb: true,
 	});
-	await testDeInit(executeModelsOnceBeforeTesting);
+	testDeInit(executeModelsOnceBeforeTesting);
 }
 
-describe('02 Sync Migrations', async function () {
+describe('02 Sync Migrations', function () {
 	this.timeout(30000);
 
 	describe('Execute model and migrations should run', () => {
@@ -38,8 +38,8 @@ describe('02 Sync Migrations', async function () {
 				deleteDb: false,
 			});
 		});
-		after(async () => {
-			await testDeInit(pineTestInstance);
+		after(() => {
+			testDeInit(pineTestInstance);
 		});
 
 		it('check /example/device data has been migrated', async () => {
@@ -63,9 +63,9 @@ describe('02 Sync Migrations', async function () {
 		before(async () => {
 			await executeModelBeforeMigrations();
 		});
-		after(async () => {
-			await testDeInit(pineErrorInstace);
-			await testDeInit(pineTestInstance);
+		after(() => {
+			testDeInit(pineErrorInstace);
+			testDeInit(pineTestInstance);
 		});
 
 		it('Starting pine should fail when migrations fail', async () => {
@@ -76,7 +76,7 @@ describe('02 Sync Migrations', async function () {
 					listenPort: 1338,
 				});
 			} catch (err: any) {
-				expect(err).to.equal('exit');
+				expect(err.message).to.equal('exit');
 			}
 		});
 
@@ -106,8 +106,8 @@ describe('02 Sync Migrations', async function () {
 			});
 		});
 
-		after(async () => {
-			await testDeInit(pineTestInstance);
+		after(() => {
+			testDeInit(pineTestInstance);
 		});
 
 		it('check that model migration was loaded and set executed', async () => {
@@ -139,7 +139,7 @@ describe('02 Sync Migrations', async function () {
 				});
 				expect(pineErrorInstance).to.not.exist;
 			} catch (err: any) {
-				expect(err).to.equal('exit');
+				expect(err.message).to.equal('exit');
 			}
 		});
 	});

@@ -9,8 +9,8 @@ describe('00 basic tests', function () {
 		pineServer = await testInit({ configPath });
 	});
 
-	after(async () => {
-		await testDeInit(pineServer);
+	after(() => {
+		testDeInit(pineServer);
 	});
 
 	describe('Basic', () => {

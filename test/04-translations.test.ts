@@ -36,7 +36,7 @@ describe('04 native translation tests', function () {
 			.expect(201));
 	});
 
-	after(async () => {
+	after(() => {
 		testDeInit(pineServer);
 	});
 

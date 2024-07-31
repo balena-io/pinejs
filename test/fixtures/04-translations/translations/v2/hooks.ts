@@ -6,7 +6,9 @@ const addHook = (
 	resource: string,
 	hook: sbvrUtils.Hooks,
 ) => {
-	methods.map((method) => sbvrUtils.addPureHook(method, 'v2', resource, hook));
+	methods.map((method) => {
+		sbvrUtils.addPureHook(method, 'v2', resource, hook);
+	});
 };
 
 addHook(['PUT', 'POST', 'PATCH'], 'student', {

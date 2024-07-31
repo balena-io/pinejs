@@ -208,7 +208,7 @@ export const translateAbstractSqlModel = (
 			const { $toResource, ...definition } = translationDefinition;
 			const hasToResource = typeof $toResource === 'string';
 			if (hasToResource) {
-				resourceRenames[key] = `${$toResource}`;
+				resourceRenames[key] = $toResource;
 			}
 			const toResource = hasToResource ? $toResource : `${key}$${toVersion}`;
 			// TODO: Should this use the toAbstractSqlModel?

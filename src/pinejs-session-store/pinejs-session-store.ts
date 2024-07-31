@@ -153,7 +153,7 @@ export class PinejsSessionStore extends Store {
 						},
 					},
 				},
-			}) as Promise<number>,
+			}),
 		);
 	}) as Store['length'];
 
