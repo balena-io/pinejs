@@ -1,4 +1,512 @@
 - commits:
+    - subject: Update dependencies
+      hash: f79ba323df5429c5c2dd00513c9672195f0f2cf9
+      body: |
+        Update @balena/abstract-sql-to-typescript from 3.2.1 to 3.3.1
+        Update @balena/sbvr-parser from 1.4.4 to 1.4.6
+        Update pinejs-client-core from 6.15.1 to 6.15.10
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Update dependency @balena/sbvr-types to v8
+              hash: 8e3750e27e52293db545b56003a2cdba15fe1e89
+              body: |
+                Update @balena/sbvr-types from 7.1.3 to 8.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Self-hosted Renovate Bot
+              nested:
+                - commits:
+                    - subject: Improve BigInteger and BigSerial support
+                      hash: b9b1fc31b91220e66dcb23f43b92036d6e758045
+                      body: ""
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Josh Bowling
+                  version: sbvr-types-8.0.0
+                  title: ""
+                  date: 2024-06-12T22:37:59.778Z
+          version: abstract-sql-to-typescript-3.3.1
+          title: ""
+          date: 2024-07-30T06:48:04.110Z
+        - commits:
+            - subject: Add support for synonyms that only affect part of the relationship
+              hash: 540a3ebfc526756910924066e053f53eab33b580
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-3.3.0
+          title: ""
+          date: 2024-06-27T16:16:09.558Z
+        - commits:
+            - subject: Avoid misclassifying non-resource arrays in `Expanded`/`Deferred`
+                typings
+              hash: ace38176e397aa93740f7380429a3bffb5c260e6
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-3.2.3
+          title: ""
+          date: 2024-06-25T13:15:58.067Z
+        - commits:
+            - subject: Update dependencies
+              hash: 9a2d5fdf4dc2df431be747b8bd3a0e9bd6278d08
+              body: |
+                Update @balena/abstract-sql-compiler from 9.0.4 to 9.2.0
+                Update @balena/odata-to-abstract-sql from 6.2.3 to 6.2.7
+                Update @balena/sbvr-types from 7.1.0 to 7.1.3
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Properly error when using fields of a partial index as an alternate key
+                      hash: 8652f142511cef14872353ec879365a5fd745c53
+                      body: |
+                        Update @balena/abstract-sql-compiler from 9.0.4 to 9.1.4
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Thodoris Greasidis
+                      nested:
+                        - commits:
+                            - subject: Cast Big Serial to integer
+                              hash: 9e4025dd57517f4ad6d06f4cb894062c6ce370cf
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Josh Bowling
+                              nested: []
+                          version: abstract-sql-compiler-9.1.4
+                          title: ""
+                          date: 2024-04-09T10:04:33.059Z
+                        - commits:
+                            - subject: Update prepare script for husky v9
+                              hash: bae835665431a88f0fdd4804f1d70757a7e11dd0
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Josh Bowling
+                              nested: []
+                            - subject: Update dependency husky to v9
+                              hash: d53d2f121e97d0dde35fe646e63b9d7179f4f098
+                              body: |
+                                Update husky from 8.0.3 to 9.0.11
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Self-hosted Renovate Bot
+                              nested: []
+                          version: abstract-sql-compiler-9.1.3
+                          title: ""
+                          date: 2024-04-09T01:41:53.829Z
+                        - commits:
+                            - subject: Update dependency lint-staged to v15
+                              hash: 6b5c28a3170006cd3f6f963f03ec2ee67273223e
+                              body: |
+                                Update lint-staged from 13.3.0 to 15.2.2
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Self-hosted Renovate Bot
+                              nested: []
+                          version: abstract-sql-compiler-9.1.2
+                          title: ""
+                          date: 2024-04-09T01:09:18.361Z
+                        - commits:
+                            - subject: Update dependency @balena/lint to v8
+                              hash: 835365353b766b89d80c80b84f48583ba0322849
+                              body: |
+                                Update @balena/lint from 6.2.2 to 8.0.0
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Thodoris Greasidis
+                              nested: []
+                          version: abstract-sql-compiler-9.1.1
+                          title: ""
+                          date: 2024-03-26T10:27:12.964Z
+                        - commits:
+                            - subject: Export the generateRuleHashAcronym helper
+                              hash: 6d00b7dba58690019cfb443e4c876d30e8d7ad98
+                              body: ""
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                              author: Thodoris Greasidis
+                              nested: []
+                            - subject: Add support for unique indexes with NOT DISTINCT NULLS
+                              hash: cbd1177d14cd2266dd92f29755819a3139bf3bc1
+                              body: ""
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                              author: Thodoris Greasidis
+                              nested: []
+                            - subject: Add support for partial unique indexes
+                              hash: e2c92b8d5022ad29b95dd1e0837ec9dddec24fa4
+                              body: ""
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                              author: Thodoris Greasidis
+                              nested: []
+                          version: abstract-sql-compiler-9.1.0
+                          title: ""
+                          date: 2024-03-26T09:29:57.519Z
+                        - commits:
+                            - subject: Update dependency @balena/odata-parser to v3
+                              hash: d23614a1f7346edb262897ca8ff62abc2eaffff6
+                              body: |
+                                Update @balena/odata-parser from 2.5.0 to 3.0.3
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Self-hosted Renovate Bot
+                              nested:
+                                - commits:
+                                    - subject: Optimize by moving constant values into global init
+                                      hash: 94899b779fb879540f3675c3c9d7ca3f9d8af4bf
+                                      body: ""
+                                      footer:
+                                        Change-type: patch
+                                        change-type: patch
+                                        Signed-off-by: fisehara <harald@balena.io>
+                                        signed-off-by: fisehara <harald@balena.io>
+                                      author: fisehara
+                                  version: odata-parser-3.0.3
+                                  title: ""
+                                  date: 2024-01-04T15:30:09.102Z
+                                - commits:
+                                    - subject: Update dependencies
+                                      hash: 0a7bd8ff2e506fa3988b6e1851e0098df5da3f86
+                                      body: >
+                                        - Update @balena/lint from 6.2.2 to
+                                        7.2.4
+
+                                        - Delete `require-npm4-to-publish` as
+                                        handled by `engines` parameter in
+                                        `package.json`
+                                      footer:
+                                        Change-type: patch
+                                        change-type: patch
+                                        Signed-off-by: fisehara <harald@balena.io>
+                                        signed-off-by: fisehara <harald@balena.io>
+                                      author: fisehara
+                                  version: odata-parser-3.0.2
+                                  title: ""
+                                  date: 2024-01-04T10:16:56.896Z
+                                - commits:
+                                    - subject: Allow running CI on external PRs
+                                      hash: 875af25a9e8ba9ade051f76f4500f5146db675a7
+                                      body: ""
+                                      footer:
+                                        Change-type: patch
+                                        change-type: patch
+                                      author: Pagan Gazzard
+                                  version: odata-parser-3.0.1
+                                  title: ""
+                                  date: 2023-09-25T10:50:13.648Z
+                                - commits:
+                                    - subject: Use optional chaining operator
+                                      hash: 1fb39ef2497b964af0f2cbc953a3f0843936fe02
+                                      body: ""
+                                      footer:
+                                        Change-type: major
+                                        change-type: major
+                                      author: Pagan Gazzard
+                                    - subject: Set minimum supported nodejs version to 16.13.0
+                                      hash: 91b8f51691a9649e99f2dc64253cc5ce9b59035a
+                                      body: ""
+                                      footer:
+                                        Change-type: major
+                                        change-type: major
+                                      author: Pagan Gazzard
+                                  version: odata-parser-3.0.0
+                                  title: ""
+                                  date: 2023-04-26T14:57:49.416Z
+                          version: abstract-sql-compiler-9.0.7
+                          title: ""
+                          date: 2024-03-22T13:08:03.336Z
+                        - commits:
+                            - subject: Update TypeScript to 5.4.3
+                              hash: 29299180ecbcb5bcd26b47e52f86538fa9a1f0f8
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Thodoris Greasidis
+                              nested: []
+                          version: abstract-sql-compiler-9.0.6
+                          title: ""
+                          date: 2024-03-21T16:34:21.387Z
+                        - commits:
+                            - subject: Update `@balena/sbvr-types`
+                              hash: 1822aa5e81736f18f2a4dd265e5754b589d4fd36
+                              body: >
+                                Updaet @balena/sbvr-types from 6.0.0 to 7.0.1
+
+
+                                @balena/sbvr-types changes `fetchProcessing` and
+                                not validate. No change in abstract-sql-compiler
+                                interfaces. => Patch
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                                Signed-off-by: Harald Fischer <harald@balena.io>
+                                signed-off-by: Harald Fischer <harald@balena.io>
+                              author: Harald Fischer
+                              nested: []
+                          version: abstract-sql-compiler-9.0.5
+                          title: ""
+                          date: 2024-03-05T19:12:37.779Z
+                  version: odata-to-abstract-sql-6.2.7
+                  title: ""
+                  date: 2024-04-23T12:52:44.677Z
+                - commits:
+                    - subject: Update dependency husky to v9
+                      hash: cb1f02871fbea35df4b637f73625fbc39840da3a
+                      body: |
+                        Update husky from 8.0.3 to 9.0.11
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Self-hosted Renovate Bot
+                      nested: []
+                  version: odata-to-abstract-sql-6.2.6
+                  title: ""
+                  date: 2024-04-13T14:30:55.197Z
+                - commits:
+                    - subject: Update dependency @balena/lint to v8
+                      hash: 7b0e4b7272b0cda5690b925b7de259612085940e
+                      body: |
+                        Update @balena/lint from 7.3.0 to 8.0.0
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Self-hosted Renovate Bot
+                      nested: []
+                  version: odata-to-abstract-sql-6.2.5
+                  title: ""
+                  date: 2024-04-10T00:24:14.349Z
+                - commits:
+                    - subject: Update `@balena/sbvr-types` devDependencies
+                      hash: 93ba82f914f8e036e79fa174a58881db294b84c6
+                      body: |
+                        Update `@balena/sbvr-types` from 6.1.1 to 7.0.1
+
+                        Update of devDependencies => patch
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: fisehara <harald@balena.io>
+                        signed-off-by: fisehara <harald@balena.io>
+                      author: fisehara
+                      nested: []
+                    - subject: Fix linter issue
+                      hash: d5e0d142e779f29ef316cdb20d0f91a983960e69
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                        Signed-off-by: fisehara <harald@balena.io>
+                        signed-off-by: fisehara <harald@balena.io>
+                      author: fisehara
+                      nested: []
+                  version: odata-to-abstract-sql-6.2.4
+                  title: ""
+                  date: 2024-03-05T18:23:43.575Z
+                - commits:
+                    - subject: Add typings for all abstract sql fragments, fixing where necessary
+                      hash: b84c335877236e3d389df064b3e7b2acd1a656ae
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-7.1.3
+                  title: ""
+                  date: 2024-06-12T21:08:39.814Z
+                - commits:
+                    - subject: Explicitly type the `compare` function for `hashed`
+                      hash: 6ece56f531ba9507fb090003bd3216e90b2f583b
+                      body: >
+                        This avoids the need for downstream users to have the
+                        bcrypt types
+
+                        available whilst also avoiding accidental breaking
+                        changes
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-7.1.2
+                  title: ""
+                  date: 2024-06-12T12:19:17.354Z
+                - commits:
+                    - subject: Accept `Date` for the write types of `Date Time`/`Date`/`Time`
+                      hash: eb03c8fb593fad76c74dad57a3d45625daf44d76
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-7.1.1
+                  title: ""
+                  date: 2024-06-04T09:59:12.864Z
+          version: abstract-sql-to-typescript-3.2.2
+          title: ""
+          date: 2024-06-25T12:30:20.853Z
+        - commits:
+            - subject: Fix `getOrCreate` and `upsert` typing for the `body` property
+              hash: a1ce21a7c55c04f55f3b8025d19076a49541a205
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-6.15.10
+          title: ""
+          date: 2024-07-08T16:05:56.800Z
+        - commits:
+            - subject: Export `ExpandableStringKeyOf` typing
+              hash: 17f1424d31069a882bb288cf418a01e83b60e806
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-6.15.9
+          title: ""
+          date: 2024-07-05T16:24:57.847Z
+        - commits:
+            - subject: Improve typings of `prepare` when used to `GET`
+              hash: 06f3fbecc514367900f07f83dbd61796e870abcf
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-6.15.8
+          title: ""
+          date: 2024-07-05T15:42:56.455Z
+        - commits:
+            - subject: Use `OptionsToResponse` to avoid most of the `get` overloads
+              hash: 7562b1aeb69a3ce97362ed0799b4c211948acc7e
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-6.15.7
+          title: ""
+          date: 2024-06-27T17:04:08.151Z
+        - commits:
+            - subject: Add support for nested $expand response types and $count expands
+              hash: 8b00172db2e150f8813d2080d0f19b5a2c2c3066
+              body: |
+                Update @balena/abstract-sql-to-typescript from 3.2.1 to 3.2.3
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-6.15.6
+          title: ""
+          date: 2024-06-25T13:53:50.690Z
+        - commits:
+            - subject: Select all non-expanded fields when there is no $select
+              hash: 7abf51ecd4aea620cd9d616d5ec1843c1c4ba5df
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-6.15.5
+          title: ""
+          date: 2024-06-25T11:09:05.055Z
+        - commits:
+            - subject: Update dependencies
+              hash: 18d9758ffb6cf0ce16f3870aa64ffe40c6d3ce5d
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-6.15.4
+          title: ""
+          date: 2024-06-24T20:52:38.559Z
+        - commits:
+            - subject: Correctly type that all properties are selected with a missing $select
+              hash: 935e630afd429790fa133cdbf7e2012ac491b969
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-6.15.3
+          title: ""
+          date: 2024-06-20T10:36:12.898Z
+        - commits:
+            - subject: Improve $orderby typings when not providing a model
+              hash: 00c8ea6b5281f4d928d73cbe4427239a4ab3e6d8
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-6.15.2
+          title: ""
+          date: 2024-06-19T11:41:35.544Z
+        - commits:
+            - subject: Update dependency @balena/sbvr-types to v8
+              hash: cf8795b08f30806b5500508dcab3623c5d444928
+              body: |
+                Update @balena/sbvr-types from 7.1.3 to 8.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Self-hosted Renovate Bot
+          version: sbvr-parser-1.4.6
+          title: ""
+          date: 2024-07-30T06:48:09.778Z
+        - commits:
+            - subject: Switch to an inflection library from npm which does not monkey patch
+              hash: 2082369825fc80acb549793e4cc1cd35c77850d4
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-parser-1.4.5
+          title: ""
+          date: 2024-06-18T21:23:34.689Z
+  version: 17.3.5
+  title: ""
+  date: 2024-07-31T17:47:57.839Z
+- commits:
     - subject: Rollback @balena/sbvr-types to v7
       hash: 911495b41b7b0bd32273478fe33230fc5e20d014
       body: ""
