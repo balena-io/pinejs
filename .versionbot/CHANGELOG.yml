@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update sbvr-types to v9.0.1
+      hash: 4770d173c08c7c332b0597148058cee5bcad944a
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Josh Bowling
+      nested: []
+  version: 18.0.0
+  title: ""
+  date: 2024-08-05T11:04:24.776Z
+- commits:
     - subject: Update dependencies
       hash: f79ba323df5429c5c2dd00513c9672195f0f2cf9
       body: |
