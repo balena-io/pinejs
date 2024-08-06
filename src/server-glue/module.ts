@@ -6,6 +6,7 @@ import * as dbModule from '../database-layer/db';
 import * as configLoader from '../config-loader/config-loader';
 import * as migrator from '../migrator/sync';
 import type * as migratorUtils from '../migrator/utils';
+import * as tasks from '../tasks';
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
 import { PINEJS_ADVISORY_LOCK } from '../config-loader/env';
@@ -19,6 +20,7 @@ export * as errors from '../sbvr-api/errors';
 export * as env from '../config-loader/env';
 export * as types from '../sbvr-api/common-types';
 export * as hooks from '../sbvr-api/hooks';
+export * as tasks from '../tasks';
 export * as webResourceHandler from '../webresource-handler';
 export type { configLoader as ConfigLoader };
 export type { migratorUtils as Migrator };
@@ -63,6 +65,7 @@ export const init = async <T extends string>(
 		await sbvrUtils.setup(app, db);
 		const cfgLoader = configLoader.setup(app);
 		await cfgLoader.loadConfig(migrator.config);
+		await cfgLoader.loadConfig(tasks.config);
 
 		const promises: Array<Promise<void>> = [];
 		if (process.env.SBVR_SERVER_ENABLED) {
