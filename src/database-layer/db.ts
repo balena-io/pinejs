@@ -340,6 +340,9 @@ export abstract class Tx {
 
 		const t0 = Date.now();
 		try {
+			if (sql.startsWith('UPDATE "student"')) {
+				console.log('=== sql:', sql);
+			}
 			return await this._executeSql(sql, bindings, ...args);
 		} catch (err: any) {
 			throw wrapDatabaseError(err);
