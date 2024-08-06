@@ -1044,32 +1044,54 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 							const permissionsTable = (tables[permissionResourceName] = {
 								...table,
 							});
-							if (permissionResourceName === 'student$permissions"update"') {
-								// console.log(`=== tables[${permissionResourceName}]-1:`, JSON.stringify(tables[permissionResourceName], null, 2)); // HAS THE ALIAS
-								// console.log(`=== permissionsTable-1:`, JSON.stringify(permissionsTable, null, 2)); // HAS THE ALIAS
-								permissionsTable.resourceName = permissionResourceName;
-								return permissionsTable;
-							}
 							permissionsTable.resourceName = permissionResourceName;
-
-							onceGetter(permissionsTable, 'definition', () =>
+							onceGetter(permissionsTable, 'definition', () => {
 								// For $filter on eg a DELETE you need read permissions on the sub-resources,
 								// you only need delete permissions on the resource being deleted
-								generateConstrainedAbstractSql(
+								const constraintResource = generateConstrainedAbstractSql(
 									permissionsLookup,
 									permissions,
 									vocabulary,
 									sqlNameToODataName(
 										permissionsTable.modifyName ?? permissionsTable.name,
 									),
-								),
-							);
-							/*
-							if (permissionResourceName === 'student$permissions"update"') {
-								console.log(`=== tables[${permissionResourceName}]-2:`, JSON.stringify(tables[permissionResourceName], null, 2)); // DOES NOT HAVE THE ALIAS
-								console.log(`=== permissionsTable-2:`, JSON.stringify(permissionsTable, null, 2)); // DOES NOT HAVE THE ALIAS
-							}
-							*/
+								);
+
+								// DISCLAIMER: The hackiest black magic hack
+								// The constraintResource includes permissions but it's using the DB model,
+								// so in order to be able to filter on fields found in translated model versions
+								// we grab the translated definition and replace its FROM statement to use the constraintResource.
+								// This atm only works if the translation is just one level down, it needs to be extended to become recursive.
+								// This is not going to work though if we are translating the idField of the resource.
+								if (
+									table.definition == null ||
+									constraintResource == null ||
+									constraintResource.abstractSql[0] !== 'SelectQuery' ||
+									(permissions !== methodPermissions.PATCH && permissions !== methodPermissions.DELETE)
+								) {
+									return constraintResource;
+								}
+								const tableDefinitionAbstractSql = _.cloneDeep(
+									table.definition.abstractSql,
+								);
+								const from = tableDefinitionAbstractSql.find(
+									(v) => v[0] === 'From',
+								);
+								if (from == null) {
+									return constraintResource;
+								}
+								const constraintSelectQueryNode =
+									constraintResource.abstractSql;
+								if (from[1][0] === 'Alias') {
+									from[1][1] = constraintSelectQueryNode;
+								} else {
+									from[1] = constraintSelectQueryNode;
+								}
+								return {
+									...constraintResource,
+									abstractSql: tableDefinitionAbstractSql,
+								};
+							});
 
 							return permissionsTable;
 						},
