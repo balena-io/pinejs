@@ -155,6 +155,7 @@ describe('04 native translation tests', function () {
 				})
 				.expect(201);
 
+			console.log('=== before patch');
 			await pineTest
 				.patch({
 					apiPrefix: 'v1/',
@@ -168,7 +169,7 @@ describe('04 native translation tests', function () {
 						lastname: v1StudentCreated.lastname + 'patched',
 					},
 				})
-				.expect(201);
+				.expect(200);
 		});
 	});
 

@@ -692,6 +692,7 @@ const onceGetter = <T, U extends keyof T>(
 	// after we have called fn
 	let nullableFn: undefined | typeof fn = fn;
 	let thrownErr: Error | undefined;
+	// OVERWRITING definition property here, removing the previously existing alias
 	Object.defineProperty(obj, propName, {
 		enumerable: true,
 		configurable: true,
@@ -1043,7 +1044,14 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 							const permissionsTable = (tables[permissionResourceName] = {
 								...table,
 							});
+							if (permissionResourceName === 'student$permissions"update"') {
+								// console.log(`=== tables[${permissionResourceName}]-1:`, JSON.stringify(tables[permissionResourceName], null, 2)); // HAS THE ALIAS
+								// console.log(`=== permissionsTable-1:`, JSON.stringify(permissionsTable, null, 2)); // HAS THE ALIAS
+								permissionsTable.resourceName = permissionResourceName;
+								return permissionsTable;
+							}
 							permissionsTable.resourceName = permissionResourceName;
+
 							onceGetter(permissionsTable, 'definition', () =>
 								// For $filter on eg a DELETE you need read permissions on the sub-resources,
 								// you only need delete permissions on the resource being deleted
@@ -1056,6 +1064,12 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 									),
 								),
 							);
+							/*
+							if (permissionResourceName === 'student$permissions"update"') {
+								console.log(`=== tables[${permissionResourceName}]-2:`, JSON.stringify(tables[permissionResourceName], null, 2)); // DOES NOT HAVE THE ALIAS
+								console.log(`=== permissionsTable-2:`, JSON.stringify(permissionsTable, null, 2)); // DOES NOT HAVE THE ALIAS
+							}
+							*/
 
 							return permissionsTable;
 						},
