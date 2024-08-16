@@ -1,4 +1,16 @@
 - commits:
+    - subject: "Tests: avoid unnecessarily asynchronous imports"
+      hash: 4b34d8dcba76fd0e8695edaa840b4cef0ecb039f
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 18.0.1
+  title: ""
+  date: 2024-08-16T12:26:12.835Z
+- commits:
     - subject: Update sbvr-types to v9.0.1
       hash: 4770d173c08c7c332b0597148058cee5bcad944a
       body: ""
