@@ -2,7 +2,7 @@ import * as webpack from 'webpack';
 import sharedConfig from './config';
 const config = { ...sharedConfig };
 
-config.entry += '/src/server-glue/module';
+config.entry = `${config.entry}/src/server-glue/module`;
 config.plugins = config.plugins.concat(
 	new webpack.DefinePlugin({
 		'process.browser': false,

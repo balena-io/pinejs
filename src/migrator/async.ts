@@ -133,7 +133,7 @@ const $run = async (
 
 		if (typeof migration === 'object') {
 			const batchSize =
-				migration.asyncBatchSize || migratorEnv.asyncMigrationDefaultBatchSize;
+				migration.asyncBatchSize ?? migratorEnv.asyncMigrationDefaultBatchSize;
 			if (migration.asyncFn && typeof migration.asyncFn === 'function') {
 				asyncRunnerMigratorFn = async (tx: Tx) => {
 					return await migration.asyncFn(

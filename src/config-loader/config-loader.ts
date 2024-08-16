@@ -183,6 +183,7 @@ export const setup = (app: Express.Application) => {
 						if (translateTo != null) {
 							// We add an async boundary here so that `mapValues` can complete and assign the
 							// waiting promises to `modelPromises` before we try to access it
+							// eslint-disable-next-line @typescript-eslint/await-thenable
 							await null;
 							if (modelPromises[translateTo] == null) {
 								throw new Error(
