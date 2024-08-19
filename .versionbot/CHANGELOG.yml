@@ -1,4 +1,16 @@
 - commits:
+    - subject: Fix some lint warnings
+      hash: 25abbf6a3f22ca6b984b8ec5a4b2aa3dcb71363f
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 18.0.2
+  title: ""
+  date: 2024-08-19T08:45:22.075Z
+- commits:
     - subject: "Tests: avoid unnecessarily asynchronous imports"
       hash: 4b34d8dcba76fd0e8695edaa840b4cef0ecb039f
       body: ""
