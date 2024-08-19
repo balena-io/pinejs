@@ -56,7 +56,7 @@ if (!process.browser) {
 	app.use(passport.session());
 
 	app.use((req, res, next) => {
-		const origin = req.get('Origin') || '*';
+		const origin = req.get('Origin') ?? '*';
 		res.header('Access-Control-Allow-Origin', origin);
 		res.header(
 			'Access-Control-Allow-Methods',
@@ -80,7 +80,7 @@ export const initialised = Pinejs.init(app)
 	.then(async (configLoader) => {
 		await mountLoginRouter(configLoader, app);
 
-		app.listen(process.env.PORT || 1337, () => {
+		app.listen(process.env.PORT ?? 1337, () => {
 			console.info('Server started');
 		});
 	})

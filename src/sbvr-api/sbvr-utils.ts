@@ -564,14 +564,14 @@ export function generateModels(
 			lf = generateLfModel(se);
 		} catch (e) {
 			console.error(`Error parsing model '${vocab}':`, e);
-			throw new Error(`Error parsing model '${vocab}': ` + e);
+			throw new Error(`Error parsing model '${vocab}': ${e}`);
 		}
 
 		try {
 			maybeAbstractSql = generateAbstractSqlModel(lf);
 		} catch (e) {
 			console.error(`Error translating model '${vocab}':`, e);
-			throw new Error(`Error translating model '${vocab}': ` + e);
+			throw new Error(`Error translating model '${vocab}': ${e}`);
 		}
 	}
 	const abstractSql = maybeAbstractSql!;
@@ -603,7 +603,7 @@ export function generateModels(
 			sql = generateSqlModel(abstractSql, targetDatabaseEngine);
 		} catch (e) {
 			console.error(`Error compiling model '${vocab}':`, e);
-			throw new Error(`Error compiling model '${vocab}': ` + e);
+			throw new Error(`Error compiling model '${vocab}': ${e}`);
 		}
 	}
 

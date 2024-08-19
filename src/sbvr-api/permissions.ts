@@ -228,7 +228,7 @@ export function nestedCheck<I extends object, O>(
 	if (typeof check === 'object') {
 		const checkTypes = Object.keys(check);
 		if (checkTypes.length > 1) {
-			throw new Error('More than one check type: ' + checkTypes);
+			throw new Error(`More than one check type: ${checkTypes}`);
 		}
 		const checkType = checkTypes[0];
 		switch (checkType.toUpperCase()) {
@@ -265,7 +265,7 @@ export function nestedCheck<I extends object, O>(
 				throw new Error('Cannot parse required checking logic: ' + checkType);
 		}
 	}
-	throw new Error('Cannot parse required checks: ' + check);
+	throw new Error(`Cannot parse required checks: ${check}`);
 }
 
 interface CollapsedFilter<T> extends Array<string | T | CollapsedFilter<T>> {
@@ -705,8 +705,8 @@ const onceGetter = <T, U extends keyof T>(
 				// and the delete removes that restriction
 				delete this[propName];
 				return (this[propName] = result);
-			} catch (e: any) {
-				thrownErr = e;
+			} catch (e) {
+				thrownErr = e as Error;
 				throw thrownErr;
 			} finally {
 				nullableFn = undefined;
