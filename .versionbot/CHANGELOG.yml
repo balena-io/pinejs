@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add async tasks
+      hash: 549a839468147b5001ee42e5124cce89b03b9c81
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Josh Bowling
+      nested: []
+  version: 18.1.0
+  title: ""
+  date: 2024-08-20T13:57:55.315Z
+- commits:
     - subject: Fix some lint warnings
       hash: 25abbf6a3f22ca6b984b8ec5a4b2aa3dcb71363f
       body: ""
