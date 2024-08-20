@@ -49,7 +49,7 @@ export const cache = {
 	apiKeyActorId: false as CacheOpts,
 };
 
-import { boolVar } from '@balena/env-parsing';
+import { boolVar, intVar } from '@balena/env-parsing';
 import memoize from 'memoizee';
 import memoizeWeak = require('memoizee/weak');
 export const createCache = <T extends (...args: any[]) => any>(
@@ -145,4 +145,9 @@ export const migrator = {
 	 * });
 	 */
 	asyncMigrationIsEnabled: boolVar('PINEJS_ASYNC_MIGRATION_ENABLED', true),
+};
+
+export const tasks = {
+	queueConcurrency: intVar('PINEJS_QUEUE_CONCURRENCY', 0),
+	queueIntervalMS: intVar('PINEJS_QUEUE_INTERVAL_MS', 1000),
 };
