@@ -1,4 +1,16 @@
 - commits:
+    - subject: Throw an UnauthorizedError on /canAccess requests for unknown resources
+      hash: 17df5f4fa060c279b0490f7b9c8fb2b774e51078
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 18.1.1
+  title: ""
+  date: 2024-08-20T14:49:34.390Z
+- commits:
     - subject: Add async tasks
       hash: 549a839468147b5001ee42e5124cce89b03b9c81
       body: ""
