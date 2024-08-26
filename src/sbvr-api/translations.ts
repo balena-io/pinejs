@@ -217,8 +217,21 @@ export const translateAbstractSqlModel = (
 					: // But if we can't safely strip the suffix then we'll use as-is, at least until the next major
 						$toResource
 				: key;
+			let aliasedToResource;
 			if (hasToResource) {
 				resourceRenames[key] = unaliasedToResource;
+				if ($toResource.includes('$')) {
+					// TODO-MAJOR: Change this to an error
+					console.warn(
+						`'$toResource' should be the unaliased name of the resource in the subsequent model and not be targeting a specific model, got '${$toResource}'`,
+						$toResource,
+					);
+					aliasedToResource = $toResource;
+				} else {
+					aliasedToResource = `${$toResource}${toVersionSuffix}`;
+				}
+			} else {
+				aliasedToResource = `${key}${toVersionSuffix}`;
 			}
 			const toTable = toAbstractSqlModel.tables[unaliasedToResource];
 			if (!toTable) {
@@ -233,9 +246,6 @@ export const translateAbstractSqlModel = (
 			if (isDefinition(definition)) {
 				table.definition = definition;
 			} else {
-				const aliasedToResource = hasToResource
-					? $toResource
-					: `${key}${toVersionSuffix}`;
 				table.definition = aliasResource(
 					fromAbstractSqlModel,
 					toAbstractSqlModel,
