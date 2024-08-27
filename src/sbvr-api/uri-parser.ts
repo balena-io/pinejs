@@ -41,6 +41,9 @@ export interface ParsedODataRequest {
 	method: SupportedMethod;
 	url: string;
 	vocabulary: string;
+	/**
+	 * This should be the resource name of the final abstract sql model with no suffixes (eg no `$v4`)
+	 */
 	resourceName: string;
 	originalResourceName: string;
 	values: AnyObject;

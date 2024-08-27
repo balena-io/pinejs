@@ -136,6 +136,7 @@ export const translateAbstractSqlModel = (
 	const isDefinition = (
 		d: (typeof translationDefinitions)[string],
 	): d is Definition => 'abstractSql' in d;
+	const toVersionSuffix = `$${toVersion}`;
 
 	const resourceRenames: Dictionary<string> = {};
 
@@ -160,8 +161,8 @@ export const translateAbstractSqlModel = (
 		if (synonym.includes('$')) {
 			fromAbstractSqlModel.synonyms[synonym] = canonicalForm;
 		} else {
-			fromAbstractSqlModel.synonyms[`${synonym}$${toVersion}`] =
-				`${canonicalForm}$${toVersion}`;
+			fromAbstractSqlModel.synonyms[`${synonym}${toVersionSuffix}`] =
+				`${canonicalForm}${toVersionSuffix}`;
 		}
 	}
 	const relationships = _.cloneDeep(toAbstractSqlModel.relationships);
@@ -169,7 +170,7 @@ export const translateAbstractSqlModel = (
 	for (let [key, relationship] of Object.entries(relationships)) {
 		// Don't double alias
 		if (!key.includes('$')) {
-			key = `${key}$${toVersion}`;
+			key = `${key}${toVersionSuffix}`;
 		}
 		fromAbstractSqlModel.relationships[key] = relationship;
 	}
@@ -192,7 +193,7 @@ export const translateAbstractSqlModel = (
 	for (let [key, table] of Object.entries(toAbstractSqlModel.tables)) {
 		// Don't double alias
 		if (!key.includes('$')) {
-			key = `${key}$${toVersion}`;
+			key = `${key}${toVersionSuffix}`;
 		}
 		fromAbstractSqlModel.tables[key] = _.cloneDeep(table);
 	}
@@ -208,11 +209,18 @@ export const translateAbstractSqlModel = (
 			const { $toResource, ...definition } = translationDefinition;
 			const hasToResource = typeof $toResource === 'string';
 			if (hasToResource) {
-				resourceRenames[key] = $toResource;
+				if ($toResource.endsWith(toVersionSuffix)) {
+					// Ideally we want to rename to the unaliased resource of the next version
+					// so when the alias matches the next version we can just strip it
+					resourceRenames[key] = $toResource.slice(0, -toVersionSuffix.length);
+				} else {
+					resourceRenames[key] = $toResource;
+				}
 			}
-			const toResource = hasToResource ? $toResource : `${key}$${toVersion}`;
-			// TODO: Should this use the toAbstractSqlModel?
-			const toTable = fromAbstractSqlModel.tables[toResource];
+			const toResource = hasToResource
+				? $toResource
+				: `${key}${toVersionSuffix}`;
+			const toTable = toAbstractSqlModel.tables[toResource];
 			if (!toTable) {
 				if (hasToResource) {
 					throw new Error(`Unknown $toResource: '${toResource}'`);
@@ -234,13 +242,13 @@ export const translateAbstractSqlModel = (
 				);
 			}
 		} else {
-			const toTable = fromAbstractSqlModel.tables[`${key}$${toVersion}`];
+			const toTable = toAbstractSqlModel.tables[`${key}${toVersionSuffix}`];
 			if (!toTable) {
 				throw new Error(`Missing translation for: '${key}'`);
 			}
 			table.modifyFields = _.cloneDeep(toTable.modifyFields ?? toTable.fields);
 			table.definition = {
-				abstractSql: ['Resource', `${key}$${toVersion}`],
+				abstractSql: ['Resource', `${key}${toVersionSuffix}`],
 			};
 		}
 		// Also alias the current version so it can be explicitly referenced
