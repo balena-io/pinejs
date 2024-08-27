@@ -209,7 +209,13 @@ export const translateAbstractSqlModel = (
 			const { $toResource, ...definition } = translationDefinition;
 			const hasToResource = typeof $toResource === 'string';
 			if (hasToResource) {
-				resourceRenames[key] = $toResource;
+				if ($toResource.endsWith(toVersionSuffix)) {
+					// Ideally we want to rename to the unaliased resource of the next version
+					// so when the alias matches the next version we can just strip it
+					resourceRenames[key] = $toResource.slice(0, -toVersionSuffix.length);
+				} else {
+					resourceRenames[key] = $toResource;
+				}
 			}
 			const toResource = hasToResource
 				? $toResource
