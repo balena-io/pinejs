@@ -1,4 +1,28 @@
 - commits:
+    - subject: "Translations: strip the version alias from renames when possible"
+      hash: c7b83174907e3227bab0c605662d206552ca6fc7
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "Translations: use the `toAbstractSqlModel` to fetch the `toTable` info"
+      hash: 459751aed7d20e53ee10efd7cc12c296f945ba7d
+      body: |
+        This should give the same result whenever the resource name has a
+        version suffix, however in the case it is unversioned then it should be
+        more correct as that will be the table it gets translated to for the
+        next version
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 18.1.2
+  title: ""
+  date: 2024-08-27T16:47:00.735Z
+- commits:
     - subject: Throw an UnauthorizedError on /canAccess requests for unknown resources
       hash: 17df5f4fa060c279b0490f7b9c8fb2b774e51078
       body: ""
