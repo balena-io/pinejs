@@ -211,8 +211,7 @@ export const translateAbstractSqlModel = (
 				resourceRenames[key] = $toResource;
 			}
 			const toResource = hasToResource ? $toResource : `${key}$${toVersion}`;
-			// TODO: Should this use the toAbstractSqlModel?
-			const toTable = fromAbstractSqlModel.tables[toResource];
+			const toTable = toAbstractSqlModel.tables[toResource];
 			if (!toTable) {
 				if (hasToResource) {
 					throw new Error(`Unknown $toResource: '${toResource}'`);
@@ -234,7 +233,7 @@ export const translateAbstractSqlModel = (
 				);
 			}
 		} else {
-			const toTable = fromAbstractSqlModel.tables[`${key}$${toVersion}`];
+			const toTable = toAbstractSqlModel.tables[`${key}$${toVersion}`];
 			if (!toTable) {
 				throw new Error(`Missing translation for: '${key}'`);
 			}
