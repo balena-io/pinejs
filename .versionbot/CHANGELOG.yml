@@ -1,4 +1,16 @@
 - commits:
+    - subject: "Tests: stop using deprecated `faker` functions"
+      hash: e79630e8bcbf7e5ccdbb60fd4f5684f394ae341b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 18.1.3
+  title: ""
+  date: 2024-08-28T14:14:57.885Z
+- commits:
     - subject: "Translations: strip the version alias from renames when possible"
       hash: c7b83174907e3227bab0c605662d206552ca6fc7
       body: ""
