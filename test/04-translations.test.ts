@@ -30,7 +30,7 @@ describe('04 native translation tests', function () {
 				apiPrefix: 'university/',
 				resource: 'faculty',
 				body: {
-					name: faker.random.words(2),
+					name: faker.word.words(2),
 				},
 			})
 			.expect(201));
@@ -47,9 +47,9 @@ describe('04 native translation tests', function () {
 					apiPrefix: 'v1/',
 					resource: 'student',
 					body: {
-						matrix_number: faker.datatype.number({ min: 100000 }),
-						name: faker.name.firstName(),
-						lastname: faker.name.lastName(),
+						matrix_number: faker.number.int({ min: 100000, max: 2 ** 31 }),
+						name: faker.person.firstName(),
+						lastname: faker.person.lastName(),
 						studies_at__campus: faculty.name,
 					},
 				})
@@ -80,9 +80,9 @@ describe('04 native translation tests', function () {
 					apiPrefix: 'v1/',
 					resource: 'student',
 					body: {
-						matrix_number: faker.datatype.number({ min: 100000 }),
-						name: faker.name.firstName(),
-						lastname: faker.name.lastName(),
+						matrix_number: faker.number.int({ min: 100000, max: 2 ** 31 }),
+						name: faker.person.firstName(),
+						lastname: faker.person.lastName(),
 						studies_at__campus: 'does not exist',
 					},
 				})
@@ -95,9 +95,9 @@ describe('04 native translation tests', function () {
 					apiPrefix: 'university/',
 					resource: 'student',
 					body: {
-						matrix_number: faker.datatype.number({ min: 100000 }),
-						name: faker.name.firstName(),
-						last_name: faker.name.lastName(),
+						matrix_number: faker.number.int({ min: 100000, max: 2 ** 31 }),
+						name: faker.person.firstName(),
+						last_name: faker.person.lastName(),
 						studies_at__faculty: faculty.id,
 					},
 				})
@@ -149,9 +149,9 @@ describe('04 native translation tests', function () {
 					apiPrefix: 'v2/',
 					resource: 'student',
 					body: {
-						matrix_number: faker.datatype.number({ min: 100000 }),
-						name: faker.name.firstName(),
-						lastname: faker.name.lastName(),
+						matrix_number: faker.number.int({ min: 100000, max: 2 ** 31 }),
+						name: faker.person.firstName(),
+						lastname: faker.person.lastName(),
 						studies_at__campus: 'does not exist',
 					},
 				})
@@ -164,9 +164,9 @@ describe('04 native translation tests', function () {
 					apiPrefix: 'v2/',
 					resource: 'student',
 					body: {
-						matrix_number: faker.datatype.number({ min: 100000 }),
-						name: faker.name.firstName(),
-						last_name: faker.name.lastName(),
+						matrix_number: faker.number.int({ min: 100000, max: 2 ** 31 }),
+						name: faker.person.firstName(),
+						last_name: faker.person.lastName(),
 						studies_at__campus: faculty.name,
 					},
 				})
@@ -207,9 +207,9 @@ describe('04 native translation tests', function () {
 					apiPrefix: 'university/',
 					resource: 'student',
 					body: {
-						matrix_number: faker.datatype.number({ min: 100000 }),
-						name: faker.name.firstName(),
-						last_name: faker.name.lastName(),
+						matrix_number: faker.number.int({ min: 100000, max: 2 ** 31 }),
+						name: faker.person.firstName(),
+						last_name: faker.person.lastName(),
 						studies_at__faculty: faculty.id,
 					},
 				})
@@ -261,7 +261,7 @@ describe('04 native translation tests', function () {
 					apiPrefix: 'v3/',
 					resource: 'campus',
 					body: {
-						name: faker.random.words(2),
+						name: faker.word.words(2),
 					},
 				})
 				.expect(201));
@@ -280,9 +280,9 @@ describe('04 native translation tests', function () {
 					apiPrefix: 'v3/',
 					resource: 'student',
 					body: {
-						matrix_number: faker.datatype.number({ min: 100000 }),
-						name: faker.name.firstName(),
-						last_name: faker.name.lastName(),
+						matrix_number: faker.number.int({ min: 100000, max: 2 ** 31 }),
+						name: faker.person.firstName(),
+						last_name: faker.person.lastName(),
 						studies_at__campus: v3CreatedCampus.id,
 					},
 				})
