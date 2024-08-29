@@ -208,24 +208,24 @@ export const translateAbstractSqlModel = (
 		if (translationDefinition) {
 			const { $toResource, ...definition } = translationDefinition;
 			const hasToResource = typeof $toResource === 'string';
+
+			const unaliasedToResource = hasToResource
+				? $toResource.endsWith(toVersionSuffix)
+					? // Ideally we want to rename to the unaliased resource of the next version
+						// so when the alias matches the next version we can just strip it
+						$toResource.slice(0, -toVersionSuffix.length)
+					: // But if we can't safely strip the suffix then we'll use as-is, at least until the next major
+						$toResource
+				: key;
 			if (hasToResource) {
-				if ($toResource.endsWith(toVersionSuffix)) {
-					// Ideally we want to rename to the unaliased resource of the next version
-					// so when the alias matches the next version we can just strip it
-					resourceRenames[key] = $toResource.slice(0, -toVersionSuffix.length);
-				} else {
-					resourceRenames[key] = $toResource;
-				}
+				resourceRenames[key] = unaliasedToResource;
 			}
-			const toResource = hasToResource
-				? $toResource
-				: `${key}${toVersionSuffix}`;
-			const toTable = toAbstractSqlModel.tables[toResource];
+			const toTable = toAbstractSqlModel.tables[unaliasedToResource];
 			if (!toTable) {
 				if (hasToResource) {
-					throw new Error(`Unknown $toResource: '${toResource}'`);
+					throw new Error(`Unknown $toResource: '${unaliasedToResource}'`);
 				} else {
-					throw new Error(`Missing $toResource: '${toResource}'`);
+					throw new Error(`Missing $toResource: '${unaliasedToResource}'`);
 				}
 			}
 			table.modifyFields = _.cloneDeep(toTable.modifyFields ?? toTable.fields);
@@ -233,16 +233,19 @@ export const translateAbstractSqlModel = (
 			if (isDefinition(definition)) {
 				table.definition = definition;
 			} else {
+				const aliasedToResource = hasToResource
+					? $toResource
+					: `${key}${toVersionSuffix}`;
 				table.definition = aliasResource(
 					fromAbstractSqlModel,
 					toAbstractSqlModel,
 					key,
-					toResource,
+					aliasedToResource,
 					definition,
 				);
 			}
 		} else {
-			const toTable = toAbstractSqlModel.tables[`${key}${toVersionSuffix}`];
+			const toTable = toAbstractSqlModel.tables[key];
 			if (!toTable) {
 				throw new Error(`Missing translation for: '${key}'`);
 			}
