@@ -1,4 +1,20 @@
 - commits:
+    - subject: "Translations: prefer translating to the unaliased resource of the
+        target model"
+      hash: ad6a41c2d7a23ed653c4247989bdbc5d66ffbbdc
+      body: |
+        This matches closer with the idea of a stage by stage translation where
+        you translate as if you were a a request against the next model, then
+        that translates to the next model and so on
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 18.1.5
+  title: ""
+  date: 2024-08-30T13:23:54.665Z
+- commits:
     - subject: Update dependencies
       hash: a76566c071df5c52586d180096aceb53cb750b6d
       body: |
