@@ -140,6 +140,36 @@ describe('04 native translation tests', function () {
 
 			expect(v1StudentCreated).to.deep.equal(vLatestStudent);
 		});
+
+		it('should patch a /v1 student filtered by its lastname', async () => {
+			const { body: v1StudentCreated } = await pineTest
+				.post({
+					apiPrefix: 'v1/',
+					resource: 'student',
+					body: {
+						matrix_number: faker.datatype.number({ min: 100000 }),
+						name: faker.name.firstName(),
+						lastname: faker.name.lastName(),
+						studies_at__campus: faculty.name,
+					},
+				})
+				.expect(201);
+
+			await pineTest
+				.patch({
+					apiPrefix: 'v1/',
+					resource: 'student',
+					options: {
+						$filter: {
+							lastname: v1StudentCreated.lastname,
+						},
+					},
+					body: {
+						lastname: v1StudentCreated.lastname + 'patched',
+					},
+				})
+				.expect(200);
+		});
 	});
 
 	describe('translate v2 model', () => {
