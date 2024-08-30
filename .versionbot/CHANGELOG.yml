@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add support for and prefer providing the unaliased `$toResource`
+      hash: ff3ab852f401ab674b4f87d62feab67aa7aa6723
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 18.2.0
+  title: ""
+  date: 2024-08-30T13:49:36.957Z
+- commits:
     - subject: "Translations: prefer translating to the unaliased resource of the
         target model"
       hash: ad6a41c2d7a23ed653c4247989bdbc5d66ffbbdc
