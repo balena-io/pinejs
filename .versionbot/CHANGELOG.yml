@@ -1,4 +1,30 @@
 - commits:
+    - subject: Fix using $filter on PATCH&DELETE requests on translated properties
+      hash: 96771bde7fec6ff754d04e3e9bb59656c10624b0
+      body: ""
+      footer:
+        Depends-on: https://github.com/balena-io-modules/odata-to-abstract-sql/pull/154
+        depends-on: https://github.com/balena-io-modules/odata-to-abstract-sql/pull/154
+        Change-type: patch
+        change-type: patch
+        See: https://balena.fibery.io/Work/Task/odata-to-abstract-sql-Support-PUT-PATCH-DELETE-requests-on-resources-with-a-translated-ID-field-2089
+        see: https://balena.fibery.io/Work/Task/odata-to-abstract-sql-Support-PUT-PATCH-DELETE-requests-on-resources-with-a-translated-ID-field-2089
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Test cases to reproduce Patch Translation issue
+      hash: f72b73b8bab9728a9b7ed78e0b7378870b22b5fa
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: fisehara <harald@balena.io>
+        signed-off-by: fisehara <harald@balena.io>
+      author: fisehara
+      nested: []
+  version: 18.2.1
+  title: ""
+  date: 2024-08-30T15:22:27.898Z
+- commits:
     - subject: Add support for and prefer providing the unaliased `$toResource`
       hash: ff3ab852f401ab674b4f87d62feab67aa7aa6723
       body: ""
