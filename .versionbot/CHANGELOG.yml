@@ -1,4 +1,16 @@
 - commits:
+    - subject: Remove unused dev dependencies
+      hash: 5d40b0c1128aa3d914086c732a99696ab2615c33
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 18.2.2
+  title: ""
+  date: 2024-09-05T12:49:36.948Z
+- commits:
     - subject: Fix using $filter on PATCH&DELETE requests on translated properties
       hash: 96771bde7fec6ff754d04e3e9bb59656c10624b0
       body: ""
