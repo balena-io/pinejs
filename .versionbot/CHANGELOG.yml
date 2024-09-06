@@ -1,4 +1,546 @@
 - commits:
+    - subject: Update dependencies
+      hash: 7c5abc026df4ca1b9f72be92aa49791550f83bc6
+      body: |
+        Update @balena/abstract-sql-to-typescript from 4.0.0 to 4.0.2
+        Update pinejs-client-core from 7.0.1 to 7.1.3
+        Update pinejs-client-supertest from 2.1.1 to 2.1.2
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Fix computed fields to correctly be omitted from `Write` typings
+              hash: 17f5875cb59e83318b2cdddb7886008f1a48c214
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Fix tables with definitions to correctly have no writable fields
+              hash: 55e0d492587f74b711bc119e89d04113d0cb3c88
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-4.0.2
+          title: ""
+          date: 2024-09-06T14:53:21.457Z
+        - commits:
+            - subject: Update dependencies
+              hash: 037567bd7927fb26f8096431ac5c23f497bc8f25
+              body: |
+                Update @balena/odata-to-abstract-sql from 6.2.7 to 6.3.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested:
+                - commits:
+                    - subject: Support PUT/PATCH/DELETE requests on resources with a translated ID
+                        field
+                      hash: 65b06761fca1b13e13ec99c4ed5394814feff4ef
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Thodoris Greasidis
+                      nested: []
+                  version: odata-to-abstract-sql-6.3.0
+                  title: ""
+                  date: 2024-08-26T16:45:57.380Z
+                - commits:
+                    - subject: Update dependencies
+                      hash: 5bb046976db9be203106ebd20db6248064fc9728
+                      body: |
+                        Update @balena/abstract-sql-compiler from 9.1.4 to 9.2.0
+                        Update @balena/lf-to-abstract-sql from 5.0.1 to 5.0.2
+                        Update @balena/odata-parser from 3.0.3 to 3.0.8
+                        Update @balena/sbvr-parser from 1.4.3 to 1.4.6
+                        Update @balena/sbvr-types from 7.0.1 to 7.1.3
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                      nested:
+                        - commits:
+                            - subject: Adds `EndsWithNode` and `ContainsNode` typings
+                              hash: bb2233220c988afaece120ece38e035c8dd14b02
+                              body: ""
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                              author: Pagan Gazzard
+                              nested: []
+                          version: abstract-sql-compiler-9.2.0
+                          title: ""
+                          date: 2024-06-12T13:14:07.807Z
+                        - commits:
+                            - subject: Update `@balena/sbvr-types` devDependency
+                              hash: 01f9b8aea7750c6033d535c791fad2b853071bda
+                              body: |
+                                Update @balena/sbvr-types from 5.0.0 to 7.0.1
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                                Signed-off-by: Harald Fischer <harald@balena.io>
+                                signed-off-by: Harald Fischer <harald@balena.io>
+                              author: Harald Fischer
+                              nested:
+                                - commits:
+                                    - subject: Update dependency @balena/abstract-sql-compiler to v9
+                                      hash: 37684ebb1692f97780dd27056b9cfe299c456b3c
+                                      body: >
+                                        Update @balena/abstract-sql-compiler
+                                        from 8.5.0 to 9.0.4
+                                      footer:
+                                        Change-type: patch
+                                        change-type: patch
+                                      author: Self-hosted Renovate Bot
+                                  version: sbvr-types-7.0.1
+                                  title: ""
+                                  date: 2024-03-04T19:48:17.416Z
+                                - commits:
+                                    - subject: Return `ISODateString` instead of `date`
+                                      hash: 37e2d446c0ec11f2e3a1ab41b1a205280062bd5d
+                                      body: >
+                                        The internal and external representation
+                                        of the returned object from pinejs
+                                        should be consistent.
+
+                                        Pinejs internal interface will return
+                                        date or date time fields as date object.
+                                        For the external interface the object is
+                                        JSON.stringified so that date becomes an
+                                        ISO string anyway.
+                                      footer:
+                                        Change-type: major
+                                        change-type: major
+                                        Signed-off-by: fisehara <harald@balena.io>
+                                        signed-off-by: fisehara <harald@balena.io>
+                                      author: fisehara
+                                  version: sbvr-types-7.0.0
+                                  title: ""
+                                  date: 2024-03-04T17:37:23.873Z
+                                - commits:
+                                    - subject: Update dependency @types/chai-datetime to ^0.0.39
+                                      hash: 428c5a2c94bd753cc2ffc6d1e012c3a743e1b4d2
+                                      body: >
+                                        Update @types/chai-datetime from 0.0.37
+                                        to 0.0.39
+                                      footer:
+                                        Change-type: patch
+                                        change-type: patch
+                                      author: Self-hosted Renovate Bot
+                                  version: sbvr-types-6.1.1
+                                  title: ""
+                                  date: 2024-01-02T18:54:07.180Z
+                                - commits:
+                                    - subject: Add checksum to WebResource
+                                      hash: be6a1e9bacad51f99d685f491b3bf81545536adb
+                                      body: ""
+                                      footer:
+                                        Change-type: minor
+                                        change-type: minor
+                                      author: Otávio Jacobi
+                                  version: sbvr-types-6.1.0
+                                  title: ""
+                                  date: 2023-10-03T22:49:47.984Z
+                                - commits:
+                                    - subject: Change contents to snake_case
+                                      hash: aaa12269901e364533cf2aa45a958948ce0339de
+                                      body: ""
+                                      footer:
+                                        Change-Type: major
+                                        change-type: major
+                                      author: Otávio Jacobi
+                                  version: sbvr-types-6.0.0
+                                  title: ""
+                                  date: 2023-08-09T00:10:50.917Z
+                                - commits:
+                                    - subject: Expose WebResource as WebResourceType
+                                      hash: 9e42bfffb2145b5096539492b36b0f19b1f2e209
+                                      body: ""
+                                      footer:
+                                        Change-type: minor
+                                        change-type: minor
+                                      author: Otávio Jacobi
+                                  version: sbvr-types-5.2.0
+                                  title: ""
+                                  date: 2023-08-08T21:01:49.459Z
+                                - commits:
+                                    - subject: Adds WebResource type
+                                      hash: db7ff44e95a040a0b250d8c7612b126b31a3f325
+                                      body: ""
+                                      footer:
+                                        Change-type: minor
+                                        change-type: minor
+                                        Co-authored-by: ramirogm
+                                        co-authored-by: ramirogm
+                                      author: Otávio Jacobi
+                                  version: sbvr-types-5.1.0
+                                  title: ""
+                                  date: 2023-08-03T09:36:41.490Z
+                          version: lf-to-abstract-sql-5.0.2
+                          title: ""
+                          date: 2024-03-05T13:44:30.007Z
+                        - commits:
+                            - subject: Fix type checking of the declaration file
+                              hash: 17dc377da3031f28bb5f2ffaff9b2185d65159aa
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: odata-parser-3.0.8
+                          title: ""
+                          date: 2024-06-04T09:56:51.182Z
+                        - commits:
+                            - subject: Update dependency husky to v9
+                              hash: 8d5929cbbce1765e8ad14a84a1b6e669daedd9a8
+                              body: |
+                                Update husky from 8.0.3 to 9.0.11
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Self-hosted Renovate Bot
+                          version: odata-parser-3.0.7
+                          title: ""
+                          date: 2024-04-13T14:30:01.103Z
+                        - commits:
+                            - subject: Update dependency peggy to v4
+                              hash: d0c83b2955f285f3cac927e4310e0b948d522189
+                              body: |
+                                Update peggy from 3.0.2 to 4.0.2
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Self-hosted Renovate Bot
+                          version: odata-parser-3.0.6
+                          title: ""
+                          date: 2024-04-12T09:10:02.194Z
+                        - commits:
+                            - subject: Update dependency lint-staged to v15
+                              hash: 703834a4c358dd348e1ffce797f6e3c37a03941f
+                              body: |
+                                Update lint-staged from 13.3.0 to 15.2.2
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Self-hosted Renovate Bot
+                          version: odata-parser-3.0.5
+                          title: ""
+                          date: 2024-04-12T08:19:19.907Z
+                        - commits:
+                            - subject: Update dependency @balena/lint to v8
+                              hash: 8048f717367a41233a995096edf2da6710e9e247
+                              body: |
+                                Update @balena/lint from 7.3.0 to 8.0.0
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Self-hosted Renovate Bot
+                          version: odata-parser-3.0.4
+                          title: ""
+                          date: 2024-04-12T02:48:22.037Z
+                        - commits:
+                            - subject: Update dependency @balena/sbvr-types to v8
+                              hash: cf8795b08f30806b5500508dcab3623c5d444928
+                              body: |
+                                Update @balena/sbvr-types from 7.1.3 to 8.0.0
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Self-hosted Renovate Bot
+                          version: sbvr-parser-1.4.6
+                          title: ""
+                          date: 2024-07-30T06:48:09.778Z
+                        - commits:
+                            - subject: Switch to an inflection library from npm which does not monkey patch
+                              hash: 2082369825fc80acb549793e4cc1cd35c77850d4
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: sbvr-parser-1.4.5
+                          title: ""
+                          date: 2024-06-18T21:23:34.689Z
+                        - commits:
+                            - subject: Updated `@balena/sbvr-types`
+                              hash: a6c901c8c3b624dabaf282d0229276be8a9ea320
+                              body: |
+                                Update @balena/sbvr-types from 3.4.15 to 7.0.1
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                                Signed-off-by: Harald Fischer <harald@balena.io>
+                                signed-off-by: Harald Fischer <harald@balena.io>
+                              author: Harald Fischer
+                          version: sbvr-parser-1.4.4
+                          title: ""
+                          date: 2024-03-05T12:54:23.843Z
+                        - commits:
+                            - subject: Add typings for all abstract sql fragments, fixing where necessary
+                              hash: b84c335877236e3d389df064b3e7b2acd1a656ae
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: sbvr-types-7.1.3
+                          title: ""
+                          date: 2024-06-12T21:08:39.814Z
+                        - commits:
+                            - subject: Explicitly type the `compare` function for `hashed`
+                              hash: 6ece56f531ba9507fb090003bd3216e90b2f583b
+                              body: >
+                                This avoids the need for downstream users to
+                                have the bcrypt types
+
+                                available whilst also avoiding accidental
+                                breaking changes
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: sbvr-types-7.1.2
+                          title: ""
+                          date: 2024-06-12T12:19:17.354Z
+                        - commits:
+                            - subject: Accept `Date` for the write types of `Date Time`/`Date`/`Time`
+                              hash: eb03c8fb593fad76c74dad57a3d45625daf44d76
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: sbvr-types-7.1.1
+                          title: ""
+                          date: 2024-06-04T09:59:12.864Z
+                        - commits:
+                            - subject: Export typescript read/write types for each sbvr type
+                              hash: 66b9a012e242533372ce34a73e31f6e3aac93d91
+                              body: ""
+                              footer:
+                                Change-type: minor
+                                change-type: minor
+                              author: Pagan Gazzard
+                          version: sbvr-types-7.1.0
+                          title: ""
+                          date: 2024-04-25T11:57:56.975Z
+                        - commits:
+                            - subject: Update Big Serial concept type to Big Integer
+                              hash: 6343737f7eb62282ebb2b572faf2b91716508a8b
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Josh Bowling
+                          version: sbvr-types-7.0.10
+                          title: ""
+                          date: 2024-04-09T11:21:31.060Z
+                        - commits:
+                            - subject: Add Big Serial to Type.sbvr
+                              hash: c5add0fc65e8e78ab481e97d37aeb8353c082b57
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Josh Bowling
+                          version: sbvr-types-7.0.9
+                          title: ""
+                          date: 2024-04-09T10:03:09.812Z
+                        - commits:
+                            - subject: Update prepare script for husky v9
+                              hash: 72d7dac84880aa8604345a6fee74ec3eacbe1176
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Josh Bowling
+                            - subject: Update dependency husky to v9
+                              hash: 3a3e4f4e2ae95b5691cb31a1448854318e5b8cc5
+                              body: |
+                                Update husky from 8.0.3 to 9.0.11
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Self-hosted Renovate Bot
+                          version: sbvr-types-7.0.8
+                          title: ""
+                          date: 2024-04-09T01:25:47.103Z
+                        - commits:
+                            - subject: Update dependency @balena/lint to v8
+                              hash: 58e3db3861e13d463a5535b60d533280de70c4c1
+                              body: |
+                                Update @balena/lint from 7.3.0 to 8.0.0
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Self-hosted Renovate Bot
+                          version: sbvr-types-7.0.7
+                          title: ""
+                          date: 2024-04-09T01:07:54.165Z
+                        - commits:
+                            - subject: Improve JSON typings
+                              hash: 487000677cbc9decdcc0029b24f7c6de81216b57
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: sbvr-types-7.0.6
+                          title: ""
+                          date: 2024-03-21T15:44:08.831Z
+                        - commits:
+                            - subject: Remove unnecessary catch bindings
+                              hash: fcef4ec9f19378eea8d0dea167b2bd1958831306
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: sbvr-types-7.0.5
+                          title: ""
+                          date: 2024-03-13T15:50:57.151Z
+                        - commits:
+                            - subject: Improve validate typings
+                              hash: 6ed4746379e8b038e4a148ca6f6c4c1e52aa67a2
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: sbvr-types-7.0.4
+                          title: ""
+                          date: 2024-03-13T01:47:54.313Z
+                        - commits:
+                            - subject: Improve fetchProcessing typings
+                              hash: 0512e2c89ad83458b91cbaa380b8de729db81342
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: sbvr-types-7.0.3
+                          title: ""
+                          date: 2024-03-12T15:51:33.314Z
+                        - commits:
+                            - subject: "Tests: convert to typescript"
+                              hash: a78e1c02edc63927ae978f57afdd5edea25adec1
+                              body: ""
+                              footer:
+                                Change-type: patch
+                                change-type: patch
+                              author: Pagan Gazzard
+                          version: sbvr-types-7.0.2
+                          title: ""
+                          date: 2024-03-12T15:06:28.057Z
+                  version: odata-to-abstract-sql-6.2.8
+                  title: ""
+                  date: 2024-08-26T13:17:55.861Z
+          version: abstract-sql-to-typescript-4.0.1
+          title: ""
+          date: 2024-09-06T14:37:16.617Z
+        - commits:
+            - subject: Improve `upsert` typings
+              hash: 33512bfad45a77bb7390f2d98cf450d39b2f3d7f
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-7.1.3
+          title: ""
+          date: 2024-09-05T16:35:32.010Z
+        - commits:
+            - subject: Improve `getOrCreate` typings
+              hash: edbf05ae07a15a060b0d7ea4d7e536dc55f6ff17
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-7.1.2
+          title: ""
+          date: 2024-09-05T13:47:03.150Z
+        - commits:
+            - subject: Improve typings for `subscribe` function
+              hash: cd9acce6e18846cefe717634db1da1c88d6dd17b
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Fix typing for subscribe `on('data')` method
+              hash: 384156969e4d16a3aa7188cb364d6cba109e3421
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-7.1.1
+          title: ""
+          date: 2024-09-04T09:08:38.523Z
+        - commits:
+            - subject: Deprecate `prepare` without expected parameter aliases
+              hash: bf7cd7f196e911e2de7cd954b2edaa702b81853c
+              body: |
+                This will allow for removing a lot of overloads
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Add the option to list expected parameter aliases when preparing a
+                query
+              hash: 7a53f56dd3af5ec0b83b5fbf8e399e6e1dc2daa4
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-7.1.0
+          title: ""
+          date: 2024-09-02T15:52:18.777Z
+        - commits:
+            - subject: "Fix typings for `request` method when using `method: 'GET'`"
+              hash: 51bf4f2e8651409f856fadd5f37fda2290a53e26
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-7.0.3
+          title: ""
+          date: 2024-08-30T14:37:00.134Z
+        - commits:
+            - subject: Reduce overloads for `get` by improving `OptionsToResponse` type helper
+              hash: e4e0c2808fb20166603bad5386ef887cf3296d4a
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-7.0.2
+          title: ""
+          date: 2024-08-30T13:52:19.618Z
+  version: 18.2.3
+  title: ""
+  date: 2024-09-06T15:15:46.884Z
+- commits:
     - subject: Remove unused dev dependencies
       hash: 5d40b0c1128aa3d914086c732a99696ab2615c33
       body: ""
