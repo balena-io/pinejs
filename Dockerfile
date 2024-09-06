@@ -1,4 +1,4 @@
-FROM node:16-alpine as runner
+FROM node:18-alpine as runner
 
 WORKDIR /usr/src/pine
 
