@@ -1,4 +1,16 @@
 - commits:
+    - subject: "Tests: update nodejs to 20.x matching the minimum supported version"
+      hash: 0ae61c069bd857428a7be988b780f6e838faec35
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 18.2.4
+  title: ""
+  date: 2024-09-09T15:07:44.637Z
+- commits:
     - subject: Update dependencies
       hash: 7c5abc026df4ca1b9f72be92aa49791550f83bc6
       body: |
