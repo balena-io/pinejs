@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency commander to v12
+      hash: eb10dbdcd80ce05ad65f9b7c47542d3ee8f3fe38
+      body: |
+        Update commander from 11.1.0 to 12.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 18.2.5
+  title: ""
+  date: 2024-09-10T09:37:14.400Z
+- commits:
     - subject: "Tests: update nodejs to 20.x matching the minimum supported version"
       hash: 0ae61c069bd857428a7be988b780f6e838faec35
       body: ""
