@@ -2,9 +2,17 @@ import type { RequiredField } from '../src/sbvr-api/common-types';
 
 import * as path from 'path';
 import * as webpack from 'webpack';
+import type { Configuration } from 'webpack';
 const root = path.dirname(__dirname);
 
-export default {
+const config: RequiredField<
+	Configuration,
+	'plugins' | 'resolve' | 'externals'
+> & {
+	externals: {
+		[index: string]: string | boolean | string[] | { [index: string]: any };
+	};
+} = {
 	mode: 'production',
 	devtool: 'source-map',
 	entry: root,
@@ -58,11 +66,6 @@ export default {
 			},
 		],
 	},
-} as RequiredField<
-	webpack.Configuration,
-	'plugins' | 'resolve' | 'externals'
-> & {
-	externals: {
-		[index: string]: string | boolean | string[] | { [index: string]: any };
-	};
 };
+
+export default config;

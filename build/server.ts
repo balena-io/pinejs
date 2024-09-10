@@ -1,15 +1,19 @@
 import * as webpack from 'webpack';
+import type { Configuration } from 'webpack';
 import sharedConfig from './config';
-const config = { ...sharedConfig };
 
-config.entry = `${config.entry}/src/server-glue/server`;
-config.plugins = config.plugins.concat(
-	new webpack.DefinePlugin({
-		'process.browser': false,
+const config: Configuration = {
+	...sharedConfig,
+	entry: `${sharedConfig.entry}/src/server-glue/server`,
+	plugins: [
+		...sharedConfig.plugins,
+		new webpack.DefinePlugin({
+			'process.browser': false,
 
-		'process.env.CONFIG_LOADER_DISABLED': false,
-		'process.env.SBVR_SERVER_ENABLED': false,
-	}),
-);
+			'process.env.CONFIG_LOADER_DISABLED': false,
+			'process.env.SBVR_SERVER_ENABLED': false,
+		}),
+	],
+};
 
 export default config;
