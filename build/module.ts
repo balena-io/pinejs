@@ -1,20 +1,24 @@
 import * as webpack from 'webpack';
+import type { Configuration } from 'webpack';
 import sharedConfig from './config';
-const config = { ...sharedConfig };
 
-config.entry = `${config.entry}/src/server-glue/module`;
-config.plugins = config.plugins.concat(
-	new webpack.DefinePlugin({
-		'process.browser': false,
+const config: Configuration = {
+	...sharedConfig,
+	entry: `${sharedConfig.entry}/src/server-glue/module`,
+	plugins: [
+		...sharedConfig.plugins,
+		new webpack.DefinePlugin({
+			'process.browser': false,
 
-		'process.env.CONFIG_LOADER_DISABLED': false,
-		'process.env.SBVR_SERVER_ENABLED': false,
-	}),
-	// When we're compiling the module build we want to always ignore the server build file
-	new webpack.IgnorePlugin({
-		resourceRegExp: /server/,
-		contextRegExp: /server-glue/,
-	}),
-);
+			'process.env.CONFIG_LOADER_DISABLED': false,
+			'process.env.SBVR_SERVER_ENABLED': false,
+		}),
+		// When we're compiling the module build we want to always ignore the server build file
+		new webpack.IgnorePlugin({
+			resourceRegExp: /server/,
+			contextRegExp: /server-glue/,
+		}),
+	],
+};
 
 export default config;
