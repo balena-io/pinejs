@@ -1,5 +1,42 @@
 - commits:
     - subject: Update dependencies
+      hash: 90241b75b4cddc82f6d147d1b84edac2939a905c
+      body: |
+        Update pinejs-client-core from 7.1.4 to 7.2.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Export `OptionsToResponse` type helper
+              hash: ae97930264fb22bc8d441bec282c29a90cabbb23
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-7.2.0
+          title: ""
+          date: 2024-09-13T12:26:09.581Z
+        - commits:
+            - subject: Switch tsconfig module resolution to Node16
+              hash: 2c6b45dd7d8d64ae74b9f9efff50de12614780e4
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-7.1.5
+          title: ""
+          date: 2024-09-13T12:13:12.995Z
+  version: 18.2.8
+  title: ""
+  date: 2024-09-13T14:03:33.234Z
+- commits:
+    - subject: Update dependencies
       hash: 5f68e9c1a73b073a071c244b693596adadf39b48
       body: |
         Update @balena/abstract-sql-to-typescript from 4.0.3 to 4.0.6
