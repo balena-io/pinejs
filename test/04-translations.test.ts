@@ -126,19 +126,21 @@ describe('04 native translation tests', function () {
 			});
 			assertExists(v1StudentCreated);
 
-			// translate the objects and test for deep equality
-			vLatestStudent.lastname = vLatestStudent.last_name;
-			vLatestStudent.studies_at__campus =
-				vLatestStudent.studies_at__faculty[0].name;
-			delete vLatestStudent.studies_at__faculty;
-			delete vLatestStudent.last_name;
-
 			expect(v1StudentCreated.computed_field).to.equal('v1_computed_field');
 			expect(vLatestStudent.computed_field).to.equal('latest_computed_field');
 			delete v1StudentCreated.computed_field;
 			delete vLatestStudent.computed_field;
 
-			expect(v1StudentCreated).to.deep.equal(vLatestStudent);
+			// translate the objects and test for deep equality
+			const { last_name, studies_at__faculty, ...vTranslatedStudent } = {
+				...vLatestStudent,
+				// This is just to satisfy typings since it doesn't recognize that `last_name` will exist on vLatestStudent
+				last_name: undefined,
+				studies_at__campus: vLatestStudent.studies_at__faculty[0].name,
+				lastname: vLatestStudent.last_name,
+			};
+
+			expect(v1StudentCreated).to.deep.equal(vTranslatedStudent);
 		});
 
 		it('should patch a /v1 student filtered by its lastname', async () => {
@@ -268,17 +270,18 @@ describe('04 native translation tests', function () {
 			});
 			assertExists(v2StudentCreated);
 
-			// translate the objects and test for deep equality
-			vLatestStudent.studies_at__campus =
-				vLatestStudent.studies_at__faculty[0].name;
-			delete vLatestStudent.studies_at__faculty;
-
 			expect(v2StudentCreated.computed_field).to.equal('v2_computed_field');
 			expect(vLatestStudent.computed_field).to.equal('latest_computed_field');
 			delete v2StudentCreated.computed_field;
 			delete vLatestStudent.computed_field;
 
-			expect(v2StudentCreated).to.deep.equal(vLatestStudent);
+			// translate the objects and test for deep equality
+			const { studies_at__faculty, ...vTranslatedStudent } = {
+				...vLatestStudent,
+				studies_at__campus: vLatestStudent.studies_at__faculty[0].name,
+			};
+
+			expect(v2StudentCreated).to.deep.equal(vTranslatedStudent);
 		});
 	});
 
@@ -363,10 +366,6 @@ describe('04 native translation tests', function () {
 			);
 			expect(v3CreatedCampus).to.deep.equal(vLatestFaculty);
 
-			// translate the objects and test for deep equality
-			v3Student.studies_at__faculty = v3Student.studies_at__campus;
-			delete v3Student.studies_at__campus;
-
 			expect(v3Student.computed_field).to.equal('v3_computed_field');
 			expect(vLatestStudentCreated.computed_field).to.equal(
 				'latest_computed_field',
@@ -374,7 +373,13 @@ describe('04 native translation tests', function () {
 			delete v3Student.computed_field;
 			delete vLatestStudentCreated.computed_field;
 
-			expect(v3Student).to.deep.equal(vLatestStudentCreated);
+			// translate the objects and test for deep equality
+			const { studies_at__campus, ...vTranslatedStudent } = {
+				...v3Student,
+				studies_at__faculty: v3Student.studies_at__campus,
+			};
+
+			expect(vTranslatedStudent).to.deep.equal(vLatestStudentCreated);
 		});
 	});
 });
