@@ -1,4 +1,54 @@
 - commits:
+    - subject: Update dependencies
+      hash: 5f68e9c1a73b073a071c244b693596adadf39b48
+      body: |
+        Update @balena/abstract-sql-to-typescript from 4.0.3 to 4.0.6
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Fix built file paths now that package.json is imported rather than
+                required
+              hash: 8c223d915d66559b8650536745adb742362392ff
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-4.0.6
+          title: ""
+          date: 2024-09-12T16:40:31.414Z
+        - commits:
+            - subject: Update @balena/lint to 9.x
+              hash: d2c8c970f9d7c70b1e134952c621eaa768fe0f4b
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-4.0.5
+          title: ""
+          date: 2024-09-12T16:23:15.397Z
+        - commits:
+            - subject: Correctly use `Record<string, never>` when there are no writable fields
+              hash: 573c4da6d9e4521f700e7f38a033640ef8afe533
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-4.0.4
+          title: ""
+          date: 2024-09-12T16:04:52.737Z
+  version: 18.2.7
+  title: ""
+  date: 2024-09-13T07:04:45.899Z
+- commits:
     - subject: Fix linting issues with latest dependencies
       hash: b9b80e9eafc9a7becf6d33b0eba760ec0cf06665
       body: ""
