@@ -1,4 +1,18 @@
 - commits:
+    - subject: Use updated pinejs-client `prepare` syntax
+      hash: be8420b8f48f372caee3fe4f7857ff181e142de9
+      body: |
+        This also fixes the returned actor id for `checkPassword` since the
+        improved typings caught that it did not match the expected return type
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 18.2.9
+  title: ""
+  date: 2024-09-13T14:15:09.966Z
+- commits:
     - subject: Update dependencies
       hash: 90241b75b4cddc82f6d147d1b84edac2939a905c
       body: |
