@@ -36,7 +36,7 @@ import {
 } from '@balena/odata-to-abstract-sql';
 import sbvrTypes from '@balena/sbvr-types';
 import deepFreeze = require('deep-freeze');
-import type { AnyResource, Params } from 'pinejs-client-core';
+import type { Params } from 'pinejs-client-core';
 import { PinejsClientCore, type PromiseResultTypes } from 'pinejs-client-core';
 
 import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
@@ -1015,7 +1015,7 @@ export class PinejsClient<
 			Write: AnyObject;
 		};
 	},
-> extends PinejsClientCore<unknown, M> {
+> extends PinejsClientCore<M> {
 	public async _request({
 		method,
 		url,
@@ -1046,17 +1046,8 @@ export class PinejsClient<
 			options: Params<M[TResource]>['options'] & { returnResource: boolean };
 		} & Params<M[TResource]>,
 	): Promise<Pick<M[TResource]['Read'], 'id'>>; // TODO: This should use the primary key rather than hardcoding `id`
-	/**
-	 * @deprecated POSTing via `url` is deprecated
-	 */
-	public post<T extends Resource = AnyResource>(
-		params: {
-			resource?: undefined;
-			url: NonNullable<Params<T>['url']>;
-		} & Params<T>,
-	): Promise<AnyObject>;
 	public post(params: Params): Promise<AnyObject> {
-		return super.post(params as Parameters<PinejsClient['post']>[0]);
+		return super.post(params as Parameters<PinejsClient<M>['post']>[0]);
 	}
 }
 
