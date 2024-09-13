@@ -1192,18 +1192,21 @@ const memoizedGetConstrainedModel = (
 	getBoundConstrainedMemoizer(abstractSqlModel)(permissionsLookup, vocabulary);
 
 const getCheckPasswordQuery = _.once(() =>
-	sbvrUtils.api.Auth.prepare<{ username: string }, 'user'>({
-		resource: 'user',
-		passthrough: {
-			req: rootRead,
+	sbvrUtils.api.Auth.prepare(
+		{
+			resource: 'user',
+			passthrough: {
+				req: rootRead,
+			},
+			id: {
+				username: { '@': 'username' },
+			},
+			options: {
+				$select: ['id', 'actor', 'password'],
+			},
 		},
-		id: {
-			username: { '@': 'username' },
-		},
-		options: {
-			$select: ['id', 'actor', 'password'],
-		},
-	}),
+		{ username: ['string'] },
+	),
 );
 export const checkPassword = async (
 	username: string,
@@ -1220,17 +1223,15 @@ export const checkPassword = async (
 	if (user == null) {
 		throw new Error('User not found');
 	}
-	const hash = user.password;
-	const userId = user.id;
-	const actorId = user.actor;
-	const res = await sbvrUtils.sbvrTypes.Hashed.compare(password, hash);
+	const res = await sbvrUtils.sbvrTypes.Hashed.compare(password, user.password);
 	if (!res) {
 		throw new Error('Passwords do not match');
 	}
+	const userId = user.id;
 	const permissions = await getUserPermissions(userId);
 	return {
 		id: userId,
-		actor: actorId,
+		actor: user.actor.__id,
 		username,
 		permissions,
 	};
@@ -1238,58 +1239,60 @@ export const checkPassword = async (
 
 const $getUserPermissions = (() => {
 	const getUserPermissionsQuery = _.once(() =>
-		sbvrUtils.api.Auth.prepare<{ userId: number }, 'permission'>({
-			resource: 'permission',
-			passthrough: {
-				req: rootRead,
-			},
-			options: {
-				$select: 'name',
-				$filter: {
-					$or: {
-						is_of__user: {
-							$any: {
-								$alias: 'uhp',
-								$expr: {
-									uhp: { user: { '@': 'userId' } },
-									$or: [
-										{
-											uhp: { expiry_date: null },
-										},
-										{
-											uhp: {
-												expiry_date: { $gt: { $now: null } },
+		sbvrUtils.api.Auth.prepare(
+			{
+				resource: 'permission',
+				passthrough: {
+					req: rootRead,
+				},
+				options: {
+					$select: 'name',
+					$filter: {
+						$or: {
+							is_of__user: {
+								$any: {
+									$alias: 'uhp',
+									$expr: {
+										uhp: { user: { '@': 'userId' } },
+										$or: [
+											{
+												uhp: { expiry_date: null },
 											},
-										},
-									],
+											{
+												uhp: {
+													expiry_date: { $gt: { $now: null } },
+												},
+											},
+										],
+									},
 								},
 							},
-						},
-						is_of__role: {
-							$any: {
-								$alias: 'rhp',
-								$expr: {
-									rhp: {
-										role: {
-											$any: {
-												$alias: 'r',
-												$expr: {
-													r: {
-														is_of__user: {
-															$any: {
-																$alias: 'uhr',
-																$expr: {
-																	uhr: { user: { '@': 'userId' } },
-																	$or: [
-																		{
-																			uhr: { expiry_date: null },
-																		},
-																		{
-																			uhr: {
-																				expiry_date: { $gt: { $now: null } },
+							is_of__role: {
+								$any: {
+									$alias: 'rhp',
+									$expr: {
+										rhp: {
+											role: {
+												$any: {
+													$alias: 'r',
+													$expr: {
+														r: {
+															is_of__user: {
+																$any: {
+																	$alias: 'uhr',
+																	$expr: {
+																		uhr: { user: { '@': 'userId' } },
+																		$or: [
+																			{
+																				uhr: { expiry_date: null },
 																			},
-																		},
-																	],
+																			{
+																				uhr: {
+																					expiry_date: { $gt: { $now: null } },
+																				},
+																			},
+																		],
+																	},
 																},
 															},
 														},
@@ -1302,13 +1305,14 @@ const $getUserPermissions = (() => {
 							},
 						},
 					},
-				},
-				// We orderby to increase the hit rate for the `_checkPermissions` memoisation
-				$orderby: {
-					name: 'asc',
+					// We orderby to increase the hit rate for the `_checkPermissions` memoisation
+					$orderby: {
+						name: 'asc',
+					},
 				},
 			},
-		}),
+			{ userId: ['number'] },
+		),
 	);
 	return env.createCache(
 		'userPermissions',
@@ -1349,74 +1353,76 @@ export const getUserPermissions = async (
 
 const $getApiKeyPermissions = (() => {
 	const getApiKeyPermissionsQuery = _.once(() =>
-		sbvrUtils.api.Auth.prepare<{ apiKey: string }, 'permission'>({
-			resource: 'permission',
-			passthrough: {
-				req: rootRead,
-			},
-			options: {
-				$select: 'name',
-				$filter: {
-					$or: {
-						is_of__api_key: {
-							$any: {
-								$alias: 'khp',
-								$expr: {
-									khp: {
-										api_key: {
-											$any: {
-												$alias: 'k',
-												$expr: {
-													k: { key: { '@': 'apiKey' } },
-													$or: [
-														{
-															k: { expiry_date: null },
-														},
-														{
-															k: {
-																expiry_date: { $gt: { $now: null } },
+		sbvrUtils.api.Auth.prepare(
+			{
+				resource: 'permission',
+				passthrough: {
+					req: rootRead,
+				},
+				options: {
+					$select: 'name',
+					$filter: {
+						$or: {
+							is_of__api_key: {
+								$any: {
+									$alias: 'khp',
+									$expr: {
+										khp: {
+											api_key: {
+												$any: {
+													$alias: 'k',
+													$expr: {
+														k: { key: { '@': 'apiKey' } },
+														$or: [
+															{
+																k: { expiry_date: null },
 															},
-														},
-													],
+															{
+																k: {
+																	expiry_date: { $gt: { $now: null } },
+																},
+															},
+														],
+													},
 												},
 											},
 										},
 									},
 								},
 							},
-						},
-						is_of__role: {
-							$any: {
-								$alias: 'rhp',
-								$expr: {
-									rhp: {
-										role: {
-											$any: {
-												$alias: 'r',
-												$expr: {
-													r: {
-														is_of__api_key: {
-															$any: {
-																$alias: 'khr',
-																$expr: {
-																	khr: {
-																		api_key: {
-																			$any: {
-																				$alias: 'k',
-																				$expr: {
-																					k: { key: { '@': 'apiKey' } },
-																					$or: [
-																						{
-																							k: { expiry_date: null },
-																						},
-																						{
-																							k: {
-																								expiry_date: {
-																									$gt: { $now: null },
+							is_of__role: {
+								$any: {
+									$alias: 'rhp',
+									$expr: {
+										rhp: {
+											role: {
+												$any: {
+													$alias: 'r',
+													$expr: {
+														r: {
+															is_of__api_key: {
+																$any: {
+																	$alias: 'khr',
+																	$expr: {
+																		khr: {
+																			api_key: {
+																				$any: {
+																					$alias: 'k',
+																					$expr: {
+																						k: { key: { '@': 'apiKey' } },
+																						$or: [
+																							{
+																								k: { expiry_date: null },
+																							},
+																							{
+																								k: {
+																									expiry_date: {
+																										$gt: { $now: null },
+																									},
 																								},
 																							},
-																						},
-																					],
+																						],
+																					},
 																				},
 																			},
 																		},
@@ -1433,13 +1439,14 @@ const $getApiKeyPermissions = (() => {
 							},
 						},
 					},
-				},
-				// We orderby to increase the hit rate for the `_checkPermissions` memoisation
-				$orderby: {
-					name: 'asc',
+					// We orderby to increase the hit rate for the `_checkPermissions` memoisation
+					$orderby: {
+						name: 'asc',
+					},
 				},
 			},
-		}),
+			{ apiKey: ['string'] },
+		),
 	);
 	return env.createCache(
 		'apiKeyPermissions',
@@ -1477,24 +1484,27 @@ export const getApiKeyPermissions = async (
 
 const getApiKeyActorId = (() => {
 	const getApiKeyActorIdQuery = _.once(() =>
-		sbvrUtils.api.Auth.prepare<{ apiKey: string }, 'api_key'>({
-			resource: 'api_key',
-			passthrough: {
-				req: rootRead,
-			},
-			id: {
-				key: { '@': 'apiKey' },
-			},
-			options: {
-				$select: 'is_of__actor',
-				$filter: {
-					$or: [
-						{ expiry_date: null },
-						{ expiry_date: { $gt: { $now: null } } },
-					],
+		sbvrUtils.api.Auth.prepare(
+			{
+				resource: 'api_key',
+				passthrough: {
+					req: rootRead,
+				},
+				id: {
+					key: { '@': 'apiKey' },
+				},
+				options: {
+					$select: 'is_of__actor',
+					$filter: {
+						$or: [
+							{ expiry_date: null },
+							{ expiry_date: { $gt: { $now: null } } },
+						],
+					},
 				},
 			},
-		}),
+			{ apiKey: ['string'] },
+		),
 	);
 	const apiActorPermissionError = new PermissionError();
 	return env.createCache(
@@ -1516,7 +1526,7 @@ const getApiKeyActorId = (() => {
 			if (apiKeyActorID == null) {
 				throw new Error('API key is not linked to a actor?!');
 			}
-			return apiKeyActorID as number;
+			return apiKeyActorID;
 		},
 		{
 			promise: true,
