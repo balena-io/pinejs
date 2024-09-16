@@ -1,4 +1,16 @@
 - commits:
+    - subject: Avoid deprecated usage of pinejs-client
+      hash: 5ef877d6d3c1128d968b02560457e6920840e546
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 18.2.10
+  title: ""
+  date: 2024-09-16T12:41:19.195Z
+- commits:
     - subject: Use updated pinejs-client `prepare` syntax
       hash: be8420b8f48f372caee3fe4f7857ff181e142de9
       body: |
