@@ -213,7 +213,8 @@ WHERE "conditional resource"."transaction" = ?;\
 									clientModel.idField +
 									' eq ' +
 									lockedRow.resource_id;
-								await sbvrUtils.PinejsClient.prototype.delete({
+								await sbvrUtils.PinejsClient.prototype.request({
+									method: 'DELETE',
 									url,
 									passthrough,
 								});
@@ -228,7 +229,8 @@ WHERE "conditional resource"."transaction" = ?;\
 									clientModel,
 								);
 								body[clientModel.idField] = lockedRow.resource_id;
-								await sbvrUtils.PinejsClient.prototype.put({
+								await sbvrUtils.PinejsClient.prototype.request({
+									method: 'PUT',
 									url,
 									body,
 									passthrough,
@@ -243,11 +245,14 @@ WHERE "conditional resource"."transaction" = ?;\
 										clientModel,
 									);
 									/** @type { {[key: string]: any} } */
-									const result = await sbvrUtils.PinejsClient.prototype.post({
-										url,
-										body,
-										passthrough,
-									});
+									const result = await sbvrUtils.PinejsClient.prototype.request(
+										{
+											method: 'POST',
+											url,
+											body,
+											passthrough,
+										},
+									);
 									placeholders[placeholder].resolve(
 										result[clientModel.idField],
 									);
