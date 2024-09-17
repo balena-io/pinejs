@@ -1,4 +1,28 @@
 - commits:
+    - subject: Update @balena/sbvr-types from 9.0.1 to 9.0.2
+      hash: cdffcd5fb6973f18d6e1cbc37e3931605edd2391
+      body: |
+        Update @balena/sbvr-types from 9.0.1 to 9.0.2
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Change the exported Types to an interface so that they can be augmented
+              hash: 29de4665e63bd4b5f1cfe75d3018ec29e10c1889
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+          version: sbvr-types-9.0.2
+          title: ""
+          date: 2024-09-17T12:44:29.082Z
+  version: 19.0.1
+  title: ""
+  date: 2024-09-17T13:47:40.633Z
+- commits:
     - subject: Update pinejs-client-core to 8.x
       hash: 3ff290ddc447a0067684e929bfcf0fb5847638cc
       body: |
