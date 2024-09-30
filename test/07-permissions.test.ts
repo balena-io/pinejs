@@ -2,15 +2,19 @@ import supertest from 'supertest';
 import { expect } from 'chai';
 const configPath = __dirname + '/fixtures/07-permissions/config.js';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
+import { sbvrUtils, permissions } from '../src/server-glue/module';
+import type UserModel from '../src/sbvr-api/user';
 
 describe('07 permissions tests', function () {
 	let pineServer: Awaited<ReturnType<typeof testInit>>;
+	let userPineClient: sbvrUtils.PinejsClient<UserModel>;
 	before(async () => {
 		pineServer = await testInit({
 			configPath,
 			deleteDb: true,
 			withLoginRoute: true,
 		});
+		userPineClient = new sbvrUtils.PinejsClient<UserModel>('dummy');
 	});
 
 	after(() => {
@@ -97,6 +101,141 @@ describe('07 permissions tests', function () {
 					action: 'create-student',
 				})
 				.expect(401);
+		});
+	});
+
+	describe('compile auth', () => {
+		it('should compile auth for resource', () => {
+			const auth = userPineClient.compileAuth({
+				modelName: 'auth',
+				resource: 'user',
+				access: 'read',
+			});
+			expect(auth).to.be.eq('auth.user.read');
+		});
+
+		it('should compile auth for resource with $filter', () => {
+			const auth = userPineClient.compileAuth({
+				modelName: 'auth',
+				resource: 'user',
+				access: 'read',
+				options: {
+					$filter: { id: 1 },
+				},
+			});
+			expect(auth).to.be.eq('auth.user.read?id eq 1');
+		});
+
+		it('should compile auth for resource with complex $filter', () => {
+			const auth = userPineClient.compileAuth({
+				modelName: 'auth',
+				resource: 'permission',
+				access: 'write',
+				options: {
+					$filter: {
+						$or: [
+							{
+								is_of__user: {
+									$any: {
+										$alias: 'u',
+										$expr: {
+											u: {
+												actor: {
+													'@': '__ACTOR',
+												},
+											},
+										},
+									},
+								},
+							},
+							{
+								is_of__role: {
+									$any: {
+										$alias: 'r',
+										$expr: {
+											r: {
+												user__has__role: {
+													$any: {
+														$alias: 'ur',
+														$expr: {
+															ur: {
+																is_of__user: {
+																	$any: {
+																		$alias: 'u',
+																		$expr: {
+																			u: {
+																				actor: {
+																					'@': '__ACTOR',
+																				},
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						],
+					},
+				},
+			});
+			expect(auth).to.be.eq(
+				'auth.permission.write?(is_of__user/any(u:u/actor eq @__ACTOR)) or (is_of__role/any(r:r/user__has__role/any(ur:ur/is_of__user/any(u:u/actor eq @__ACTOR))))',
+			);
+		});
+
+		it('should compile auth with canAccess in simple filter', () => {
+			const auth = userPineClient.compileAuth({
+				modelName: 'auth',
+				resource: 'user',
+				access: 'delete',
+				options: {
+					$filter: {
+						actor: permissions.canAccess,
+					},
+				},
+			});
+			expect(auth).to.be.eq('auth.user.delete?actor/canAccess()');
+		});
+
+		it('should compile auth with canAccess and complex $filter', () => {
+			const auth = userPineClient.compileAuth({
+				modelName: 'auth',
+				resource: 'user',
+				access: 'read',
+				options: {
+					$filter: {
+						$or: [
+							{
+								actor: permissions.canAccess,
+							},
+							{
+								$and: {
+									username: 'someuser',
+									user__has__role: {
+										$any: {
+											$alias: 'uhr',
+											$expr: {
+												uhr: {
+													user: permissions.canAccess,
+												},
+											},
+										},
+									},
+								},
+							},
+						],
+					},
+				},
+			});
+			expect(auth).to.be.eq(
+				"auth.user.read?(actor/canAccess()) or ((username eq 'someuser') and (user__has__role/any(uhr:uhr/user/canAccess())))",
+			);
 		});
 	});
 });
