@@ -193,6 +193,7 @@ export const getUploaderMiddlware = (
 				finishFileUpload();
 				next();
 			} catch (err: any) {
+				finishFileUpload();
 				await clearFiles();
 
 				if (err instanceof FileSizeExceededError) {
@@ -209,8 +210,18 @@ export const getUploaderMiddlware = (
 		});
 
 		bb.on('error', async (err) => {
-			await clearFiles();
 			finishFileUpload();
+			await clearFiles();
+
+			if (err instanceof FileSizeExceededError) {
+				return sbvrUtils.handleHttpErrors(
+					req,
+					res,
+					new errors.BadRequestError(err.message),
+				);
+			}
+
+			getLogger(getApiRoot(req)).error('Error uploading file', err);
 			next(err);
 		});
 		req.pipe(bb);
