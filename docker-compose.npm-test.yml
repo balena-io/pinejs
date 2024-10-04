@@ -23,6 +23,12 @@ services:
       - minio-server
     entrypoint: >
       /bin/sh -c "
+      set -e;
+
+      while ! curl -I minio-server:9000/minio/health/live; do
+          sleep 1;
+      done
+
       /usr/bin/mc config host add minio-server http://minio-server:9000 USERNAME PASSWORD;
       /usr/bin/mc mb --ignore-existing minio-server/balena-pine-web-resources;
       exit 0;
