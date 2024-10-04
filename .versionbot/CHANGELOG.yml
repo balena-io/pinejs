@@ -1,4 +1,26 @@
 - commits:
+    - subject: Pin minio/minio and minio/mc versions
+      hash: 2f7012ed804f03675ebc1bb6cada6a66eeb4a0c2
+      body: >
+        This is necessary as the current (Oct, 04, 2024) minio latest versions
+        are triggering for yet unknown reasons "Bucket not found" errors.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+    - subject: Fix large webresource test race condition
+      hash: 6d78964a40596f327c6f1aa431bc91b26a2c377a
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 19.0.3
+  title: ""
+  date: 2024-10-04T14:21:36.170Z
+- commits:
     - subject: Update dependency grunt-webpack to v7
       hash: 178c06f03da15786e2447190ed7b2df36d5eb0d2
       body: |
