@@ -32,7 +32,7 @@
     "@balena/env-parsing": "^1.2.0",
     "@balena/lf-to-abstract-sql": "^5.0.2",
     "@balena/odata-parser": "^3.1.0",
-    "@balena/odata-to-abstract-sql": "^6.4.0",
+    "@balena/odata-to-abstract-sql": "^7.0.0",
     "@balena/sbvr-parser": "^1.4.6",
     "@balena/sbvr-types": "^9.0.2",
     "@types/body-parser": "^1.19.5",
