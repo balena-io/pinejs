@@ -56,6 +56,7 @@ export class Worker {
 	public handlers: Record<string, TaskHandler> = {};
 	private readonly concurrency: number;
 	private readonly interval: number;
+	private running = false;
 	private executing = 0;
 
 	constructor(private readonly client: PinejsClient) {
@@ -244,9 +245,15 @@ export class Worker {
 				if (!executed) {
 					await setTimeout(this.interval);
 				}
-				this.poll();
+				if (this.running) {
+					this.poll();
+				}
 			}
 		})();
+	}
+
+	public async stop(): Promise<void> {
+		this.running = false;
 	}
 
 	// Start polling for tasks
@@ -281,6 +288,7 @@ export class Worker {
 			);
 		}
 
+		this.running = true;
 		// Spawn children to poll for and execute tasks
 		for (let i = 0; i < this.concurrency; i++) {
 			this.poll();
