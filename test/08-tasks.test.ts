@@ -7,6 +7,7 @@ import { testInit, testDeInit, testLocalServer } from './lib/test-init';
 import { tasks as tasksEnv } from '../src/config-loader/env';
 import type Model from '../src/tasks/tasks';
 import * as cronParser from 'cron-parser';
+import { PINE_TEST_SIGNALS } from './lib/common';
 
 const actorId = 1;
 const fixturesBasePath = __dirname + '/fixtures/08-tasks/';
@@ -407,6 +408,66 @@ describe('08 task tests', function () {
 					},
 				})
 				.expect(500);
+		});
+
+		it('should not pick up tasks while worker is not running', async () => {
+			pineServer.send(PINE_TEST_SIGNALS.STOP_TASK_WORKER);
+
+			const name = randomUUID();
+			const task = await createTask(pineTest, apikey, {
+				is_executed_by__handler: 'create_device',
+				is_executed_with__parameter_set: {
+					name,
+					type: randomUUID(),
+				},
+			});
+
+			// Await more than the queue interval to ensure the task is not picked up
+			await setTimeout(2 * tasksEnv.queueIntervalMS);
+
+			await expectTask(pineTest, task.id, {
+				status: 'queued',
+				error_message: null,
+				started_on__time: null,
+				ended_on__time: null,
+				attempt_count: 0,
+			});
+
+			const { body: devices } = await pineTest
+				.get({
+					apiPrefix: 'example/',
+					resource: 'device',
+					options: {
+						$filter: {
+							name,
+						},
+					},
+				})
+				.expect(200);
+			expect(devices.length).to.equal(0);
+
+			pineServer.send(PINE_TEST_SIGNALS.START_TASK_WORKER);
+
+			await waitFor(async () => {
+				const { body: $devices } = await pineTest
+					.get({
+						apiPrefix: 'example/',
+						resource: 'device',
+						options: {
+							$filter: {
+								name,
+							},
+						},
+					})
+					.expect(200);
+				return $devices.length === 1;
+			});
+
+			await expectTask(pineTest, task.id, {
+				status: 'succeeded',
+				error_message: null,
+				attempt_count: 1,
+			});
 		});
 	});
 });
