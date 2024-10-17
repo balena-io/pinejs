@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add tasks worker `stop` method
+      hash: f9a85d7b6325c1d29750acb35a8eceb3861e9d3d
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Otavio Jacobi
+      nested: []
+  version: 19.2.0
+  title: ""
+  date: 2024-10-17T14:55:26.651Z
+- commits:
     - subject: Add getAuthCompiler for building permissions
       hash: b1f5bf70c598872417ff46c160c9efcb11f24828
       body: ""
@@ -1638,6 +1650,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1660,6 +1673,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 As engine and npm is
                                                                 now required as part
                                                                 of package.json we
@@ -1697,6 +1711,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 Ensure that the
                                                                 input passed in for
                                                                 JSON types is either
@@ -1804,6 +1819,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1832,6 +1848,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 It can in fact be a
                                                                 lot of different
                                                                 things and that is
@@ -1861,6 +1878,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -1895,6 +1913,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -2040,6 +2059,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 This also deprecates
                                                                 the legacy use of
                                                                 direct true/false
