@@ -1573,6 +1573,13 @@ export const resolveAuthHeader = async (
 	return await checkApiKey(apiKey, tx);
 };
 
+export const canAccess = {
+	$fn: {
+		$scope: 'Auth',
+		$method: 'canAccess',
+	},
+} as const;
+
 export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
 	expectedScheme = expectedScheme.toLowerCase();
 	return async (

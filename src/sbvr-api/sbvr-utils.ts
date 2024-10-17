@@ -36,7 +36,7 @@ import {
 } from '@balena/odata-to-abstract-sql';
 import sbvrTypes from '@balena/sbvr-types';
 import deepFreeze = require('deep-freeze');
-import type { Params } from 'pinejs-client-core';
+import type { ODataOptions, Params } from 'pinejs-client-core';
 import { PinejsClientCore, type PromiseResultTypes } from 'pinejs-client-core';
 
 import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
@@ -1048,6 +1048,43 @@ export class PinejsClient<
 	): Promise<Pick<M[TResource]['Read'], 'id'>>; // TODO: This should use the primary key rather than hardcoding `id`
 	public post(params: Params): Promise<AnyObject> {
 		return super.post(params as Parameters<PinejsClient<M>['post']>[0]);
+	}
+	public compileAuth<TResource extends keyof M & string>(params: {
+		modelName: string;
+		access: string;
+		resource: TResource;
+		options?: Pick<ODataOptions<M[TResource]['Read']>, '$filter'>;
+	}): string {
+		const { modelName, access, resource, options } = params;
+		if (typeof modelName !== 'string') {
+			throw new Error('The modelName property must be specified.');
+		}
+		if (typeof access !== 'string') {
+			throw new Error('The access property must be specified.');
+		}
+		if (typeof resource !== 'string') {
+			throw new Error('The resource must be specified.');
+		}
+
+		const authBase = `${modelName}.${resource}.${access}`;
+		if (options?.$filter == null) {
+			return authBase;
+		}
+		const url = this.compile({ resource, options });
+		const queryParamsIndex = url.indexOf('?');
+		if (queryParamsIndex === -1) {
+			throw new Error(`Failed to compile permissions for url: ${url}`);
+		}
+		const queryParams = new URLSearchParams(url.slice(queryParamsIndex + 1));
+		let compiledFilter = queryParams.get('$filter');
+		if (compiledFilter == null) {
+			throw new Error(`Failed to find $filter permissions for url: ${url}`);
+		}
+		compiledFilter = compiledFilter.replace(
+			/Auth\.canAccess\(\)/g,
+			'canAccess()',
+		);
+		return `${authBase}?${compiledFilter}`;
 	}
 }
 
