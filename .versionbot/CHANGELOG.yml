@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add getAuthCompiler for building permissions
+      hash: b1f5bf70c598872417ff46c160c9efcb11f24828
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Otavio Jacobi
+      nested: []
+  version: 19.1.0
+  title: ""
+  date: 2024-10-17T14:32:27.754Z
+- commits:
     - subject: Update pinejs-client-supertest to 3.0.1
       hash: 35cd08db371169c66dd4026ef60f708e8121ecc9
       body: |
@@ -1625,6 +1637,7 @@
                                                               hash: be8fc31c3754186dd4c43ca8d4c056b0def7ffbd
                                                               body: >
                                                                 
+                                                                
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1646,11 +1659,12 @@
                                                               hash: 46a369117c9d1222089498a8794c32d14edef85b
                                                               body: >
                                                                 
-                                                                As engine and
-                                                                npm is now required
-                                                                as part of
-                                                                package.json we can
-                                                                drop this dependency
+                                                                
+                                                                As engine and npm is
+                                                                now required as part
+                                                                of package.json we
+                                                                can drop this
+                                                                dependency
                                                               footer:
                                                                 Change-type: patch
                                                                 change-type: patch
@@ -1681,6 +1695,7 @@
                                                             - subject: Assert that JSON input typeof is object
                                                               hash: 1819ee97811e20da93c6e0f227db6a62ada8c00e
                                                               body: >
+                                                                
                                                                 
                                                                 Ensure that the
                                                                 input passed in for
@@ -1788,9 +1803,9 @@
                                                               hash: 19c2760ecf76b4097d7d3045c2eefbf74fd7c2da
                                                               body: >
                                                                 
-                                                                This also
-                                                                deprecates the
-                                                                legacy version
+                                                                
+                                                                This also deprecates
+                                                                the legacy version
                                                               footer:
                                                                 Change-type: minor
                                                                 change-type: minor
@@ -1816,10 +1831,11 @@
                                                               hash: 1c25d9b8d011791a9e98a5929ad48cdd9f3bab6b
                                                               body: >
                                                                 
-                                                                It can in fact
-                                                                be a lot of
-                                                                different things and
-                                                                that is now also
+                                                                
+                                                                It can in fact be a
+                                                                lot of different
+                                                                things and that is
+                                                                now also
 
                                                                 reflected in the
                                                                 typing
@@ -1844,11 +1860,11 @@
                                                               hash: 6fcb2c4257f9fc50f6b4b1070dec86ace9f71237
                                                               body: >
                                                                 
-                                                                We know what
-                                                                type they return and
-                                                                they should be
-                                                                explicitly accepted
-                                                                as
+                                                                
+                                                                We know what type
+                                                                they return and they
+                                                                should be explicitly
+                                                                accepted as
 
                                                                 those types instead
                                                                 where it is valid to
@@ -1877,6 +1893,7 @@
                                                             - subject: Update dependencies
                                                               hash: 39058b2dacac51da96158d594b2d72e3238d0cbc
                                                               body: >
+                                                                
                                                                 
                                                                 Update
                                                                 @balena/sbvr-types
@@ -2022,10 +2039,11 @@
                                                               hash: d589fb6cd92a3a7570e3b2ebea14acbb84807d8a
                                                               body: >
                                                                 
-                                                                This also
-                                                                deprecates the
-                                                                legacy use of direct
-                                                                true/false entries
+                                                                
+                                                                This also deprecates
+                                                                the legacy use of
+                                                                direct true/false
+                                                                entries
                                                               footer:
                                                                 Change-type: minor
                                                                 change-type: minor
