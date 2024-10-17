@@ -2,7 +2,7 @@ const { PINEJS_DEBUG } = process.env;
 if (![undefined, '', '0', '1'].includes(PINEJS_DEBUG)) {
 	throw new Error(`Invalid value for PINEJS_DEBUG '${PINEJS_DEBUG}'`);
 }
-export const DEBUG = PINEJS_DEBUG === '1';
+export let DEBUG = PINEJS_DEBUG === '1';
 
 type CacheFnOpts<T extends (...args: any[]) => any> =
 	| {
@@ -150,4 +150,16 @@ export const migrator = {
 export const tasks = {
 	queueConcurrency: intVar('PINEJS_QUEUE_CONCURRENCY', 0),
 	queueIntervalMS: intVar('PINEJS_QUEUE_INTERVAL_MS', 1000),
+};
+
+export const guardTestMockOnly = () => {
+	if (process.env.DEPLOYMENT !== 'TEST') {
+		throw new Error('Attempting to use TEST_MOCK_ONLY outside of tests');
+	}
+};
+export const TEST_MOCK_ONLY = {
+	set DEBUG(v: typeof DEBUG) {
+		guardTestMockOnly();
+		DEBUG = v;
+	},
 };
