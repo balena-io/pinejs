@@ -1,4 +1,18 @@
 - commits:
+    - subject: Expose `checkApiKey` to allow resolving an api key string
+      hash: 28be0bbd4d3b1c7e5bc13b3ee8daeac1787cb816
+      body: |
+        This allows for custom api key handlers that don't rely on
+        `resolveAuthHeader` or `resolveApiKey`
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 19.4.0
+  title: ""
+  date: 2024-10-18T15:42:32.007Z
+- commits:
     - subject: Allow changing pine's DEBUG mode on runtime when env.DEPLOYMENT=TEST
       hash: 6b7781dc03c946faa1095def2bc44dcad588bce9
       body: |
@@ -1667,6 +1681,7 @@
                                                                 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1689,6 +1704,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 As engine and npm is
@@ -1728,6 +1744,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 Ensure that the
@@ -1839,6 +1856,7 @@
                                                                 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1867,6 +1885,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 It can in fact be a
@@ -1898,6 +1917,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 We know what type
@@ -1934,6 +1954,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 Update
@@ -2081,6 +2102,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 This also deprecates
