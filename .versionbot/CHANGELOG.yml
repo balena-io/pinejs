@@ -1,4 +1,19 @@
 - commits:
+    - subject: Allow changing pine's DEBUG mode on runtime when env.DEPLOYMENT=TEST
+      hash: 6b7781dc03c946faa1095def2bc44dcad588bce9
+      body: |
+        This allows consumers to enable debug mode
+        only for a single test case, reducing the
+        amount of noise in their logs.
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Thodoris Greasidis
+      nested: []
+  version: 19.3.0
+  title: ""
+  date: 2024-10-18T08:13:34.468Z
+- commits:
     - subject: Add tasks worker `stop` method
       hash: f9a85d7b6325c1d29750acb35a8eceb3861e9d3d
       body: ""
@@ -1651,6 +1666,7 @@
                                                                 
                                                                 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1673,6 +1689,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
                                                                 As engine and npm is
                                                                 now required as part
@@ -1711,6 +1728,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
                                                                 Ensure that the
                                                                 input passed in for
@@ -1820,6 +1838,7 @@
                                                                 
                                                                 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1848,6 +1867,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
                                                                 It can in fact be a
                                                                 lot of different
@@ -1878,6 +1898,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
                                                                 We know what type
                                                                 they return and they
@@ -1913,6 +1934,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
                                                                 Update
                                                                 @balena/sbvr-types
@@ -2059,6 +2081,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
                                                                 This also deprecates
                                                                 the legacy use of
