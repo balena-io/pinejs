@@ -1536,7 +1536,7 @@ const getApiKeyActorId = (() => {
 	);
 })();
 
-const checkApiKey = async (
+export const checkApiKey = async (
 	apiKey: string,
 	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
