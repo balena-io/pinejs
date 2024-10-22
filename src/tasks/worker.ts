@@ -8,6 +8,7 @@ import { PinejsClient } from '../sbvr-api/sbvr-utils';
 import { sbvrUtils } from '../server-glue/module';
 import { ajv } from './common';
 import type { Task } from './tasks';
+import type TasksModel from './tasks';
 
 interface TaskArgs {
 	api: PinejsClient;
@@ -59,7 +60,7 @@ export class Worker {
 	private running = false;
 	private executing = 0;
 
-	constructor(private readonly client: PinejsClient) {
+	constructor(private readonly client: PinejsClient<TasksModel>) {
 		this.concurrency = tasksEnv.queueConcurrency;
 		this.interval = tasksEnv.queueIntervalMS;
 	}
