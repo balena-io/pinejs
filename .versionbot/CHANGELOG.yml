@@ -1,4 +1,16 @@
 - commits:
+    - subject: Fix starting async tasks before any tasks have yet been added
+      hash: 109625b437c9466401d02e4da6132522dea746ba
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 19.4.2
+  title: ""
+  date: 2024-10-22T20:51:21.868Z
+- commits:
     - subject: Update dependencies
       hash: d145bca44643c57fd881a1aab5e48b94071f36ee
       body: |
@@ -1762,6 +1774,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1784,6 +1797,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1825,6 +1839,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1940,6 +1955,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1968,6 +1984,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2001,6 +2018,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2039,6 +2057,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2188,6 +2207,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
