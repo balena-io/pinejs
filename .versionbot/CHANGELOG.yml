@@ -1,4 +1,83 @@
 - commits:
+    - subject: Update dependencies
+      hash: d145bca44643c57fd881a1aab5e48b94071f36ee
+      body: |
+        Update @balena/abstract-sql-compiler from 10.0.0 to 10.0.1
+        Update @balena/abstract-sql-to-typescript from 5.0.0 to 5.0.1
+        Update @balena/odata-parser from 3.1.0 to 3.1.2
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Wrap composite comparison operations with parenthesis when necessary
+              hash: b39c90a5a816b647bd1d4e4b1294bb377a798726
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                See: https://balena.zulipchat.com/#narrow/stream/346007-balena-io.2FbalenaCloud/topic/pinejs.2015/near/358435946
+                see: https://balena.zulipchat.com/#narrow/stream/346007-balena-io.2FbalenaCloud/topic/pinejs.2015/near/358435946
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-10.0.1
+          title: ""
+          date: 2024-10-07T12:50:02.908Z
+        - commits:
+            - subject: Fix types export
+              hash: 0020286b742e955018eee82ea0081ea11ae68d90
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-5.0.1
+          title: ""
+          date: 2024-10-22T10:37:47.047Z
+        - commits:
+            - subject: Update dependencies
+              hash: e671fc822a9db4c4aa43fc5b3d46d7c9b2558700
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-3.1.2
+          title: ""
+          date: 2024-10-04T15:48:57.862Z
+        - commits:
+            - subject: Avoid setting `property`/`count`/`options` for expands when not
+                provided
+              hash: 1f3e69085a7e4225c648ea55a594895c288c45e2
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Avoid setting nested `property` for `PropertyPath` when not provided
+              hash: 020a2a429e8782c38c84650fe644953a90288321
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-3.1.1
+          title: ""
+          date: 2024-10-04T15:32:30.651Z
+    - subject: Use task model typings for tasks Worker.client
+      hash: 721979ea57cb8992111a1767b2c7e3d879d9711b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 19.4.1
+  title: ""
+  date: 2024-10-22T18:36:10.643Z
+- commits:
     - subject: Expose `checkApiKey` to allow resolving an api key string
       hash: 28be0bbd4d3b1c7e5bc13b3ee8daeac1787cb816
       body: |
@@ -1682,6 +1761,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1704,6 +1784,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1744,6 +1825,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1857,6 +1939,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1885,6 +1968,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1917,6 +2001,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1954,6 +2039,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2102,6 +2188,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
