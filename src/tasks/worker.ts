@@ -215,6 +215,10 @@ export class Worker {
 					return;
 				}
 				const handlerNames = Object.keys(this.handlers);
+				if (handlerNames.length === 0) {
+					// No handlers currently added so just wait for next poll in case one is added in the meantime
+					return;
+				}
 				await sbvrUtils.db.transaction(async (tx) => {
 					const result = await sbvrUtils.db.executeSql(
 						`SELECT ${selectColumns}
@@ -266,6 +270,8 @@ export class Worker {
 			);
 		}
 
+		const handlerNames = Object.keys(this.handlers);
+
 		// Check for any pending tasks with unknown handlers
 		const tasksWithUnknownHandlers = await this.client.get({
 			resource: 'task',
@@ -275,9 +281,11 @@ export class Worker {
 			options: {
 				$filter: {
 					status: 'queued',
-					$not: {
-						is_executed_by__handler: { $in: Object.keys(this.handlers) },
-					},
+					...(handlerNames.length > 0 && {
+						$not: {
+							is_executed_by__handler: { $in: handlerNames },
+						},
+					}),
 				},
 			},
 		});
