@@ -297,6 +297,9 @@ export class Worker {
 			);
 		}
 
+		if (this.running === true) {
+			return;
+		}
 		this.running = true;
 		// Spawn children to poll for and execute tasks
 		for (let i = 0; i < this.concurrency; i++) {
