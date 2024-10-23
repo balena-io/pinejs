@@ -489,7 +489,7 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 let maybePg: typeof Pg | undefined;
 try {
 	maybePg = require('pg');
-} catch (e) {
+} catch {
 	// Ignore errors
 }
 interface EngineParams {
@@ -729,7 +729,7 @@ if (maybePg != null) {
 let maybeMysql: typeof Mysql | undefined;
 try {
 	maybeMysql = require('mysql');
-} catch (e) {
+} catch {
 	// Ignore errors
 }
 interface EngineParams {
@@ -884,7 +884,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 		const getInsertId = (result: WebSqlResult) => {
 			try {
 				return result.insertId;
-			} catch (e) {
+			} catch {
 				// Ignore the potential DOM exception.
 			}
 		};
