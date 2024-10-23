@@ -7,6 +7,7 @@ import type { ConfigLoader } from '../server-glue/module';
 import { ajv, apiRoot } from './common';
 import type { TaskHandler } from './worker';
 import { Worker } from './worker';
+import type { FromSchema } from 'json-schema-to-ts';
 
 export type * from './tasks';
 
@@ -118,10 +119,11 @@ export async function setup(): Promise<void> {
 }
 
 // Register a task handler
-export function addTaskHandler(
+export function addTaskHandler<T extends Schema>(
 	name: string,
-	fn: TaskHandler['fn'],
-	schema?: Schema,
+	// @ts-expect-error testing
+	fn: TaskHandler<FromSchema<T>>['fn'],
+	schema?: T,
 ): void {
 	if (worker == null) {
 		throw new Error('Database does not support tasks');
