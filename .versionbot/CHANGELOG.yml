@@ -1,4 +1,16 @@
 - commits:
+    - subject: Avoid starting more async task workers if it is already running
+      hash: 2bcb311d0680a2010061ce923edf6f7d6616e06a
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 19.4.3
+  title: ""
+  date: 2024-10-23T14:22:24.366Z
+- commits:
     - subject: Fix starting async tasks before any tasks have yet been added
       hash: 109625b437c9466401d02e4da6132522dea746ba
       body: ""
@@ -1775,6 +1787,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1797,6 +1810,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1839,6 +1853,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1956,6 +1971,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1984,6 +2000,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2023,6 +2040,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2057,6 +2075,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2207,6 +2226,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
