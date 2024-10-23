@@ -8,6 +8,8 @@ import { ajv, apiRoot } from './common';
 import type { TaskHandler } from './worker';
 import { Worker } from './worker';
 import type TasksModel from './tasks';
+import type { Task } from './tasks';
+import type { FromSchema } from 'json-schema-to-ts';
 
 export type * from './tasks';
 
@@ -127,8 +129,22 @@ export async function setup(): Promise<void> {
 // Register a task handler
 export function addTaskHandler(
 	name: string,
-	fn: TaskHandler['fn'],
-	schema?: Schema,
+	fn: TaskHandler<
+		NonNullable<Task['Read']['is_executed_with__parameter_set']>
+	>['fn'],
+	schema?: undefined,
+): void;
+export function addTaskHandler<T extends Schema>(
+	name: string,
+	fn: TaskHandler<FromSchema<NonNullable<T>>>['fn'],
+	schema: T,
+): void;
+export function addTaskHandler<T extends Schema>(
+	name: string,
+	fn: TaskHandler<
+		NonNullable<Task['Read']['is_executed_with__parameter_set']>
+	>['fn'],
+	schema?: T,
 ): void {
 	if (worker == null) {
 		throw new Error('Database does not support tasks');
