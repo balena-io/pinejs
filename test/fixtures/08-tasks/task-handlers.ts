@@ -24,7 +24,7 @@ export const initTaskHandlers = () => {
 		'create_device',
 		async (options) => {
 			try {
-				const params = options.params as CreateDeviceParams;
+				const params = options.params;
 				await options.api.post({
 					apiPrefix: '/example/',
 					resource: 'device',
@@ -51,7 +51,7 @@ export const initTaskHandlers = () => {
 			throw new Error('This task is supposed to fail');
 		} catch (err: any) {
 			return {
-				status: 'failed',
+				status: 'failed' as const,
 				error: err.message,
 			};
 		}
