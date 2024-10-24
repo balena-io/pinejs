@@ -10,9 +10,9 @@ import { ajv } from './common';
 import type { Task } from './tasks';
 import type TasksModel from './tasks';
 
-interface TaskArgs {
+interface TaskArgs<T = AnyObject> {
 	api: PinejsClient;
-	params: AnyObject;
+	params: T;
 }
 
 type TaskResponse = Promise<{
@@ -20,9 +20,9 @@ type TaskResponse = Promise<{
 	error?: string;
 }>;
 
-export interface TaskHandler {
+export interface TaskHandler<T = AnyObject> {
 	name: string;
-	fn: (options: TaskArgs) => TaskResponse;
+	fn: (options: TaskArgs<T>) => TaskResponse;
 	validate?: ValidateFunction;
 }
 
