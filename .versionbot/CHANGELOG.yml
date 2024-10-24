@@ -1,4 +1,16 @@
 - commits:
+    - subject: Linting fixes
+      hash: 709e32ba4b581f059500365f77667f8ee887e569
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 19.4.4
+  title: ""
+  date: 2024-10-24T14:33:42.814Z
+- commits:
     - subject: Avoid starting more async task workers if it is already running
       hash: 2bcb311d0680a2010061ce923edf6f7d6616e06a
       body: ""
@@ -1788,6 +1800,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1810,6 +1823,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1853,6 +1867,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1972,6 +1987,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2000,6 +2016,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2041,6 +2058,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2075,6 +2093,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2226,6 +2245,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
