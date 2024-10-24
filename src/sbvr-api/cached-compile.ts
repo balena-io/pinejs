@@ -13,7 +13,7 @@ let cache: null | {
 let fs: undefined | typeof Fs;
 try {
 	fs = require('fs');
-} catch (e) {
+} catch {
 	// Ignore error
 }
 
@@ -43,7 +43,7 @@ export const cachedCompile = <T>(
 		if (fs != null) {
 			try {
 				cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
-			} catch (e) {
+			} catch {
 				// Ignore error
 			}
 		}

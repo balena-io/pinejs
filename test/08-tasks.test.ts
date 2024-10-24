@@ -96,7 +96,7 @@ describe('08 task tests', function () {
 			.expect(201);
 	});
 
-	after(async () => {
+	after(() => {
 		testDeInit(pineServer);
 	});
 
@@ -349,7 +349,7 @@ describe('08 task tests', function () {
 			const cron = '0 0 10 1 1 *';
 
 			// Test both succeeded and failure cases
-			['succeeded', 'failed'].forEach(async (status) => {
+			for (const status of ['succeeded', 'failed']) {
 				const handler = status === 'succeeded' ? 'create_device' : 'will_fail';
 				const name = randomUUID();
 				await createTask(pineTest, apikey, {
@@ -358,13 +358,14 @@ describe('08 task tests', function () {
 					is_scheduled_to_execute_on__time: new Date(Date.now() + 3000),
 					is_executed_with__parameter_set: {
 						name,
+						type: randomUUID(),
 					},
 				});
 
 				const nextExecutionDate = cronParser
 					.parseExpression(cron)
 					.next()
-					.toDate();
+					.toISOString();
 				await waitFor(async () => {
 					const { body: tasks } = await pineTest
 						.get({
@@ -372,10 +373,8 @@ describe('08 task tests', function () {
 							options: {
 								$select: ['status', 'is_scheduled_to_execute_on__time'],
 								$filter: {
+									is_executed_by__handler: handler,
 									is_scheduled_with__cron_expression: cron,
-									is_executed_with__parameter_set: {
-										name,
-									},
 								},
 							},
 						})
@@ -389,7 +388,7 @@ describe('08 task tests', function () {
 						queuedTask.is_scheduled_to_execute_on__time === nextExecutionDate
 					);
 				});
-			});
+			}
 		});
 
 		it('should not allow tasks with invalid handler params', async () => {

@@ -278,7 +278,7 @@ const getCreateWebResourceHooks = (
 			const webResourceFields = getWebResourceFields(hookArgs.request);
 			throwIfWebresourceNotInMultipart(webResourceFields, hookArgs);
 		},
-		'POSTRUN-ERROR': async ({ tx, request }) => {
+		'POSTRUN-ERROR': ({ tx, request }) => {
 			tx.on('rollback', () => {
 				void deleteRollbackPendingFields(request, webResourceHandler);
 			});

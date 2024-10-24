@@ -203,14 +203,8 @@ const memoizedOdata2AbstractSQL = (() => {
 					string[],
 					number,
 				],
-			) => {
-				return (
-					JSON.stringify(odataQuery) +
-					method +
-					bodyKeys +
-					existingBindVarsLength
-				);
-			},
+			) =>
+				`${JSON.stringify(odataQuery)}${method}${bodyKeys}${existingBindVarsLength}`,
 			weak: true,
 		},
 	);
