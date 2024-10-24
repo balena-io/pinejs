@@ -1,4 +1,41 @@
 - commits:
+    - subject: Update dependencies to support `is case insensitively equal to`
+      hash: b8987501d09383f91688a13a7e29ec48374d6367
+      body: |
+        Update @balena/abstract-sql-compiler from 10.0.1 to 10.1.0
+        Update @balena/sbvr-types from 9.0.2 to 9.1.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Otavio Jacobi
+      nested:
+        - commits:
+            - subject: Add Lower unary node for countTableSelects optimization
+              hash: e3ebcddbf6c725139535fa53de06492a64c9e2a9
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Otavio Jacobi
+              nested: []
+          version: abstract-sql-compiler-10.1.0
+          title: ""
+          date: 2024-10-24T14:43:39.710Z
+        - commits:
+            - subject: Add `is case insensitively equal to` for Text types
+              hash: c6414b8b53cb6935e2a496a31d29c7e90efefe38
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Otavio Jacobi
+          version: sbvr-types-9.1.0
+          title: ""
+          date: 2024-10-24T15:56:32.550Z
+  version: 19.5.0
+  title: ""
+  date: 2024-10-24T16:40:57.333Z
+- commits:
     - subject: Linting fixes
       hash: 709e32ba4b581f059500365f77667f8ee887e569
       body: ""
@@ -1801,6 +1838,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1823,6 +1861,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1867,6 +1906,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1988,6 +2028,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2016,6 +2057,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2059,6 +2101,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2093,6 +2136,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2245,6 +2289,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
