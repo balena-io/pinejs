@@ -27,14 +27,14 @@
     "generate-types": "node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/user.sbvr ./src/sbvr-api/user.ts && node ./bin/sbvr-compiler.js generate-types ./src/migrator/migrations.sbvr ./src/migrator/migrations.ts && node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/dev.sbvr ./src/sbvr-api/dev.ts && node ./bin/sbvr-compiler.js generate-types ./src/tasks/tasks.sbvr ./src/tasks/tasks.ts && balena-lint -t tsconfig.dev.json --fix ./src/sbvr-api/user.ts ./src/migrator/migrations.ts ./src/sbvr-api/dev.ts"
   },
   "dependencies": {
-    "@balena/abstract-sql-compiler": "^10.0.1",
+    "@balena/abstract-sql-compiler": "^10.1.0",
     "@balena/abstract-sql-to-typescript": "^5.0.1",
     "@balena/env-parsing": "^1.2.0",
     "@balena/lf-to-abstract-sql": "^5.0.2",
     "@balena/odata-parser": "^3.1.2",
     "@balena/odata-to-abstract-sql": "^7.0.0",
     "@balena/sbvr-parser": "^1.4.6",
-    "@balena/sbvr-types": "^9.0.2",
+    "@balena/sbvr-types": "^9.1.0",
     "@types/body-parser": "^1.19.5",
     "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.7",
