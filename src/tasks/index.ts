@@ -7,6 +7,7 @@ import type { ConfigLoader } from '../server-glue/module';
 import { ajv, apiRoot } from './common';
 import type { TaskHandler } from './worker';
 import { Worker } from './worker';
+import type TasksModel from './tasks';
 
 export type * from './tasks';
 
@@ -21,6 +22,12 @@ CREATE INDEX IF NOT EXISTS idx_task_poll ON task USING btree (
 	"id" ASC
 ) WHERE status = 'queued';
 `;
+
+declare module '../sbvr-api/sbvr-utils' {
+	export interface API {
+		[apiRoot]: PinejsClient<TasksModel>;
+	}
+}
 
 export const config: ConfigLoader.Config = {
 	models: [
