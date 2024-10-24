@@ -34,7 +34,7 @@
     "@balena/odata-parser": "^3.1.2",
     "@balena/odata-to-abstract-sql": "^7.0.0",
     "@balena/sbvr-parser": "^1.4.6",
-    "@balena/sbvr-types": "^9.0.2",
+    "@balena/sbvr-types": "9.1.0-build-add-case-insenstive-equal-to-909bacb4632c3193c9c569ada4a190b7f9cd06a7-1",
     "@types/body-parser": "^1.19.5",
     "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.7",
