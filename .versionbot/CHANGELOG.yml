@@ -1,4 +1,16 @@
 - commits:
+    - subject: Expose tasks model on sbvrUtils api
+      hash: 26b94af7df763012382c29a42ea7f50b45240087
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 19.5.1
+  title: ""
+  date: 2024-10-25T10:39:26.156Z
+- commits:
     - subject: Update dependencies to support `is case insensitively equal to`
       hash: b8987501d09383f91688a13a7e29ec48374d6367
       body: |
@@ -1839,6 +1851,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1861,6 +1874,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1906,6 +1920,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2029,6 +2044,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2057,6 +2073,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2102,6 +2119,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2136,6 +2154,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2289,6 +2308,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
