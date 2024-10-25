@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency webpack-dev-server to v5
+      hash: bc6bb0a5e88091233fbd40b1f14d0df2bea716b5
+      body: |
+        Update webpack-dev-server from 4.15.2 to 5.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Self-hosted Renovate Bot
+      nested: []
+  version: 19.5.2
+  title: ""
+  date: 2024-10-25T12:07:12.024Z
+- commits:
     - subject: Expose tasks model on sbvrUtils api
       hash: 26b94af7df763012382c29a42ea7f50b45240087
       body: ""
@@ -1852,6 +1865,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1874,6 +1888,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1920,6 +1935,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2045,6 +2061,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2073,6 +2090,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2120,6 +2138,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2154,6 +2173,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2308,6 +2328,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
