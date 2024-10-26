@@ -9,6 +9,9 @@ Term: note
 Term: type
 	  Concept Type: Short Text (Type)
 
+Term: count
+	  Concept Type: Integer (Type)
+
 Term: device
 
 Fact Type: device has name
@@ -19,3 +22,6 @@ Fact Type: device has note
 
 Fact Type: device has type
 	 Necessity: each device has exactly one type.
+
+Fact Type: device has count
+	 Necessity: each device has at most one count.

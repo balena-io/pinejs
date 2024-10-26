@@ -71,6 +71,7 @@ describe('08 task tests', function () {
 			configPath: fixturesBasePath + 'config.js',
 			deleteDb: true,
 			taskHandlersPath: fixturesBasePath + 'task-handlers.js',
+			clusterInstances: 5,
 		});
 		pineTest = new PineTest(
 			{
@@ -409,7 +410,7 @@ describe('08 task tests', function () {
 				.expect(500);
 		});
 
-		it('should not pick up tasks while worker is not running', async () => {
+		it('should not pick up tasks while any worker is not running', async () => {
 			pineServer.send(PINE_TEST_SIGNALS.STOP_TASK_WORKER);
 
 			const name = randomUUID();
@@ -466,6 +467,79 @@ describe('08 task tests', function () {
 				status: 'succeeded',
 				error_message: null,
 				attempt_count: 1,
+			});
+		});
+
+		it('should only run task once with multiple pine instances', async () => {
+			const { body: device } = await pineTest
+				.post({
+					apiPrefix: 'example/',
+					resource: 'device',
+					body: {
+						name: randomUUID(),
+						type: randomUUID(),
+						count: 0,
+					},
+				})
+				.expect(201);
+
+			for (let j = 0; j < 30; j++) {
+				await createTask(pineTest, apikey, {
+					is_executed_by__handler: 'increment_device_count',
+					is_executed_with__parameter_set: {
+						deviceId: device.id,
+					},
+				});
+
+				await waitFor(async () => {
+					const { body: deviceAfter } = await pineTest
+						.get({
+							apiPrefix: 'example/',
+							resource: 'device',
+							id: device.id,
+						})
+						.expect(200);
+					return deviceAfter?.count === j + 1;
+				});
+			}
+		});
+
+		it('should only run task once with multiple pine instances and tasks created concurrently', async () => {
+			const { body: device } = await pineTest
+				.post({
+					apiPrefix: 'example/',
+					resource: 'device',
+					body: {
+						name: randomUUID(),
+						type: randomUUID(),
+						count: 0,
+					},
+				})
+				.expect(201);
+
+			const tasks: Array<ReturnType<typeof createTask>> = [];
+			for (let j = 0; j < 30; j++) {
+				tasks.push(
+					createTask(pineTest, apikey, {
+						is_executed_by__handler: 'increment_device_count',
+						is_executed_with__parameter_set: {
+							deviceId: device.id,
+						},
+					}),
+				);
+			}
+
+			await Promise.all(tasks);
+
+			await waitFor(async () => {
+				const { body: deviceAfter } = await pineTest
+					.get({
+						apiPrefix: 'example/',
+						resource: 'device',
+						id: device.id,
+					})
+					.expect(200);
+				return deviceAfter?.count === 30;
 			});
 		});
 	});
