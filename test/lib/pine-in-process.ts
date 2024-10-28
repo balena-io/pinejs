@@ -1,20 +1,74 @@
 import { exit } from 'process';
+import cluster from 'node:cluster';
 import type { PineTestOptions } from './pine-init';
 import { init } from './pine-init';
 import { tasks } from '../../src/server-glue/module';
 import { PINE_TEST_SIGNALS } from './common';
+import { type Serializable } from 'child_process';
+
+const createWorker = (
+	readyWorkers: Set<number>,
+	processArgs: PineTestOptions,
+) => {
+	const worker = cluster.fork(process.env);
+	worker.on('message', (msg) => {
+		if ('init' in msg && msg.init === 'ready') {
+			readyWorkers.add(worker.id);
+			if (readyWorkers.size === processArgs.clusterInstances && process.send) {
+				process.send({ init: 'success' });
+			}
+		}
+	});
+};
 
 export async function forkInit() {
+	const processArgs: PineTestOptions = JSON.parse(process.argv[2]);
+
+	if (cluster.isPrimary) {
+		const readyWorkers = new Set<number>();
+		process.on('message', async (message: Serializable) => {
+			console.log('Received message in primary process', message);
+			for (const id of readyWorkers.keys()) {
+				cluster.workers?.[id]?.send(message);
+			}
+		});
+		if (processArgs.clusterInstances && processArgs.clusterInstances > 1) {
+			for (let i = 0; i < processArgs.clusterInstances; i++) {
+				createWorker(readyWorkers, processArgs);
+			}
+			cluster.on('exit', (worker) => {
+				// While pine is initializing on empty db a worker might die
+				// as several instances try at the same time to create tables etc
+				// This is not a problem as the worker just tries to recreate until
+				// everything syncs up
+				console.info(`Worker ${worker.process.pid} died`);
+				createWorker(readyWorkers, processArgs);
+			});
+		}
+	}
+
+	if (!cluster.isPrimary || processArgs.clusterInstances === 1) {
+		await runApp(processArgs);
+	}
+
+	if (
+		cluster.isPrimary &&
+		process.send &&
+		(!processArgs.clusterInstances || processArgs.clusterInstances === 1)
+	) {
+		// If single instance or no clustering, send success directly
+		process.send({ init: 'success' });
+	}
+}
+
+async function runApp(processArgs: PineTestOptions) {
+	console.error('Running app in', processArgs);
 	try {
-		// this file is forked - so here we have to evaluate process argv again.
-		// fork only has argv as string[], we use JSON string as arguments
-		const processArgs: PineTestOptions = JSON.parse(process.argv[2]);
 		const { default: initConfig } = await import(processArgs.configPath);
 		console.info(`listenPort: ${processArgs.listenPort}`);
 		const app = await init(
 			initConfig.default,
 			processArgs.listenPort,
-			processArgs.deleteDb,
 			processArgs.withLoginRoute,
 		);
 
@@ -39,7 +93,7 @@ export async function forkInit() {
 		}
 
 		if (process.send) {
-			process.send({ init: 'success' });
+			process.send({ init: 'ready' });
 		}
 
 		process.on('message', async (message) => {
