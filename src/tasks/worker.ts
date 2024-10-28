@@ -220,7 +220,7 @@ export class Worker {
 					return;
 				}
 				await sbvrUtils.db.transaction(async (tx) => {
-					const result = await sbvrUtils.db.executeSql(
+					const result = await tx.executeSql(
 						`SELECT ${selectColumns}
 						FROM task AS t
 						WHERE
