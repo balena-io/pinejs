@@ -11,12 +11,12 @@ export type PineTestOptions = {
 	withLoginRoute?: boolean;
 	deleteDb: boolean;
 	listenPort: number;
+	clusterInstances?: number;
 };
 
 export async function init(
 	initConfig: pine.ConfigLoader.Config,
 	initPort: number,
-	deleteDb = false,
 	withLoginRoute = false,
 ) {
 	const app = express();
@@ -53,7 +53,6 @@ export async function init(
 	});
 
 	try {
-		await cleanInit(deleteDb);
 		const loader = await pine.init(app, initConfig);
 		if (withLoginRoute) {
 			await pine.mountLoginRouter(loader, app);
@@ -67,29 +66,5 @@ export async function init(
 	} catch (e) {
 		console.log(`pineInit ${e}`);
 		exit(1);
-	}
-}
-
-async function cleanInit(deleteDb = false) {
-	if (!deleteDb) {
-		return;
-	}
-
-	try {
-		const initDbOptions = {
-			engine:
-				process.env.DATABASE_URL?.slice(
-					0,
-					process.env.DATABASE_URL?.indexOf(':'),
-				) ?? 'postgres',
-			params: process.env.DATABASE_URL ?? 'localhost',
-		};
-		const initDb = pine.dbModule.connect(initDbOptions);
-		await initDb.executeSql(
-			'DROP SCHEMA "public" CASCADE; CREATE SCHEMA "public";',
-		);
-		console.info(`Postgres database dropped`);
-	} catch (e) {
-		console.error(`Error during dropping postgres database: ${e}`);
 	}
 }

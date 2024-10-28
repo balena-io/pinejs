@@ -1,6 +1,7 @@
 import type { ChildProcess } from 'child_process';
 import { fork } from 'child_process';
 import { boolVar } from '@balena/env-parsing';
+import * as pine from '../../src/server-glue/module';
 import type { PineTestOptions } from './pine-init';
 import type { OptionalField } from '../../src/sbvr-api/common-types';
 export const listenPortDefault = 1337;
@@ -18,7 +19,11 @@ export async function testInit(
 			taskHandlersPath: options.taskHandlersPath,
 			routesPath: options.routesPath,
 			withLoginRoute: options.withLoginRoute,
+			clusterInstances: options.clusterInstances ?? 1,
 		};
+		if (processArgs.deleteDb) {
+			await cleanDb();
+		}
 		const testServer = fork(
 			__dirname + '/pine-in-process.ts',
 			[JSON.stringify(processArgs)],
@@ -35,7 +40,7 @@ export async function testInit(
 		await new Promise((resolve, reject) => {
 			testServer.on('message', (msg: { init: string }) => {
 				console.info(`init pine in separate process`);
-				if ('init' in msg) {
+				if ('init' in msg && msg.init === 'success') {
 					resolve(msg.init);
 				}
 			});
@@ -55,4 +60,24 @@ export async function testInit(
 
 export function testDeInit(testServer: ChildProcess) {
 	testServer?.kill();
+}
+
+async function cleanDb() {
+	try {
+		const initDbOptions = {
+			engine:
+				process.env.DATABASE_URL?.slice(
+					0,
+					process.env.DATABASE_URL?.indexOf(':'),
+				) ?? 'postgres',
+			params: process.env.DATABASE_URL ?? 'localhost',
+		};
+		const initDb = pine.dbModule.connect(initDbOptions);
+		await initDb.executeSql(
+			'DROP SCHEMA "public" CASCADE; CREATE SCHEMA "public";',
+		);
+		console.info(`Postgres database dropped`);
+	} catch (e) {
+		console.error(`Error during dropping postgres database: ${e}`);
+	}
 }
