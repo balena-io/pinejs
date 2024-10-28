@@ -1,4 +1,16 @@
 - commits:
+    - subject: Run tests with node cluster mode
+      hash: 64fbd77b96f995b43ee37fe44c5ac569e5408f3a
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 19.5.3
+  title: ""
+  date: 2024-10-28T14:10:29.329Z
+- commits:
     - subject: Update dependency webpack-dev-server to v5
       hash: bc6bb0a5e88091233fbd40b1f14d0df2bea716b5
       body: |
@@ -1866,6 +1878,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1888,6 +1901,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1935,6 +1949,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2062,6 +2077,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2090,6 +2106,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2139,6 +2156,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2173,6 +2191,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2328,6 +2347,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
