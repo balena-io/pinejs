@@ -1,4 +1,24 @@
 - commits:
+    - subject: Fix async tasks race condition for selecting task to be executed
+      hash: 97936ec9a2b3f5179a9088b6ae3fac14537ed378
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+    - subject: Run async task tests with cluster mode
+      hash: 8f308c83cbf73125a0d825c28bfe520057ba3d8a
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 19.5.4
+  title: ""
+  date: 2024-10-28T15:58:17.248Z
+- commits:
     - subject: Run tests with node cluster mode
       hash: 64fbd77b96f995b43ee37fe44c5ac569e5408f3a
       body: ""
@@ -1879,6 +1899,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1901,6 +1922,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1949,6 +1971,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2078,6 +2101,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2106,6 +2130,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2157,6 +2182,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2191,6 +2217,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2347,6 +2374,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
