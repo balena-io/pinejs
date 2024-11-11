@@ -5,8 +5,8 @@ import _ = require('lodash');
 
 export const generateODataMetadataAsOpenApi = (
 	odataCsdl: ReturnType<typeof generateODataMetadata>,
-	versionBasePathUrl: string = '',
-	hostname: string = '',
+	versionBasePathUrl = '',
+	hostname = '',
 ) => {
 	// console.log(`odataCsdl:${JSON.stringify(odataCsdl, null, 2)}`);
 	const openAPIJson: any = odataMetadata.csdl2openapi(odataCsdl, {
