@@ -155,18 +155,18 @@ export interface ApiKey extends Actor {
 export interface Response {
 	statusCode: number;
 	headers?:
-	| {
-		[headerName: string]: any;
-	}
-	| undefined;
+		| {
+				[headerName: string]: any;
+		  }
+		| undefined;
 	body?: AnyObject | string;
 }
 
 export type ModelExecutionResult =
 	| undefined
 	| {
-		migrationExecutionResult?: MigrationExecutionResult;
-	};
+			migrationExecutionResult?: MigrationExecutionResult;
+	  };
 
 const memoizedResolvedSynonym = memoizeWeak(
 	(
@@ -258,9 +258,9 @@ const prettifyConstraintError = (
 		let keyMatches: RegExpExecArray | null = null;
 		let violatedConstraintInfo:
 			| {
-				table: AbstractSQLCompiler.AbstractSqlTable;
-				name: string;
-			}
+					table: AbstractSQLCompiler.AbstractSqlTable;
+					name: string;
+			  }
 			| undefined;
 		if (err instanceof db.UniqueConstraintError) {
 			switch (db.engine) {
@@ -298,8 +298,8 @@ const prettifyConstraintError = (
 				const columns = keyMatches[1].split('_');
 				throw new db.UniqueConstraintError(
 					'"' +
-					columns.map(sqlNameToODataName).join('" and "') +
-					'" must be unique.',
+						columns.map(sqlNameToODataName).join('" and "') +
+						'" must be unique.',
 				);
 			}
 			if (violatedConstraintInfo != null) {
@@ -334,8 +334,8 @@ const prettifyConstraintError = (
 					const tableName = abstractSqlModel.tables[resourceName].name;
 					keyMatches = new RegExp(
 						'"' +
-						tableName +
-						'" violates foreign key constraint ".*?" on table "(.*?)"',
+							tableName +
+							'" violates foreign key constraint ".*?" on table "(.*?)"',
 					).exec(err.message);
 					keyMatches ??= new RegExp(
 						'"' +
@@ -368,8 +368,8 @@ const prettifyConstraintError = (
 					case 'postgres':
 						keyMatches = new RegExp(
 							'new row for relation "' +
-							table.name +
-							'" violates check constraint "(.*?)"',
+								table.name +
+								'" violates check constraint "(.*?)"',
 						).exec(err.message);
 						break;
 				}
@@ -937,11 +937,11 @@ export const runRule = (() => {
 		const odataResult = (await runURI(
 			'GET',
 			'/' +
-			vocab +
-			'/' +
-			sqlNameToODataName(table.resourceName) +
-			'?$filter=' +
-			filter,
+				vocab +
+				'/' +
+				sqlNameToODataName(table.resourceName) +
+				'?$filter=' +
+				filter,
 			undefined,
 			undefined,
 			permissions.rootRead,
@@ -1657,19 +1657,19 @@ const runRequest = async (
 
 const runChangeSet =
 	(req: Express.Request, tx: Db.Tx) =>
-		async (
-			changeSetResults: Map<number, Response>,
-			request: uriParser.ODataRequest,
-		): Promise<void> => {
-			request = updateBinds(changeSetResults, request);
-			const result = await runRequest(req, tx, request);
-			if (request.id == null) {
-				throw new Error('No request id');
-			}
-			result.headers ??= {};
-			result.headers['content-id'] = request.id;
-			changeSetResults.set(request.id, result);
-		};
+	async (
+		changeSetResults: Map<number, Response>,
+		request: uriParser.ODataRequest,
+	): Promise<void> => {
+		request = updateBinds(changeSetResults, request);
+		const result = await runRequest(req, tx, request);
+		if (request.id == null) {
+			throw new Error('No request id');
+		}
+		result.headers ??= {};
+		result.headers['content-id'] = request.id;
+		changeSetResults.set(request.id, result);
+	};
 
 // Requests inside a changeset may refer to resources created inside the
 // changeset, the generation of the sql query for those requests must be

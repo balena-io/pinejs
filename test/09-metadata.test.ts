@@ -8,7 +8,7 @@ import OpenAPIParser from '@readme/openapi-parser';
 describe('08 metadata / openAPI spec', function () {
 	describe('Full model access specification', async function () {
 		const fixturePath =
-			__dirname + '/fixtures/08-metadata/config-full-access.js';
+			__dirname + '/fixtures/09-metadata/config-full-access.js';
 		let pineServer: Awaited<ReturnType<typeof testInit>>;
 		before(async () => {
 			pineServer = await testInit({
