@@ -6,6 +6,7 @@ services:
       POSTGRES_USER: docker
       POSTGRES_PASSWORD: docker
       POSTGRES_DB: postgres
+      TZ: UTC
     ports:
       - "5431:5432"
   minio-server:
