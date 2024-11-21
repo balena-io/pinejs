@@ -1,4 +1,16 @@
 - commits:
+    - subject: Run tests on UTC timezone
+      hash: ccf628b9716d281023b4bc88a6227c2f65cd6235
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 19.5.5
+  title: ""
+  date: 2024-11-21T07:57:52.346Z
+- commits:
     - subject: Fix async tasks race condition for selecting task to be executed
       hash: 97936ec9a2b3f5179a9088b6ae3fac14537ed378
       body: ""
@@ -877,10 +889,8 @@
                                                 - commits:
                                                     - subject: Update dependency @balena/abstract-sql-compiler to v9
                                                       hash: 37684ebb1692f97780dd27056b9cfe299c456b3c
-                                                      body: >
-                                                        Update
-                                                        @balena/abstract-sql-compiler
-                                                        from 8.5.0 to 9.0.4
+                                                      body: |
+                                                        Update @balena/abstract-sql-compiler from 8.5.0 to 9.0.4
                                                       footer:
                                                         Change-type: patch
                                                         change-type: patch
@@ -1368,15 +1378,9 @@
                                                 - commits:
                                                     - subject: Update dependencies
                                                       hash: 0a7bd8ff2e506fa3988b6e1851e0098df5da3f86
-                                                      body: >
-                                                        - Update @balena/lint
-                                                        from 6.2.2 to 7.2.4
-
-                                                        - Delete
-                                                        `require-npm4-to-publish`
-                                                        as handled by `engines`
-                                                        parameter in
-                                                        `package.json`
+                                                      body: |
+                                                        - Update @balena/lint from 6.2.2 to 7.2.4
+                                                        - Delete `require-npm4-to-publish` as handled by `engines` parameter in `package.json`
                                                       footer:
                                                         Change-type: patch
                                                         change-type: patch
@@ -1900,6 +1904,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1922,6 +1927,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1971,6 +1977,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2044,10 +2051,8 @@
                                                 - commits:
                                                     - subject: Improve typings
                                                       hash: 78d4a48022ac0465c5d2c48db53b8ddd08e6e1bf
-                                                      body: >
-                                                        Update
-                                                        @balena/abstract-sql-compiler
-                                                        from 8.4.0 to 8.4.1
+                                                      body: |
+                                                        Update @balena/abstract-sql-compiler from 8.4.0 to 8.4.1
                                                       footer:
                                                         Change-type: patch
                                                         change-type: patch
@@ -2071,14 +2076,9 @@
                                                 - commits:
                                                     - subject: Update dependencies
                                                       hash: 5aa3c51cbbfc66cddedebd41dacba5eabbacf709
-                                                      body: >
-                                                        Update
-                                                        @balena/abstract-sql-compiler
-                                                        from 8.0.0 to 8.4.0
-
-                                                        Update
-                                                        @balena/odata-parser
-                                                        from 2.4.2 to 2.4.6
+                                                      body: |
+                                                        Update @balena/abstract-sql-compiler from 8.0.0 to 8.4.0
+                                                        Update @balena/odata-parser from 2.4.2 to 2.4.6
                                                       footer:
                                                         Change-type: patch
                                                         change-type: patch
@@ -2090,6 +2090,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2130,6 +2131,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2183,6 +2185,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2217,6 +2220,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2374,6 +2378,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -21322,14 +21327,11 @@
 - commits:
     - subject: Fixing issue reported by tsc 4.8.2
       hash: 57b05baa09718525b4e0e85c99b2c6c8c5b387ae
-      body: >
+      body: |
         Inferenced type of check could be I & null
-
         when I is not set in the overload.
 
-
-        tsc 4.8
-        https://devblogs.microsoft.com/typescript/announcing-typescript-4-8/#unconstrained-generics-no-longer-assignable-to
+        tsc 4.8 https://devblogs.microsoft.com/typescript/announcing-typescript-4-8/#unconstrained-generics-no-longer-assignable-to
       footer:
         Change-type: patch
         change-type: patch
