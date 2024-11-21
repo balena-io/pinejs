@@ -1,4 +1,16 @@
 - commits:
+    - subject: Infer async task fn callback arguments typing from schema
+      hash: 377a7c25118b9853f23cc8fdd1a2bf3d093ad1b1
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Otavio Jacobi
+      nested: []
+  version: 19.6.0
+  title: ""
+  date: 2024-11-21T22:47:59.119Z
+- commits:
     - subject: Run tests on UTC timezone
       hash: ccf628b9716d281023b4bc88a6227c2f65cd6235
       body: ""
@@ -1905,6 +1917,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1927,6 +1940,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1977,6 +1991,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2103,6 +2118,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2131,6 +2147,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2186,6 +2203,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2220,6 +2238,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2378,6 +2397,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
