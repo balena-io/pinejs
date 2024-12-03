@@ -1,4 +1,38 @@
 - commits:
+    - subject: Update dependency @balena/lf-to-abstract-sql to 5.0.3
+      hash: 90c78095c8d41245f69ae6c56de6054034f06d12
+      body: |
+        Update @balena/lf-to-abstract-sql from 5.0.2 to 5.0.3
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested:
+        - commits:
+            - subject: Add multiple vocabulary ternary FactType test
+              hash: 9c970468f97eabc70f02987db244162259a2bd9c
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Otavio Jacobi
+              nested: []
+            - subject: Only force the first term on a tertiary fact type to not be an
+                attribute
+              hash: 4b780c84daa5798ed38f41076fb81dabc202cf36
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Otavio Jacobi
+              nested: []
+          version: lf-to-abstract-sql-5.0.3
+          title: ""
+          date: 2024-12-03T12:46:45.262Z
+  version: 19.6.2
+  title: ""
+  date: 2024-12-03T14:55:50.754Z
+- commits:
     - subject: Update typescript from 5.6.3 to 5.7.2
       hash: a033b67687714d1c70754ee62aa7ab96104eea0e
       body: ""
@@ -1931,6 +1965,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1953,6 +1988,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2005,6 +2041,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2135,6 +2172,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2163,6 +2201,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2222,6 +2261,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2256,6 +2296,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2416,6 +2457,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
