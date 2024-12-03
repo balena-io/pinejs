@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update typescript from 5.6.3 to 5.7.2
+      hash: a033b67687714d1c70754ee62aa7ab96104eea0e
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 19.6.1
+  title: ""
+  date: 2024-12-03T14:41:34.088Z
+- commits:
     - subject: Infer async task fn callback arguments typing from schema
       hash: 377a7c25118b9853f23cc8fdd1a2bf3d093ad1b1
       body: ""
@@ -1918,6 +1930,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1940,6 +1953,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1991,6 +2005,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2119,6 +2134,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2147,6 +2163,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2204,6 +2221,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2238,6 +2256,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2397,6 +2416,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
