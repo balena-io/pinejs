@@ -250,7 +250,9 @@ export const translateAbstractSqlModel = (
 					fromAbstractSqlModel,
 					toAbstractSqlModel,
 					key,
-					aliasedToResource,
+					toAbstractSqlModel.tables[aliasedToResource] != null
+						? aliasedToResource
+						: unaliasedToResource,
 					definition,
 				);
 			}
