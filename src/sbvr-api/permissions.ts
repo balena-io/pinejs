@@ -53,6 +53,8 @@ import {
 } from './uri-parser';
 import memoizeWeak = require('memoizee/weak');
 import type { Config } from '../config-loader/config-loader';
+import type { ODataOptions } from 'pinejs-client-core';
+import type { Permission } from './user';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const userModel: string = require('./user.sbvr');
@@ -1309,7 +1311,7 @@ const $getUserPermissions = (() => {
 					$orderby: {
 						name: 'asc',
 					},
-				},
+				} as const,
 			},
 			{ userId: ['number'] },
 		),
@@ -1443,7 +1445,7 @@ const $getApiKeyPermissions = (() => {
 					$orderby: {
 						name: 'asc',
 					},
-				},
+				} as const satisfies ODataOptions<Permission['Read']>,
 			},
 			{ apiKey: ['string'] },
 		),
