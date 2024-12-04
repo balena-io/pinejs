@@ -24,13 +24,12 @@ export type AliasValidNodeType =
 	| UnknownTypeNodes
 	| NullNode;
 const aliasFields = (
-	fromAbstractSqlModel: AbstractSqlModel,
-	toAbstractSqlModel: AbstractSqlModel,
+	translationAbstractSqlModel: AbstractSqlModel,
 	fromResourceName: string,
 	toResource: string,
 	aliases: Dictionary<string | AliasValidNodeType>,
 ): SelectNode[1] => {
-	const fromFieldNames = fromAbstractSqlModel.tables[
+	const fromFieldNames = translationAbstractSqlModel.tables[
 		fromResourceName
 	].fields.map(({ fieldName }) => fieldName);
 	const nonexistentFields = _.difference(Object.keys(aliases), fromFieldNames);
@@ -39,9 +38,9 @@ const aliasFields = (
 			`Tried to alias non-existent fields: '${nonexistentFields.join(', ')}'`,
 		);
 	}
-	const toFieldNames = toAbstractSqlModel.tables[toResource].fields.map(
-		({ fieldName }) => fieldName,
-	);
+	const toFieldNames = translationAbstractSqlModel.tables[
+		toResource
+	].fields.map(({ fieldName }) => fieldName);
 	const checkToFieldExists = (fromFieldName: string, toFieldName: string) => {
 		if (!toFieldNames.includes(toFieldName)) {
 			throw new Error(
@@ -70,13 +69,12 @@ const aliasFields = (
 };
 
 const aliasResource = (
-	fromAbstractSqlModel: AbstractSqlModel,
-	toAbstractSqlModel: AbstractSqlModel,
+	translationAbstractSqlModel: AbstractSqlModel,
 	fromResourceName: string,
 	toResource: string,
 	aliases: Dictionary<string | AliasValidNodeType>,
 ): Definition => {
-	if (!toAbstractSqlModel.tables[toResource]) {
+	if (!translationAbstractSqlModel.tables[toResource]) {
 		throw new Error(`Tried to alias to a non-existent resource: ${toResource}`);
 	}
 	return {
@@ -85,8 +83,7 @@ const aliasResource = (
 			[
 				'Select',
 				aliasFields(
-					fromAbstractSqlModel,
-					toAbstractSqlModel,
+					translationAbstractSqlModel,
 					fromResourceName,
 					toResource,
 					aliases,
@@ -247,8 +244,9 @@ export const translateAbstractSqlModel = (
 				table.definition = definition;
 			} else {
 				table.definition = aliasResource(
+					// fromAbstractSqlModel is the translation model as it contains
+					// both the unaliased fromResource and the aliased toResource
 					fromAbstractSqlModel,
-					toAbstractSqlModel,
 					key,
 					aliasedToResource,
 					definition,
