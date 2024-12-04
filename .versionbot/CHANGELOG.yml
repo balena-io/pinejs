@@ -1,4 +1,24 @@
 - commits:
+    - subject: Use translationAbstractSqlModel for resolving translations
+      hash: 62dabf733348b2f82549264d63380555d7d61eb7
+      body: >
+        This is necessary because the `fromAbstractSqlModel` (here renamed to
+        translationAbstractSqlModel)
+
+        will actually contain both the unaliased fromResource and aliased
+        toResource where the previous
+
+        approach of passing only `toResource` might not contain the aliased
+        toResource
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 19.6.3
+  title: ""
+  date: 2024-12-04T15:10:14.481Z
+- commits:
     - subject: Update dependency @balena/lf-to-abstract-sql to 5.0.3
       hash: 90c78095c8d41245f69ae6c56de6054034f06d12
       body: |
@@ -1966,6 +1986,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1988,6 +2009,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2041,6 +2063,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2173,6 +2196,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2201,6 +2225,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2262,6 +2287,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2296,6 +2322,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2457,6 +2484,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
