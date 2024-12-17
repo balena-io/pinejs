@@ -18,7 +18,13 @@ const runCompile = async (inputFile: string, outputFile?: string) => {
 	writeSqlModel(sqlModel, outputFile);
 };
 
-const generateTypes = async (inputFile: string, outputFile?: string) => {
+const generateTypes = async (
+	inputFile: string,
+	options: {
+		outputFile?: string;
+		convertSerialToInteger?: boolean;
+	},
+) => {
 	const { abstractSqlToTypescriptTypes } = await import(
 		'@balena/abstract-sql-to-typescript/generate'
 	);
@@ -26,9 +32,11 @@ const generateTypes = async (inputFile: string, outputFile?: string) => {
 		inputFile,
 		program.opts().model,
 	);
-	const types = abstractSqlToTypescriptTypes(abstractSql);
+	const types = abstractSqlToTypescriptTypes(abstractSql, {
+		convertSerialToInteger: options.convertSerialToInteger,
+	});
 
-	writeAll(types, outputFile);
+	writeAll(types, options.outputFile);
 };
 
 program
@@ -57,7 +65,13 @@ program
 program
 	.command('generate-types <input-file> [output-file]')
 	.description('generate typescript types from the input AbstractSql')
-	.action(generateTypes);
+	.option('--convert-serial-to-integer', 'Convert serials to integers')
+	.action(async (inputFile, outputFile, opts) => {
+		await generateTypes(inputFile, {
+			outputFile,
+			convertSerialToInteger: opts.convertSerialToInteger,
+		});
+	});
 
 program
 	.command('help')
