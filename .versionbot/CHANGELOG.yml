@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add convert serial option to generate-types command
+      hash: 13e62a4a1a9671ded893cb7d7945d6fe55a2fa8c
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Josh Bowling
+      nested: []
+  version: 19.7.0
+  title: ""
+  date: 2024-12-18T11:40:18.233Z
+- commits:
     - subject: Use translationAbstractSqlModel for resolving translations
       hash: 62dabf733348b2f82549264d63380555d7d61eb7
       body: >
@@ -1987,6 +1999,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2009,6 +2022,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2063,6 +2077,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2197,6 +2212,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2225,6 +2241,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2288,6 +2305,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2322,6 +2340,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2484,6 +2503,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
