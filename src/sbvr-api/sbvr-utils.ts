@@ -2069,7 +2069,7 @@ export const setup = async (
 	_app: Express.Application,
 	$db: Db.Database,
 ): Promise<void> => {
-	exports.db = db = $db;
+	db = $db;
 	try {
 		await db.transaction(async (tx) => {
 			await executeStandardModels(tx);
@@ -2092,7 +2092,7 @@ export const postSetup = async (
 	_app: Express.Application,
 	$db: Db.Database,
 ): Promise<void> => {
-	exports.db = db = $db;
+	db = $db;
 	try {
 		await db.transaction(async (tx) => {
 			await postExecuteModels(tx);

@@ -37,7 +37,7 @@ export const config: ConfigLoader.Config = {
 			modelName: apiRoot,
 			apiRoot,
 			modelText,
-			customServerCode: exports,
+			customServerCode: { setup },
 			initSql,
 		},
 	],

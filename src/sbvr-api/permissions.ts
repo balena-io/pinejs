@@ -1787,7 +1787,7 @@ declare module './sbvr-utils' {
 const authModelConfig = {
 	apiRoot: 'Auth',
 	modelText: userModel,
-	customServerCode: exports,
+	customServerCode: { setup },
 	migrations: {
 		'11.0.0-modified-at': `
 			ALTER TABLE "actor"
@@ -1826,7 +1826,7 @@ const authModelConfig = {
 export const config = {
 	models: [authModelConfig],
 } satisfies Config;
-export const setup = () => {
+export function setup() {
 	addHook('all', 'all', 'all', {
 		sideEffects: false,
 		readOnlyTx: true,
@@ -1924,4 +1924,4 @@ export const setup = () => {
 				id: request.values.actor,
 			}),
 	});
-};
+}
