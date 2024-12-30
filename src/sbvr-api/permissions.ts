@@ -51,7 +51,7 @@ import {
 	metadataEndpoints,
 	type ODataRequest,
 } from './uri-parser';
-import memoizeWeak = require('memoizee/weak');
+import memoizeWeak from 'memoizee/weak';
 import type { Config } from '../config-loader/config-loader';
 import type { ODataOptions } from 'pinejs-client-core';
 import type { Permission } from './user';

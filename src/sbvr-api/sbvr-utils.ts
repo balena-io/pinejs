@@ -83,7 +83,7 @@ export {
 	addSideEffectHook,
 } from './hooks';
 
-import memoizeWeak = require('memoizee/weak');
+import memoizeWeak from 'memoizee/weak';
 import * as controlFlow from './control-flow';
 
 export let db = undefined as any as Db.Database;
