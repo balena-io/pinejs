@@ -1,6 +1,6 @@
-import { version, writeAll, writeSqlModel } from './utils';
+import { version, writeAll, writeSqlModel } from './utils.js';
 import { program } from 'commander';
-import * as fs from 'fs';
+import fs from 'fs';
 
 const getSE = (inputFile: string) => fs.readFileSync(inputFile, 'utf8');
 

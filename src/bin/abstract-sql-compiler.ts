@@ -3,13 +3,13 @@ import {
 	version,
 	writeAll,
 	writeSqlModel,
-} from './utils';
+} from './utils.js';
 
 import { program } from 'commander';
 
 const runCompile = async (inputFile: string, outputFile?: string) => {
 	const { generateSqlModel } = await import('../sbvr-api/sbvr-utils.js');
-	const abstractSql = getAbstractSqlModelFromFile(
+	const abstractSql = await getAbstractSqlModelFromFile(
 		inputFile,
 		program.opts().model,
 	);
@@ -28,7 +28,7 @@ const generateTypes = async (
 	const { abstractSqlToTypescriptTypes } = await import(
 		'@balena/abstract-sql-to-typescript/generate'
 	);
-	const abstractSql = getAbstractSqlModelFromFile(
+	const abstractSql = await getAbstractSqlModelFromFile(
 		inputFile,
 		program.opts().model,
 	);

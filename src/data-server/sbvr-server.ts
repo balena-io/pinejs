@@ -1,8 +1,8 @@
-import * as permissions from '../sbvr-api/permissions';
-import type { Resolvable } from '../sbvr-api/common-types';
+import * as permissions from '../sbvr-api/permissions.js';
+import type { Resolvable } from '../sbvr-api/common-types.js';
 import type { Handler } from 'express';
-import type { Config, SetupFunction } from '../config-loader/config-loader';
-import type { Tx } from '../database-layer/db';
+import type { Config, SetupFunction } from '../config-loader/config-loader.js';
+import type { Tx } from '../database-layer/db.js';
 
 const uiModel = `\
 Vocabulary: ui

@@ -1,18 +1,21 @@
 import type { AbstractSqlQuery } from '@balena/abstract-sql-compiler';
-import { getAbstractSqlModelFromFile } from '@balena/pinejs/out/bin/utils';
+import { getAbstractSqlModelFromFile } from '@balena/pinejs/out/bin/utils.js';
 import type { ConfigLoader } from '@balena/pinejs';
 
 const apiRoot = 'university';
 const modelName = 'university';
-const modelFile = __dirname + '/university.sbvr';
+const modelFile = import.meta.dirname + '/university.sbvr';
 
-import { v1AbstractSqlModel, v1Translations } from './translations/v1';
-import { v2AbstractSqlModel, v2Translations } from './translations/v2';
-import { v3AbstractSqlModel, v3Translations } from './translations/v3';
-import { v4AbstractSqlModel } from './translations/v4';
-import { v5AbstractSqlModel } from './translations/v5';
+import { v1AbstractSqlModel, v1Translations } from './translations/v1/index.js';
+import { v2AbstractSqlModel, v2Translations } from './translations/v2/index.js';
+import { v3AbstractSqlModel, v3Translations } from './translations/v3/index.js';
+import { v4AbstractSqlModel } from './translations/v4/index.js';
+import { v5AbstractSqlModel } from './translations/v5/index.js';
 
-export const abstractSql = getAbstractSqlModelFromFile(modelFile, undefined);
+export const abstractSql = await getAbstractSqlModelFromFile(
+	modelFile,
+	undefined,
+);
 
 abstractSql.tables['student'].fields.push({
 	fieldName: 'computed field',

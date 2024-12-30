@@ -1,27 +1,27 @@
-import type * as Express from 'express';
+import type Express from 'express';
 
-import './sbvr-loader';
+import './sbvr-loader.js';
 
-import * as dbModule from '../database-layer/db';
-import * as configLoader from '../config-loader/config-loader';
-import * as migrator from '../migrator/sync';
-import type * as migratorUtils from '../migrator/utils';
-import * as tasks from '../tasks';
+import * as dbModule from '../database-layer/db.js';
+import * as configLoader from '../config-loader/config-loader.js';
+import * as migrator from '../migrator/sync.js';
+import type * as migratorUtils from '../migrator/utils.js';
+import * as tasks from '../tasks/index.js';
 
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-import { PINEJS_ADVISORY_LOCK } from '../config-loader/env';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
+import { PINEJS_ADVISORY_LOCK } from '../config-loader/env.js';
 
-export * as dbModule from '../database-layer/db';
-export { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store';
-export { mountLoginRouter } from '../passport-pinejs/mount-login-router';
-export * as sbvrUtils from '../sbvr-api/sbvr-utils';
-export * as permissions from '../sbvr-api/permissions';
-export * as errors from '../sbvr-api/errors';
-export * as env from '../config-loader/env';
-export * as types from '../sbvr-api/common-types';
-export * as hooks from '../sbvr-api/hooks';
-export * as tasks from '../tasks';
-export * as webResourceHandler from '../webresource-handler';
+export * as dbModule from '../database-layer/db.js';
+export { PinejsSessionStore } from '../pinejs-session-store/pinejs-session-store.js';
+export { mountLoginRouter } from '../passport-pinejs/mount-login-router.js';
+export * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
+export * as permissions from '../sbvr-api/permissions.js';
+export * as errors from '../sbvr-api/errors.js';
+export * as env from '../config-loader/env.js';
+export * as types from '../sbvr-api/common-types.js';
+export * as hooks from '../sbvr-api/hooks.js';
+export * as tasks from '../tasks/index.js';
+export * as webResourceHandler from '../webresource-handler/index.js';
 export type { configLoader as ConfigLoader };
 export type { migratorUtils as Migrator };
 

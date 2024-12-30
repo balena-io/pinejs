@@ -1,15 +1,15 @@
-import type * as Express from 'express';
+import type Express from 'express';
 import type {
 	AbstractSqlModel,
 	Definition,
 } from '@balena/abstract-sql-compiler';
-import type { Database } from '../database-layer/db';
+import type { Database } from '../database-layer/db.js';
 import type {
 	AnyObject,
 	Dictionary,
 	RequiredField,
 	Resolvable,
-} from '../sbvr-api/common-types';
+} from '../sbvr-api/common-types.js';
 
 import {
 	type Migration,
@@ -18,23 +18,23 @@ import {
 	MigrationCategories,
 	isSyncMigration,
 	isAsyncMigration,
-} from '../migrator/utils';
+} from '../migrator/utils.js';
 
-import * as fs from 'fs';
+import fs from 'fs';
 import _ from 'lodash';
-import * as path from 'path';
+import path from 'path';
 
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
 
-import * as permissions from '../sbvr-api/permissions';
+import * as permissions from '../sbvr-api/permissions.js';
 import {
 	getDefaultHandler,
 	getUploaderMiddlware,
 	type WebResourceHandler,
 	setupUploadHooks,
 	setupWebresourceHandler,
-} from '../webresource-handler';
-import type { AliasValidNodeType } from '../sbvr-api/translations';
+} from '../webresource-handler/index.js';
+import type { AliasValidNodeType } from '../sbvr-api/translations.js';
 
 export type SetupFunction = (
 	app: Express.Application,
@@ -256,7 +256,7 @@ export const setup = (app: Express.Application) => {
 						let customCode: SetupFunction;
 						if (typeof model.customServerCode === 'string') {
 							try {
-								customCode = nodeRequire(model.customServerCode).setup;
+								customCode = (await import(model.customServerCode)).setup;
 							} catch (e: any) {
 								e.message = `Error loading custom server code: '${e.message}'`;
 								throw e;
@@ -291,7 +291,7 @@ export const setup = (app: Express.Application) => {
 			let root: string;
 			let configObj: Config;
 			if (config == null) {
-				root = path.resolve(process.argv[2]) || __dirname;
+				root = path.resolve(process.argv[2]) || import.meta.dirname;
 				configObj = await loadConfigFile(path.join(root, 'config.json'));
 			} else if (typeof config === 'string') {
 				root = path.dirname(config);

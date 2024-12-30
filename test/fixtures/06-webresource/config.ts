@@ -1,11 +1,11 @@
 import type { ConfigLoader } from '@balena/pinejs';
 import { webResourceHandler } from '@balena/pinejs';
-import { v1AbstractSqlModel, v1Translations } from './translations/v1';
+import { v1AbstractSqlModel, v1Translations } from './translations/v1/index.js';
 import { requiredVar, intVar } from '@balena/env-parsing';
 
 const apiRoot = 'example';
 const modelName = 'example';
-const modelFile = __dirname + '/example.sbvr';
+const modelFile = import.meta.dirname + '/example.sbvr';
 
 const s3Handler: webResourceHandler.WebResourceHandler =
 	new webResourceHandler.S3Handler({

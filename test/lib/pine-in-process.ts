@@ -1,9 +1,9 @@
 import { exit } from 'process';
 import cluster from 'node:cluster';
-import type { PineTestOptions } from './pine-init';
-import { init } from './pine-init';
+import type { PineTestOptions } from './pine-init.js';
+import { init } from './pine-init.js';
 import { tasks } from '@balena/pinejs';
-import { PINE_TEST_SIGNALS } from './common';
+import { PINE_TEST_SIGNALS } from './common.js';
 import { type Serializable } from 'child_process';
 
 const createWorker = (
@@ -67,7 +67,7 @@ async function runApp(processArgs: PineTestOptions) {
 		const { default: initConfig } = await import(processArgs.configPath);
 		console.info(`listenPort: ${processArgs.listenPort}`);
 		const app = await init(
-			initConfig.default,
+			initConfig,
 			processArgs.listenPort,
 			processArgs.withLoginRoute,
 		);
@@ -79,16 +79,12 @@ async function runApp(processArgs: PineTestOptions) {
 
 		// load task handlers
 		if (processArgs.taskHandlersPath) {
-			const {
-				default: { initTaskHandlers },
-			} = await import(processArgs.taskHandlersPath);
+			const { initTaskHandlers } = await import(processArgs.taskHandlersPath);
 			initTaskHandlers();
 		}
 
 		if (processArgs.routesPath) {
-			const {
-				default: { initRoutes },
-			} = await import(processArgs.routesPath);
+			const { initRoutes } = await import(processArgs.routesPath);
 			initRoutes(app);
 		}
 

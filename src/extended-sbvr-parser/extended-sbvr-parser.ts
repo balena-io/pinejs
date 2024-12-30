@@ -1,9 +1,9 @@
 import { SBVRParser } from '@balena/sbvr-parser';
-import { requireSBVR } from '../server-glue/sbvr-loader';
-import { version as sbvrParserVersion } from '@balena/sbvr-parser/package.json';
-import { version } from '../config-loader/env';
+import { importSBVR } from '../server-glue/sbvr-loader.js';
+import SbvrParserPackage from '@balena/sbvr-parser/package.json' with { type: 'json' };
+import { version } from '../config-loader/env.js';
 
-const Types = requireSBVR('@balena/sbvr-types/Type.sbvr', require);
+const Types = await importSBVR('@balena/sbvr-types/Type.sbvr', import.meta);
 
 export const ExtendedSBVRParser = SBVRParser._extend({
 	initialize() {
@@ -13,5 +13,5 @@ export const ExtendedSBVRParser = SBVRParser._extend({
 		this.AddBuiltInVocab(Types);
 		return this;
 	},
-	version: sbvrParserVersion + '+' + version,
+	version: SbvrParserPackage.version + '+' + version,
 });

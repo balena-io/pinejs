@@ -5,7 +5,7 @@ import {
 	type UploadResponse,
 	WebResourceError,
 	type WebResourceHandler,
-} from '..';
+} from '../index.js';
 import {
 	S3Client,
 	type S3ClientConfig,

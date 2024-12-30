@@ -2,8 +2,8 @@ import type { ConfigLoader } from '@balena/pinejs';
 
 const apiRoot = 'example';
 const modelName = 'example';
-const modelFile = __dirname + '/example.sbvr';
-const initSqlPath = __dirname + '/init-data.sql';
+const modelFile = import.meta.dirname + '/example.sbvr';
+const initSqlPath = import.meta.dirname + '/init-data.sql';
 
 export default {
 	models: [

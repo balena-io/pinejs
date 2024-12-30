@@ -1,4 +1,4 @@
-import { getAbstractSqlModelFromFile, version, writeAll } from './utils';
+import { getAbstractSqlModelFromFile, version, writeAll } from './utils.js';
 import type {
 	AbstractSqlModel,
 	SqlResult,
@@ -44,7 +44,7 @@ const translateOData = async (
 	outputFile?: string,
 ) => {
 	const request = await generateAbstractSqlQuery(
-		getAbstractSqlModelFromFile(modelFile, program.opts().model),
+		await getAbstractSqlModelFromFile(modelFile, program.opts().model),
 		odata,
 	);
 	const json = JSON.stringify(request.abstractSqlQuery, null, 2);
@@ -68,7 +68,7 @@ const compileOData = async (
 	outputFile?: string,
 ) => {
 	const translatedRequest = await generateAbstractSqlQuery(
-		getAbstractSqlModelFromFile(modelFile, program.opts().model),
+		await getAbstractSqlModelFromFile(modelFile, program.opts().model),
 		odata,
 	);
 	const { compileRequest } = await import('../sbvr-api/abstract-sql.js');

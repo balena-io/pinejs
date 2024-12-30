@@ -1,10 +1,10 @@
 import type { ConfigLoader } from '@balena/pinejs';
-import { getAbstractSqlModelFromFile } from '@balena/pinejs/out/bin/utils';
+import { getAbstractSqlModelFromFile } from '@balena/pinejs/out/bin/utils.js';
 
 export const toVersion = 'example';
 
-export const v1AbstractSqlModel = getAbstractSqlModelFromFile(
-	__dirname + '/example.sbvr',
+export const v1AbstractSqlModel = await getAbstractSqlModelFromFile(
+	import.meta.dirname + '/example.sbvr',
 	undefined,
 );
 

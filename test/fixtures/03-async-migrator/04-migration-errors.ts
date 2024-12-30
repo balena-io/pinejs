@@ -2,8 +2,8 @@ import type { ConfigLoader } from '@balena/pinejs';
 
 const apiRoot = 'example';
 const modelName = 'example';
-const modelFile = __dirname + '/example.sbvr';
-const migrationsPath = __dirname + '/04-migration-errors/migrations';
+const modelFile = import.meta.dirname + '/example.sbvr';
+const migrationsPath = import.meta.dirname + '/04-migration-errors/migrations';
 
 export default {
 	models: [

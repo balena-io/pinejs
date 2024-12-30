@@ -1,27 +1,28 @@
 import supertest from 'supertest';
 import { expect } from 'chai';
-const configPath = __dirname + '/fixtures/06-webresource/config.js';
-const hooksPath = __dirname + '/fixtures/06-webresource/translations/hooks.js';
-const testResourcePath = __dirname + '/fixtures/06-webresource/resources/';
+const configPath = import.meta.dirname + '/fixtures/06-webresource/config.js';
+const hooksPath =
+	import.meta.dirname + '/fixtures/06-webresource/translations/hooks.js';
+const testResourcePath =
+	import.meta.dirname + '/fixtures/06-webresource/resources/';
 
-import * as fsBase from 'fs';
+import { promises as fs } from 'fs';
 import { createReadStream, createWriteStream } from 'fs';
 import { pipeline as pipelineRaw, Readable } from 'stream';
-import * as util from 'util';
+import util from 'util';
 import { randomUUID } from 'crypto';
 import { tmpdir } from 'os';
-import * as path from 'path';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init';
+import path from 'path';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
 import {
 	ListObjectsV2Command,
 	S3Client,
 	DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
 import { intVar, requiredVar } from '@balena/env-parsing';
-import { assertExists } from './lib/common';
+import { assertExists } from './lib/common.js';
 
 const pipeline = util.promisify(pipelineRaw);
-const fs = fsBase.promises;
 
 describe('06 webresources tests', function () {
 	let pineServer: Awaited<ReturnType<typeof testInit>>;

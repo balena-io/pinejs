@@ -1,30 +1,30 @@
-import type * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
+import type AbstractSQLCompiler from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
 	ODataOptions,
 	ODataQuery,
 	SupportedMethod,
 } from '@balena/odata-parser';
-import type { Tx } from '../database-layer/db';
-import type { InstantiatedHooks } from './hooks';
-import type { AnyObject } from './common-types';
+import type { Tx } from '../database-layer/db.js';
+import type { InstantiatedHooks } from './hooks.js';
+import type { AnyObject } from './common-types.js';
 
-import * as ODataParser from '@balena/odata-parser';
+import ODataParser from '@balena/odata-parser';
 export const SyntaxError = ODataParser.SyntaxError;
 import { OData2AbstractSQL } from '@balena/odata-to-abstract-sql';
 import _ from 'lodash';
-import memoizeWeak from 'memoizee/weak';
+import memoizeWeak from 'memoizee/weak.js';
 
-export { BadRequestError, ParsingError, TranslationError } from './errors';
+export { BadRequestError, ParsingError, TranslationError } from './errors.js';
 import deepFreeze from 'deep-freeze';
-import * as env from '../config-loader/env';
+import * as env from '../config-loader/env.js';
 import {
 	BadRequestError,
 	ParsingError,
 	PermissionError,
 	TranslationError,
-} from './errors';
-import * as sbvrUtils from './sbvr-utils';
+} from './errors.js';
+import * as sbvrUtils from './sbvr-utils.js';
 
 export type OdataBinds = ODataBinds;
 

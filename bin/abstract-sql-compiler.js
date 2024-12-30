@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-require('../out/bin/abstract-sql-compiler');
+import '../out/bin/abstract-sql-compiler.js';

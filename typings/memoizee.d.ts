@@ -1,5 +1,5 @@
-declare module 'memoizee/weak' {
-	import type * as Memoize from 'memoizee';
+declare module 'memoizee/weak.js' {
+	import type Memoize from 'memoizee';
 
 	type FirstArg<T> = T extends (arg1: infer U) => any ? U : any;
 	type RestArgs<T> = T extends (arg1: any, ...args: infer U) => any ? U : any[];
