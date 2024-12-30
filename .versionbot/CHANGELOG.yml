@@ -1,4 +1,50 @@
 - commits:
+    - subject: Use/export explicit functions for loading SBVR files
+      hash: c47a755613fec8293547c7cfb34cc9e707a7c703
+      body: |
+        This is in preference to using the require loader which is not very
+        portable when mixing commonjs and esm code
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Log the async migration status on initialization rather than on import
+      hash: 83eacbb700f89dd2730c9a879b96a456503a1d2a
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Use `import` instead of `require` where possible
+      hash: e16a795d1ff549bb08beeb121cf129a61473d5bd
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Fetch version from package.json without using `require`
+      hash: 2f5777afb3694498bc80335efee1ca1a5842c223
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Remove use of commonjs specific `exports` property
+      hash: b4c11fe904ac2c8fa2f0ba7ffc87804101be1b56
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 19.7.1
+  title: ""
+  date: 2024-12-30T14:24:28.696Z
+- commits:
     - subject: Add convert serial option to generate-types command
       hash: 13e62a4a1a9671ded893cb7d7945d6fe55a2fa8c
       body: ""
@@ -2000,6 +2046,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2022,6 +2069,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2077,6 +2125,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2213,6 +2262,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2241,6 +2291,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2306,6 +2357,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2340,6 +2392,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2503,6 +2556,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
