@@ -27,13 +27,6 @@ import {
 } from './utils';
 import { booleanToEnabledString } from '../config-loader/env';
 
-// log the startup condition of the async migration
-(sbvrUtils.logger?.migrations?.info ?? console.info)(
-	`Async migration execution is ${booleanToEnabledString(
-		migratorEnv.asyncMigrationIsEnabled,
-	)}`,
-);
-
 export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 	const { migrations } = model;
 	if (migrations == null || _.isEmpty(migrations)) {
@@ -188,6 +181,13 @@ const $run = async (
 	// created. When the transaction fails, the setup async migration entries in the DB will be
 	// rolled back automatically.
 	setupTx.on('end', () => {
+		// log the startup condition of the async migration
+		(sbvrUtils.logger?.migrations?.info ?? console.info)(
+			`Async migration execution is ${booleanToEnabledString(
+				migratorEnv.asyncMigrationIsEnabled,
+			)}`,
+		);
+
 		for (const {
 			key,
 			initMigrationState,
