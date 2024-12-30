@@ -10,9 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import '../server-glue/sbvr-loader';
 
-export const { version } = JSON.parse(
-	fs.readFileSync(require.resolve('../../package.json'), 'utf8'),
-);
+export { version } from '../config-loader/env';
 
 export const writeAll = (output: string, outputFile?: string): void => {
 	if (outputFile) {

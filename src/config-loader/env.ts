@@ -1,3 +1,8 @@
+import * as fs from 'fs';
+export const { version } = JSON.parse(
+	fs.readFileSync(require.resolve('../../package.json'), 'utf8'),
+);
+
 const { PINEJS_DEBUG } = process.env;
 if (![undefined, '', '0', '1'].includes(PINEJS_DEBUG)) {
 	throw new Error(`Invalid value for PINEJS_DEBUG '${PINEJS_DEBUG}'`);
