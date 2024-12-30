@@ -1,8 +1,9 @@
 import { SBVRParser } from '@balena/sbvr-parser';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const Types: string = require('@balena/sbvr-types/Type.sbvr');
+import { requireSBVR } from '../server-glue/sbvr-loader';
 import { version as sbvrParserVersion } from '@balena/sbvr-parser/package.json';
 import { version } from '../config-loader/env';
+
+const Types = requireSBVR('@balena/sbvr-types/Type.sbvr', require);
 
 export const ExtendedSBVRParser = SBVRParser._extend({
 	initialize() {

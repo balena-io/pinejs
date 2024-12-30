@@ -44,10 +44,10 @@ import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser
 import * as asyncMigrator from '../migrator/async';
 import * as syncMigrator from '../migrator/sync';
 import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
+import { requireSBVR } from '../server-glue/sbvr-loader';
 
 import type DevModel from './dev';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const devModel = require('./dev.sbvr');
+const devModel = requireSBVR('./dev.sbvr', require);
 import * as permissions from './permissions';
 import {
 	BadRequestError,

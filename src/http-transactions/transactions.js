@@ -1,7 +1,6 @@
 import { odataNameToSqlName } from '@balena/odata-to-abstract-sql';
-// @ts-expect-error b/c TS doesn't know what the result of requiring an sbvr file would be
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const transactionModel = require('./transaction.sbvr');
+import { requireSBVR } from '../server-glue/sbvr-loader';
+const transactionModel = requireSBVR('./transaction.sbvr', require);
 
 /** @type {import('../config-loader/config-loader').Config} */
 export const config = {
