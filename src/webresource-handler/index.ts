@@ -1,21 +1,21 @@
-import type * as Express from 'express';
+import type Express from 'express';
 import busboy from 'busboy';
-import type * as stream from 'node:stream';
-import * as uriParser from '../sbvr-api/uri-parser';
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-import type { HookArgs } from '../sbvr-api/hooks';
-import { getApiRoot, getModel } from '../sbvr-api/sbvr-utils';
-import { checkPermissions } from '../sbvr-api/permissions';
-import { NoopHandler } from './handlers/NoopHandler';
+import type stream from 'node:stream';
+import * as uriParser from '../sbvr-api/uri-parser.js';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
+import type { HookArgs } from '../sbvr-api/hooks.js';
+import { getApiRoot, getModel } from '../sbvr-api/sbvr-utils.js';
+import { checkPermissions } from '../sbvr-api/permissions.js';
+import { NoopHandler } from './handlers/NoopHandler.js';
 import {
 	odataNameToSqlName,
 	sqlNameToODataName,
 } from '@balena/odata-to-abstract-sql';
-import { errors, permissions } from '../server-glue/module';
+import { errors, permissions } from '../server-glue/module.js';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 import { TypedError } from 'typed-error';
 
-export * from './handlers';
+export * from './handlers/index.js';
 
 export interface IncomingFile {
 	fieldname: string;

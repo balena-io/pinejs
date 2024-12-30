@@ -1,9 +1,9 @@
 import supertest from 'supertest';
 import { expect } from 'chai';
-const configPath = __dirname + '/fixtures/07-permissions/config.js';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init';
-import { sbvrUtils, permissions } from '../src/server-glue/module';
-import type UserModel from '../src/sbvr-api/user';
+const configPath = import.meta.dirname + '/fixtures/07-permissions/config.js';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
+import { sbvrUtils, permissions } from '../src/server-glue/module.js';
+import type UserModel from '../src/sbvr-api/user.js';
 
 describe('07 permissions tests', function () {
 	let pineServer: Awaited<ReturnType<typeof testInit>>;

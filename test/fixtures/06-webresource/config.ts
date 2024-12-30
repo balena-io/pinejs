@@ -1,12 +1,12 @@
-import type { ConfigLoader } from '../../../src/server-glue/module';
-import type { WebResourceHandler } from '../../../src/webresource-handler';
-import { S3Handler } from '../../../src/webresource-handler/handlers/S3Handler';
-import { v1AbstractSqlModel, v1Translations } from './translations/v1';
+import type { ConfigLoader } from '../../../src/server-glue/module.js';
+import type { WebResourceHandler } from '../../../src/webresource-handler/index.js';
+import { S3Handler } from '../../../src/webresource-handler/handlers/S3Handler.js';
+import { v1AbstractSqlModel, v1Translations } from './translations/v1/index.js';
 import { requiredVar, intVar } from '@balena/env-parsing';
 
 const apiRoot = 'example';
 const modelName = 'example';
-const modelFile = __dirname + '/example.sbvr';
+const modelFile = import.meta.dirname + '/example.sbvr';
 
 const s3Handler: WebResourceHandler = new S3Handler({
 	bucket: requiredVar('S3_STORAGE_ADAPTER_BUCKET'),

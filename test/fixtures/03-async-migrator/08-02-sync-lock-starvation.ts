@@ -1,8 +1,8 @@
-import type { ConfigLoader } from '../../../src/server-glue/module';
+import type { ConfigLoader } from '../../../src/server-glue/module.js';
 
 const apiRoot = 'example';
 const modelName = 'example';
-const modelFile = __dirname + '/example.sbvr';
+const modelFile = import.meta.dirname + '/example.sbvr';
 
 export default {
 	models: [
@@ -23,7 +23,7 @@ export default {
 						CONCAT('a','b',trim(to_char(i,'0000000'))) as "name",
 						NULL as "note",
 						CONCAT('b','b',trim(to_char(i,'0000000'))) as "type"
-					FROM generate_series(21, 30) s(i);	
+					FROM generate_series(21, 30) s(i);
 					`);
 					},
 				},

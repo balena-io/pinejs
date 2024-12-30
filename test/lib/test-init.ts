@@ -1,9 +1,9 @@
 import type { ChildProcess } from 'child_process';
 import { fork } from 'child_process';
 import { boolVar } from '@balena/env-parsing';
-import * as pine from '../../src/server-glue/module';
-import type { PineTestOptions } from './pine-init';
-import type { OptionalField } from '../../src/sbvr-api/common-types';
+import * as pine from '../../src/server-glue/module.js';
+import type { PineTestOptions } from './pine-init.js';
+import type { OptionalField } from '../../src/sbvr-api/common-types.js';
 export const listenPortDefault = 1337;
 export const testLocalServer = `http://localhost:${listenPortDefault}`;
 
@@ -25,7 +25,7 @@ export async function testInit(
 			await cleanDb();
 		}
 		const testServer = fork(
-			__dirname + '/pine-in-process.ts',
+			import.meta.dirname + '/pine-in-process.ts',
 			[JSON.stringify(processArgs)],
 			{
 				detached: false,

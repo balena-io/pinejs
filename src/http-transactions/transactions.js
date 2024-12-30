@@ -1,8 +1,8 @@
 import { odataNameToSqlName } from '@balena/odata-to-abstract-sql';
-import { requireSBVR } from '../server-glue/sbvr-loader';
-const transactionModel = requireSBVR('./transaction.sbvr', require);
+import { importSBVR } from '../server-glue/sbvr-loader.js';
+const transactionModel = await importSBVR('./transaction.sbvr', import.meta);
 
-/** @type {import('../config-loader/config-loader').Config} */
+/** @type {import('../config-loader/config-loader.js').Config} */
 export const config = {
 	models: [
 		{
@@ -53,7 +53,7 @@ ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT N
 /** @type {(modelName: string) => void} */
 export let addModelHooks;
 
-/** @type { import('../config-loader/config-loader').SetupFunction } */
+/** @type { import('../config-loader/config-loader.js').SetupFunction } */
 export function setup(app, sbvrUtils) {
 	addModelHooks = (modelName) => {
 		// TODO: Add checks on POST/PATCH requests as well.

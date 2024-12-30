@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-require('../out/bin/odata-compiler');
+import '../out/bin/odata-compiler.js';

@@ -1,16 +1,16 @@
-import type { Result, Tx } from '../database-layer/db';
-import type { Resolvable } from '../sbvr-api/common-types';
+import type { Result, Tx } from '../database-layer/db.js';
+import type { Resolvable } from '../sbvr-api/common-types.js';
 
 import { createHash } from 'crypto';
 import { Engines } from '@balena/abstract-sql-compiler';
 import _ from 'lodash';
 import { TypedError } from 'typed-error';
-import { migrator as migratorEnv } from '../config-loader/env';
-export { migrator as migratorEnv } from '../config-loader/env';
-import { PINEJS_ADVISORY_LOCK } from '../config-loader/env';
-import { delay } from '../sbvr-api/control-flow';
+import { migrator as migratorEnv } from '../config-loader/env.js';
+export { migrator as migratorEnv } from '../config-loader/env.js';
+import { PINEJS_ADVISORY_LOCK } from '../config-loader/env.js';
+import { delay } from '../sbvr-api/control-flow.js';
 
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
 export enum MigrationCategories {
 	'sync' = 'sync',
 	'async' = 'async',

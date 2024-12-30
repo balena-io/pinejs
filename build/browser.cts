@@ -1,6 +1,6 @@
 import * as webpack from 'webpack';
 import type { Configuration } from 'webpack';
-import sharedConfig from './config';
+import sharedConfig from './config.cts';
 
 if (typeof sharedConfig.externals !== 'object') {
 	throw new Error('Expected externals to be an object');

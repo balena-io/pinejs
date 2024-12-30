@@ -3,7 +3,7 @@
 declare global {
 	// eslint-disable-next-line @typescript-eslint/no-namespace
 	namespace Express {
-		type PineUser = import('./sbvr-utils').User;
+		type PineUser = import('./sbvr-utils.js').User;
 
 		// Augment Express.User to include the props of our PineUser.
 		// eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -11,7 +11,7 @@ declare global {
 
 		interface Request {
 			user?: User;
-			apiKey?: import('./sbvr-utils').ApiKey;
+			apiKey?: import('./sbvr-utils.js').ApiKey;
 		}
 	}
 }

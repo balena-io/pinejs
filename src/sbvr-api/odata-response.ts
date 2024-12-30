@@ -18,13 +18,17 @@ declare module '@balena/abstract-sql-compiler' {
 	}
 }
 
-import type { Result, Row } from '../database-layer/db';
+import type { Result, Row } from '../database-layer/db.js';
 
 import { sqlNameToODataName } from '@balena/odata-to-abstract-sql';
-import sbvrTypes, { type SbvrType } from '@balena/sbvr-types';
+import type { SbvrType } from '@balena/sbvr-types';
 import _ from 'lodash';
-import { resolveNavigationResource, resolveSynonym } from './sbvr-utils';
-import { getWebresourceHandler } from '../webresource-handler';
+import {
+	sbvrTypes,
+	resolveNavigationResource,
+	resolveSynonym,
+} from './sbvr-utils.js';
+import { getWebresourceHandler } from '../webresource-handler/index.js';
 
 const checkForExpansion = async (
 	vocab: string,

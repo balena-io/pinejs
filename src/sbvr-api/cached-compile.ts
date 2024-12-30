@@ -1,4 +1,4 @@
-import type * as Fs from 'fs';
+import type Fs from 'fs';
 
 import _ from 'lodash';
 
@@ -12,7 +12,7 @@ let cache: null | {
 } = null;
 let fs: undefined | typeof Fs;
 try {
-	fs = require('fs');
+	fs = await import('fs');
 } catch {
 	// Ignore error
 }

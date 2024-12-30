@@ -3,9 +3,9 @@ import type { WebpackPluginInstance } from 'webpack';
 
 import _ from 'lodash';
 import TerserPlugin from 'terser-webpack-plugin';
-import browserConfig from './build/browser';
-import moduleConfig from './build/module';
-import serverConfig from './build/server';
+import browserConfig from './build/browser.cts';
+import moduleConfig from './build/module.cts';
+import serverConfig from './build/server.cts';
 
 const serverConfigs = {
 	browser: browserConfig,
@@ -110,30 +110,18 @@ export = (grunt: typeof Grunt) => {
 			return renames;
 		})(),
 
-		replace: {
-			'pine.js': {
+		replace: _.mapValues(serverConfigs, (_config, task) => {
+			return {
 				src: 'out/pine.js',
 				overwrite: true,
 				replacements: [
 					{
-						from: /nodeRequire/g,
-						to: 'require',
+						from: /sourceMappingURL=pine.js.map/g,
+						to: `sourceMappingURL=pine-${task}-<%= grunt.option('version') %>.js.map`,
 					},
 				],
-			},
-			..._.mapValues(serverConfigs, (_config, task) => {
-				return {
-					src: 'out/pine.js',
-					overwrite: true,
-					replacements: [
-						{
-							from: /sourceMappingURL=pine.js.map/g,
-							to: `sourceMappingURL=pine-${task}-<%= grunt.option('version') %>.js.map`,
-						},
-					],
-				};
-			}),
-		},
+			};
+		}),
 
 		webpack: serverConfigs,
 
@@ -167,7 +155,6 @@ export = (grunt: typeof Grunt) => {
 			'webpack:' + task,
 			'gitinfo:describe',
 			'version',
-			'replace:pine.js',
 			`replace:${task}`,
 			`concat:${task}`,
 			`rename:${task}`,

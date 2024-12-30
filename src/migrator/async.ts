@@ -1,8 +1,8 @@
-import type { Tx } from '../database-layer/db';
-import type { Model } from '../config-loader/config-loader';
+import type { Tx } from '../database-layer/db.js';
+import type { Model } from '../config-loader/config-loader.js';
 
 import _ from 'lodash';
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
 
 type ApiRootModel = Model & { apiRoot: string };
 
@@ -24,8 +24,8 @@ import {
 	filterAndSortPendingMigrations,
 	type MigrationStatus,
 	type BaseAsyncMigration,
-} from './utils';
-import { booleanToEnabledString } from '../config-loader/env';
+} from './utils.js';
+import { booleanToEnabledString } from '../config-loader/env.js';
 
 export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 	const { migrations } = model;

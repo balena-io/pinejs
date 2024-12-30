@@ -1,4 +1,4 @@
-import type { Resolvable } from './common-types';
+import type { Resolvable } from './common-types.js';
 
 import _ from 'lodash';
 import { TypedError } from 'typed-error';

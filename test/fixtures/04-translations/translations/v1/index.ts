@@ -1,11 +1,11 @@
-import type { ConfigLoader } from '../../../../../src/server-glue/module';
-import { getAbstractSqlModelFromFile } from '../../../../../src/bin/utils';
+import type { ConfigLoader } from '../../../../../src/server-glue/module.js';
+import { getAbstractSqlModelFromFile } from '../../../../../src/bin/utils.js';
 import type { AbstractSqlQuery } from '@balena/abstract-sql-compiler';
 
 export const toVersion = 'v2';
 
-export const v1AbstractSqlModel = getAbstractSqlModelFromFile(
-	__dirname + '/university.sbvr',
+export const v1AbstractSqlModel = await getAbstractSqlModelFromFile(
+	import.meta.dirname + '/university.sbvr',
 	undefined,
 );
 

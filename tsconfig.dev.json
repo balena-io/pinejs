@@ -1,13 +1,15 @@
 {
 	"extends": "./tsconfig.json",
 	"compilerOptions": {
-		"rootDir": "."
+		"rootDir": ".",
+		"allowImportingTsExtensions": true
 	},
 	"include": [
 		"build/**/*",
+		"bin/**/*",
 		"src/**/*",
 		"test/**/*",
 		"typings/**/*.d.ts",
-		"Gruntfile.ts"
+		"Gruntfile.cts"
 	]
 }

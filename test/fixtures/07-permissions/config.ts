@@ -1,8 +1,8 @@
-import type { ConfigLoader } from '../../../src/server-glue/module';
+import type { ConfigLoader } from '../../../src/server-glue/module.js';
 
 const apiRoot = 'university';
 const modelName = 'university';
-const modelFile = __dirname + '/university.sbvr';
+const modelFile = import.meta.dirname + '/university.sbvr';
 
 export default {
 	models: [
