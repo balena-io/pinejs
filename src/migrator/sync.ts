@@ -15,9 +15,9 @@ import type { Config, Model } from '../config-loader/config-loader';
 
 import _ from 'lodash';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils';
+import { requireSBVR } from '../server-glue/sbvr-loader';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const migrationsModel = require('./migrations.sbvr');
+const migrationsModel = requireSBVR('./migrations.sbvr', require);
 
 type ApiRootModel = Model & { apiRoot: string };
 

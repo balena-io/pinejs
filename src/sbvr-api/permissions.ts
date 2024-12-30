@@ -51,13 +51,13 @@ import {
 	metadataEndpoints,
 	type ODataRequest,
 } from './uri-parser';
-import memoizeWeak = require('memoizee/weak');
+import memoizeWeak from 'memoizee/weak';
 import type { Config } from '../config-loader/config-loader';
 import type { ODataOptions } from 'pinejs-client-core';
 import type { Permission } from './user';
+import { requireSBVR } from '../server-glue/sbvr-loader';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const userModel: string = require('./user.sbvr');
+const userModel = requireSBVR('./user.sbvr', require);
 
 const DEFAULT_ACTOR_BIND = '@__ACTOR_ID';
 const DEFAULT_ACTOR_BIND_REGEX = new RegExp(
@@ -1787,7 +1787,7 @@ declare module './sbvr-utils' {
 const authModelConfig = {
 	apiRoot: 'Auth',
 	modelText: userModel,
-	customServerCode: exports,
+	customServerCode: { setup },
 	migrations: {
 		'11.0.0-modified-at': `
 			ALTER TABLE "actor"
@@ -1826,7 +1826,7 @@ const authModelConfig = {
 export const config = {
 	models: [authModelConfig],
 } satisfies Config;
-export const setup = () => {
+export function setup() {
 	addHook('all', 'all', 'all', {
 		sideEffects: false,
 		readOnlyTx: true,
@@ -1924,4 +1924,4 @@ export const setup = () => {
 				id: request.values.actor,
 			}),
 	});
-};
+}

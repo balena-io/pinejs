@@ -44,10 +44,10 @@ import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser
 import * as asyncMigrator from '../migrator/async';
 import * as syncMigrator from '../migrator/sync';
 import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
+import { requireSBVR } from '../server-glue/sbvr-loader';
 
 import type DevModel from './dev';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const devModel = require('./dev.sbvr');
+const devModel = requireSBVR('./dev.sbvr', require);
 import * as permissions from './permissions';
 import {
 	BadRequestError,
@@ -83,7 +83,7 @@ export {
 	addSideEffectHook,
 } from './hooks';
 
-import memoizeWeak = require('memoizee/weak');
+import memoizeWeak from 'memoizee/weak';
 import * as controlFlow from './control-flow';
 
 export let db = undefined as any as Db.Database;
@@ -2069,7 +2069,7 @@ export const setup = async (
 	_app: Express.Application,
 	$db: Db.Database,
 ): Promise<void> => {
-	exports.db = db = $db;
+	db = $db;
 	try {
 		await db.transaction(async (tx) => {
 			await executeStandardModels(tx);
@@ -2092,7 +2092,7 @@ export const postSetup = async (
 	_app: Express.Application,
 	$db: Db.Database,
 ): Promise<void> => {
-	exports.db = db = $db;
+	db = $db;
 	try {
 		await db.transaction(async (tx) => {
 			await postExecuteModels(tx);

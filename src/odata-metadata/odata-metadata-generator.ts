@@ -4,9 +4,7 @@ import type {
 } from '@balena/abstract-sql-compiler';
 
 import sbvrTypes, { type SbvrType } from '@balena/sbvr-types';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { version }: { version: string } = require('../../package.json');
+import { version } from '../config-loader/env';
 
 const getResourceName = (resourceName: string): string =>
 	resourceName

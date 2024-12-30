@@ -207,7 +207,7 @@ export const setup: SetupFunction = async (app, sbvrUtils, db) => {
 					console.warn(
 						'DEL /cleardb is very destructive and should really be followed by a full restart/reload.',
 					);
-					await sbvrUtils.executeModels(tx, exports.config.models);
+					await sbvrUtils.executeModels(tx, config.models);
 					await setupModels(tx);
 				});
 				res.status(200).end();
@@ -377,7 +377,7 @@ export const setup: SetupFunction = async (app, sbvrUtils, db) => {
 	await db.transaction(setupModels);
 };
 
-export const config: Config = {
+export const config = {
 	models: [
 		{
 			modelName: 'ui',
@@ -409,4 +409,4 @@ ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT N
 			},
 		},
 	],
-};
+} satisfies Config;

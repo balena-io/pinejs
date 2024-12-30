@@ -10,11 +10,11 @@ import { Worker } from './worker';
 import type TasksModel from './tasks';
 import type { Task } from './tasks';
 import type { FromSchema } from 'json-schema-to-ts';
+import { requireSBVR } from '../server-glue/sbvr-loader';
 
 export type * from './tasks';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const modelText: string = require('./tasks.sbvr');
+const modelText = requireSBVR('./tasks.sbvr', require);
 
 // Create index for polling tasks table
 const initSql = `
@@ -37,7 +37,7 @@ export const config: ConfigLoader.Config = {
 			modelName: apiRoot,
 			apiRoot,
 			modelText,
-			customServerCode: exports,
+			customServerCode: { setup },
 			initSql,
 		},
 	],

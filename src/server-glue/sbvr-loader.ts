@@ -20,3 +20,16 @@ if (!process.browser) {
 	nodeRequire.extensions['.sbvr'] = (module: NodeModule, filename: string) =>
 		(module.exports = fs.readFileSync(filename, 'utf8'));
 }
+
+/**
+ *
+ * @param filePath The module to load
+ * @param parentUrl Use `require`
+ * @returns The sbvr file contents
+ */
+export function requireSBVR(filePath: string, require: NodeRequire) {
+	return (require('fs') as typeof import('fs')).readFileSync(
+		require.resolve(filePath),
+		'utf8',
+	);
+}
