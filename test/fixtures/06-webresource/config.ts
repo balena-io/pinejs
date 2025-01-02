@@ -1,5 +1,5 @@
 import type { ConfigLoader } from '@balena/pinejs';
-import { webResourceHandler } from '@balena/pinejs';
+import { S3Handler } from '@balena/pinejs-webresource-s3';
 import { v1AbstractSqlModel, v1Translations } from './translations/v1/index.js';
 import { requiredVar, intVar } from '@balena/env-parsing';
 
@@ -7,15 +7,14 @@ const apiRoot = 'example';
 const modelName = 'example';
 const modelFile = import.meta.dirname + '/example.sbvr';
 
-const s3Handler: webResourceHandler.WebResourceHandler =
-	new webResourceHandler.S3Handler({
-		bucket: requiredVar('S3_STORAGE_ADAPTER_BUCKET'),
-		region: requiredVar('S3_REGION'),
-		accessKey: requiredVar('S3_ACCESS_KEY'),
-		secretKey: requiredVar('S3_SECRET_KEY'),
-		endpoint: requiredVar('S3_ENDPOINT'),
-		maxSize: intVar('PINEJS_WEBRESOURCE_MAXFILESIZE'),
-	});
+const s3Handler = new S3Handler({
+	bucket: requiredVar('S3_STORAGE_ADAPTER_BUCKET'),
+	region: requiredVar('S3_REGION'),
+	accessKey: requiredVar('S3_ACCESS_KEY'),
+	secretKey: requiredVar('S3_SECRET_KEY'),
+	endpoint: requiredVar('S3_ENDPOINT'),
+	maxSize: intVar('PINEJS_WEBRESOURCE_MAXFILESIZE'),
+});
 
 export default {
 	models: [
