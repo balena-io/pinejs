@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update dependencies
+      hash: a909ee054f395de407ec4e1275fd0f5b7514fe29
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 19.7.2
+  title: ""
+  date: 2025-01-02T16:47:36.699Z
+- commits:
     - subject: Use/export explicit functions for loading SBVR files
       hash: c47a755613fec8293547c7cfb34cc9e707a7c703
       body: |
@@ -2047,6 +2059,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2069,6 +2082,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2125,6 +2139,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2263,6 +2278,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2291,6 +2307,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2358,6 +2375,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2392,6 +2410,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2556,6 +2575,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
