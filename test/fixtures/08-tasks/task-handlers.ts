@@ -1,5 +1,5 @@
 import type { FromSchema } from 'json-schema-to-ts';
-import { sbvrUtils, tasks } from '../../..';
+import { sbvrUtils, tasks } from '@balena/pinejs';
 
 // Define JSON schema for accepted parameters
 const createDeviceParamsSchema = {

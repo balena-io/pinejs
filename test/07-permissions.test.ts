@@ -2,8 +2,8 @@ import supertest from 'supertest';
 import { expect } from 'chai';
 const configPath = __dirname + '/fixtures/07-permissions/config.js';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
-import { sbvrUtils, permissions } from '..';
-import type UserModel from '../out/sbvr-api/user';
+import { sbvrUtils, permissions } from '@balena/pinejs';
+import type UserModel from '@balena/pinejs/out/sbvr-api/user';
 
 describe('07 permissions tests', function () {
 	let pineServer: Awaited<ReturnType<typeof testInit>>;

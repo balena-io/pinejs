@@ -1,6 +1,6 @@
 import type express from 'express';
 import onFinished from 'on-finished';
-import { sbvrUtils, errors } from '../../..';
+import { sbvrUtils, errors } from '@balena/pinejs';
 import { setTimeout } from 'timers/promises';
 import { track } from './util';
 

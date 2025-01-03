@@ -1,4 +1,4 @@
-import { getAbstractSqlModelFromFile } from '../../../../../out/bin/utils';
+import { getAbstractSqlModelFromFile } from '@balena/pinejs/out/bin/utils';
 import type { AbstractSqlQuery } from '@balena/abstract-sql-compiler';
 
 export const v5AbstractSqlModel = getAbstractSqlModelFromFile(

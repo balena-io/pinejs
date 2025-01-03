@@ -4,8 +4,8 @@ import { randomUUID } from 'node:crypto';
 import { setTimeout } from 'node:timers/promises';
 import { PineTest } from 'pinejs-client-supertest';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
-import { env } from '..';
-import type Model from '../out/tasks/tasks';
+import { env } from '@balena/pinejs';
+import type Model from '@balena/pinejs/out/tasks/tasks';
 import * as cronParser from 'cron-parser';
 import { PINE_TEST_SIGNALS } from './lib/common';
 

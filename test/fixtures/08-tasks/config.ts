@@ -1,15 +1,15 @@
-import type { ConfigLoader } from '../../..';
+import type { ConfigLoader } from '@balena/pinejs';
 
 export default {
 	models: [
 		{
 			modelName: 'Auth',
-			modelFile: __dirname + '/../../../out/sbvr-api/user.sbvr',
+			modelFile: require.resolve('@balena/pinejs/out/sbvr-api/user.sbvr'),
 			apiRoot: 'Auth',
 		},
 		{
 			modelName: 'tasks',
-			modelFile: __dirname + '/../../../out/tasks/tasks.sbvr',
+			modelFile: require.resolve('@balena/pinejs/out/tasks/tasks.sbvr'),
 			apiRoot: 'tasks',
 		},
 		{

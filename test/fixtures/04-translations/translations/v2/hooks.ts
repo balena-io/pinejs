@@ -1,4 +1,4 @@
-import { sbvrUtils, errors } from '../../../../..';
+import { sbvrUtils, errors } from '@balena/pinejs';
 
 const addHook = (
 	methods: Array<Parameters<typeof sbvrUtils.addPureHook>[0]>,

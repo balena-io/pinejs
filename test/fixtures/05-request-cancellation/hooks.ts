@@ -1,5 +1,5 @@
 import { setTimeout } from 'timers/promises';
-import { sbvrUtils } from '../../..';
+import { sbvrUtils } from '@balena/pinejs';
 import { track } from './util';
 
 sbvrUtils.addPureHook('POST', 'example', 'slow_resource', {

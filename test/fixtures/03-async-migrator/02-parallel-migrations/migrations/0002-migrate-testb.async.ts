@@ -1,4 +1,4 @@
-import type { Migrator } from '../../../../..';
+import type { Migrator } from '@balena/pinejs';
 
 const migration: Migrator.AsyncMigration = {
 	asyncFn: async (tx, options) => {

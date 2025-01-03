@@ -2,8 +2,8 @@ import supertest from 'supertest';
 import type { ChildProcess } from 'child_process';
 import { assert, expect } from 'chai';
 import { setTimeout } from 'timers';
-import type { Migrator } from '..';
-import { dbModule } from '..';
+import type { Migrator } from '@balena/pinejs';
+import { dbModule } from '@balena/pinejs';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
 
 const fixturesBasePath = __dirname + '/fixtures/03-async-migrator/';

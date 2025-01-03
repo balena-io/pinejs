@@ -1,5 +1,5 @@
-import type { ConfigLoader } from '../../../../..';
-import { getAbstractSqlModelFromFile } from '../../../../../out/bin/utils';
+import type { ConfigLoader } from '@balena/pinejs';
+import { getAbstractSqlModelFromFile } from '@balena/pinejs/out/bin/utils';
 
 export const toVersion = 'example';
 

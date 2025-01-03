@@ -1,5 +1,5 @@
-import type { ConfigLoader } from '../../..';
-import { webResourceHandler } from '../../..';
+import type { ConfigLoader } from '@balena/pinejs';
+import { webResourceHandler } from '@balena/pinejs';
 import { v1AbstractSqlModel, v1Translations } from './translations/v1';
 import { requiredVar, intVar } from '@balena/env-parsing';
 

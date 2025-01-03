@@ -1,4 +1,4 @@
-import type { ConfigLoader } from '../../..';
+import type { ConfigLoader } from '@balena/pinejs';
 
 const apiRoot = 'university';
 const modelName = 'university';

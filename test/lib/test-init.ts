@@ -1,8 +1,8 @@
 import type { ChildProcess } from 'child_process';
 import { fork } from 'child_process';
 import { boolVar } from '@balena/env-parsing';
-import type { types } from '../..';
-import { dbModule } from '../..';
+import type { types } from '@balena/pinejs';
+import { dbModule } from '@balena/pinejs';
 import type { PineTestOptions } from './pine-init';
 export const listenPortDefault = 1337;
 export const testLocalServer = `http://localhost:${listenPortDefault}`;
