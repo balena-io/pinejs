@@ -1,6 +1,6 @@
-import type { AsyncMigration } from '../../../../../src/migrator/utils';
+import type { Migrator } from '@balena/pinejs';
 
-const migration: AsyncMigration = {
+const migration: Migrator.AsyncMigration = {
 	asyncFn: async (tx, options) => {
 		const staticSql = `\
 		UPDATE "deviceb"

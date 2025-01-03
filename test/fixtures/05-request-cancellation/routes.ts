@@ -1,15 +1,13 @@
 import type express from 'express';
 import onFinished from 'on-finished';
-import * as pine from '../../../src/server-glue/module';
-import { handleHttpErrors } from '../../../src/sbvr-api/sbvr-utils';
+import { sbvrUtils, errors } from '@balena/pinejs';
 import { setTimeout } from 'timers/promises';
 import { track } from './util';
-import { BadRequestError } from '../../../src/sbvr-api/errors';
 
 export const initRoutes = (app: express.Express) => {
 	app.post('/slow-custom-endpoint', async (req, res) => {
 		try {
-			const response = await pine.sbvrUtils.db.transaction(async (tx) => {
+			const response = await sbvrUtils.db.transaction(async (tx) => {
 				await track('POST /slow-custom-endpoint tx started');
 				const tryCancelRequest = () => {
 					if (!tx.isClosed()) {
@@ -24,10 +22,10 @@ export const initRoutes = (app: express.Express) => {
 						onFinished(res, tryCancelRequest);
 						break;
 					default:
-						throw new BadRequestError(`query.event: ${req.query.event}`);
+						throw new errors.BadRequestError(`query.event: ${req.query.event}`);
 				}
 
-				const apiTx = pine.sbvrUtils.api.example.clone({
+				const apiTx = sbvrUtils.api.example.clone({
 					passthrough: { req, tx },
 				});
 				const slowResource = await apiTx.post({
@@ -64,7 +62,7 @@ export const initRoutes = (app: express.Express) => {
 
 			res.status(201).json(response);
 		} catch (err) {
-			if (err instanceof Error && handleHttpErrors(req, res, err)) {
+			if (err instanceof Error && sbvrUtils.handleHttpErrors(req, res, err)) {
 				await track(`POST /slow-custom-endpoint caught: ${err.name}`);
 				return;
 			}
