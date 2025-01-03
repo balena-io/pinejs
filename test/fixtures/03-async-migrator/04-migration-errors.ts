@@ -1,9 +1,9 @@
-import type { ConfigLoader } from '../../../src/server-glue/module';
+import type { ConfigLoader } from '../../../src/server-glue/module.js';
 
 const apiRoot = 'example';
 const modelName = 'example';
-const modelFile = __dirname + '/example.sbvr';
-const migrationsPath = __dirname + '/04-migration-errors/migrations';
+const modelFile = import.meta.dirname + '/example.sbvr';
+const migrationsPath = import.meta.dirname + '/04-migration-errors/migrations';
 
 export default {
 	models: [

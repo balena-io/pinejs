@@ -1,4 +1,4 @@
-import type { AnyObject, Tail } from './common-types';
+import type { AnyObject, Tail } from './common-types.js';
 
 import { TypedError } from 'typed-error';
 

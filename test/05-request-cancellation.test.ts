@@ -1,8 +1,11 @@
 import { expect } from 'chai';
-const configPath = __dirname + '/fixtures/05-request-cancellation/config.js';
-const hooksPath = __dirname + '/fixtures/05-request-cancellation/hooks.js';
-const routesPath = __dirname + '/fixtures/05-request-cancellation/routes.js';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init';
+const configPath =
+	import.meta.dirname + '/fixtures/05-request-cancellation/config.js';
+const hooksPath =
+	import.meta.dirname + '/fixtures/05-request-cancellation/hooks.js';
+const routesPath =
+	import.meta.dirname + '/fixtures/05-request-cancellation/routes.js';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
 import { PineTest } from 'pinejs-client-supertest';
 import request from 'request';
 import { setTimeout } from 'timers/promises';

@@ -1,10 +1,10 @@
-import type { ConfigLoader } from '../../../../../src/server-glue/module';
-import { getAbstractSqlModelFromFile } from '../../../../../src/bin/utils';
+import type { ConfigLoader } from '../../../../../src/server-glue/module.js';
+import { getAbstractSqlModelFromFile } from '../../../../../src/bin/utils.js';
 
 export const toVersion = 'example';
 
-export const v1AbstractSqlModel = getAbstractSqlModelFromFile(
-	__dirname + '/example.sbvr',
+export const v1AbstractSqlModel = await getAbstractSqlModelFromFile(
+	import.meta.dirname + '/example.sbvr',
 	undefined,
 );
 

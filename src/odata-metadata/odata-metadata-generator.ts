@@ -3,8 +3,9 @@ import type {
 	AbstractSqlTable,
 } from '@balena/abstract-sql-compiler';
 
-import sbvrTypes, { type SbvrType } from '@balena/sbvr-types';
-import { version } from '../config-loader/env';
+import type { SbvrType } from '@balena/sbvr-types';
+import { sbvrTypes } from '../sbvr-api/sbvr-utils.js';
+import { version } from '../config-loader/env.js';
 
 const getResourceName = (resourceName: string): string =>
 	resourceName

@@ -1,6 +1,6 @@
 import { setTimeout } from 'timers/promises';
-import { sbvrUtils } from '../../../src/server-glue/module';
-import { track } from './util';
+import { sbvrUtils } from '../../../src/server-glue/module.js';
+import { track } from './util.js';
 
 sbvrUtils.addPureHook('POST', 'example', 'slow_resource', {
 	async POSTRUN({ request, api }) {

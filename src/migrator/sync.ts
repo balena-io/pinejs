@@ -1,4 +1,4 @@
-import type MigrationsModel from './migrations';
+import type MigrationsModel from './migrations.js';
 import {
 	type MigrationTuple,
 	MigrationError,
@@ -9,15 +9,15 @@ import {
 	type RunnableMigrations,
 	filterAndSortPendingMigrations,
 	getRunnableSyncMigrations,
-} from './utils';
-import type { Tx } from '../database-layer/db';
-import type { Config, Model } from '../config-loader/config-loader';
+} from './utils.js';
+import type { Tx } from '../database-layer/db.js';
+import type { Config, Model } from '../config-loader/config-loader.js';
 
 import _ from 'lodash';
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-import { requireSBVR } from '../server-glue/sbvr-loader';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
+import { importSBVR } from '../server-glue/sbvr-loader.js';
 
-const migrationsModel = requireSBVR('./migrations.sbvr', require);
+const migrationsModel = await importSBVR('./migrations.sbvr', import.meta);
 
 type ApiRootModel = Model & { apiRoot: string };
 
@@ -137,7 +137,7 @@ const executeMigration = async (
 	}
 };
 
-declare module '../sbvr-api/sbvr-utils' {
+declare module '../sbvr-api/sbvr-utils.js' {
 	export interface API {
 		[migrationModelConfig.apiRoot]: PinejsClient<MigrationsModel>;
 	}

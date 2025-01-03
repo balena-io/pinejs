@@ -1,16 +1,18 @@
 process.env.PINEJS_CACHE_FILE =
-	process.env.PINEJS_CACHE_FILE || __dirname + '/.pinejs-cache.json';
+	process.env.PINEJS_CACHE_FILE ||
+	fileURLToPath(new URL('.pinejs-cache.json', import.meta.url));
 
 import type { SqlModel } from '@balena/abstract-sql-compiler';
-import type { Config, Model } from '../config-loader/config-loader';
-import type * as SbvrUtils from '../sbvr-api/sbvr-utils';
+import type { Config, Model } from '../config-loader/config-loader.js';
 import type { AbstractSqlModel } from '@balena/abstract-sql-compiler';
 
-import * as fs from 'fs';
-import * as path from 'path';
-import '../server-glue/sbvr-loader';
+import fs from 'fs';
+import path from 'path';
+import '../server-glue/sbvr-loader.js';
+import { fileURLToPath } from 'url';
+import { loadSBVR } from '../server-glue/sbvr-loader.js';
 
-export { version } from '../config-loader/env';
+export { version } from '../config-loader/env.js';
 
 export const writeAll = (output: string, outputFile?: string): void => {
 	if (outputFile) {
@@ -68,15 +70,21 @@ const getConfigModel = (
 	return fileContents;
 };
 
-export const getAbstractSqlModelFromFile = (
+export const getAbstractSqlModelFromFile = async (
 	modelFile: string,
 	modelName: string | undefined,
-): AbstractSqlModel => {
+): Promise<AbstractSqlModel> => {
 	let fileContents: string | Model | AbstractSqlModel | Config;
 	try {
-		fileContents = require(path.resolve(modelFile));
+		fileContents = await import(path.resolve(modelFile));
 	} catch {
-		fileContents = fs.readFileSync(require.resolve(modelFile), 'utf8');
+		fileContents = await fs.promises.readFile(path.resolve(modelFile), 'utf8');
+		try {
+			// Try to parse the file as JSON
+			fileContents = JSON.parse(fileContents);
+		} catch {
+			// Ignore error as it's likely just a text sbvr file
+		}
 	}
 	let seModel: string;
 	if (fileContents == null) {
@@ -94,16 +102,16 @@ export const getAbstractSqlModelFromFile = (
 		} else if ('modelText' in configModel && configModel.modelText != null) {
 			seModel = configModel.modelText;
 		} else if ('modelFile' in configModel && configModel.modelFile != null) {
-			seModel = fs.readFileSync(require.resolve(configModel.modelFile), 'utf8');
+			seModel = await loadSBVR(configModel.modelFile, import.meta);
 		} else {
 			throw new Error('Unrecognized config file');
 		}
 	} else {
 		throw new Error('Unrecognized config file');
 	}
-	const { generateLfModel, generateAbstractSqlModel } =
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		require('../sbvr-api/sbvr-utils') as typeof SbvrUtils;
+	const { generateLfModel, generateAbstractSqlModel } = await import(
+		'../sbvr-api/sbvr-utils.js'
+	);
 	let lfModel;
 	try {
 		lfModel = generateLfModel(seModel);

@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-require('../out/bin/sbvr-compiler');
+import '../out/bin/sbvr-compiler.js';

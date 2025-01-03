@@ -1,8 +1,8 @@
-import type { ConfigLoader } from '../../../src/server-glue/module';
+import type { ConfigLoader } from '../../../src/server-glue/module.js';
 
 const apiRoot = 'example';
 const modelName = 'example';
-const modelFile = __dirname + '/example.sbvr';
+const modelFile = import.meta.dirname + '/example.sbvr';
 
 export default {
 	models: [
@@ -13,12 +13,12 @@ export default {
 			migrations: {
 				'0001': `
 					INSERT INTO "device" ("id", "name", "note", "type")
-					VALUES (2, 'no run', 'shouldNotRun', 'empty')			
+					VALUES (2, 'no run', 'shouldNotRun', 'empty')
 				`,
 			},
 			initSql: `
 				INSERT INTO "device" ("id", "name", "note", "type")
-				VALUES (1, 'initName', 'shouldBeInit', 'init')			
+				VALUES (1, 'initName', 'shouldBeInit', 'init')
 			`,
 		},
 	],

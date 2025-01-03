@@ -1,10 +1,10 @@
-import type * as Express from 'express';
-import type * as Passport from 'passport';
-import type * as PassportLocal from 'passport-local';
-import type * as ConfigLoader from '../config-loader/config-loader';
-import type { User } from '../sbvr-api/sbvr-utils';
+import type Express from 'express';
+import type Passport from 'passport';
+import type PassportLocal from 'passport-local';
+import type * as ConfigLoader from '../config-loader/config-loader.js';
+import type { User } from '../sbvr-api/sbvr-utils.js';
 
-import * as permissions from '../sbvr-api/permissions';
+import * as permissions from '../sbvr-api/permissions.js';
 
 // Returns a middleware that will handle logging in using `username` and `password` body properties
 export let login: (

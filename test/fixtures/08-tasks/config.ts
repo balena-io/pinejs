@@ -1,20 +1,20 @@
-import type { ConfigLoader } from '../../../src/server-glue/module';
+import type { ConfigLoader } from '../../../src/server-glue/module.js';
 
 export default {
 	models: [
 		{
 			modelName: 'Auth',
-			modelFile: __dirname + '/../../../src/sbvr-api/user.sbvr',
+			modelFile: import.meta.dirname + '/../../../src/sbvr-api/user.sbvr',
 			apiRoot: 'Auth',
 		},
 		{
 			modelName: 'tasks',
-			modelFile: __dirname + '/../../../src/tasks/tasks.sbvr',
+			modelFile: import.meta.dirname + '/../../../src/tasks/tasks.sbvr',
 			apiRoot: 'tasks',
 		},
 		{
 			modelName: 'example',
-			modelFile: __dirname + '/example.sbvr',
+			modelFile: import.meta.dirname + '/example.sbvr',
 			apiRoot: 'example',
 		},
 	],

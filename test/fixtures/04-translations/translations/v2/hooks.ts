@@ -1,5 +1,5 @@
-import { NotFoundError } from '../../../../../src/sbvr-api/errors';
-import { sbvrUtils } from '../../../../../src/server-glue/module';
+import { NotFoundError } from '../../../../../src/sbvr-api/errors.js';
+import { sbvrUtils } from '../../../../../src/server-glue/module.js';
 
 const addHook = (
 	methods: Array<Parameters<typeof sbvrUtils.addPureHook>[0]>,

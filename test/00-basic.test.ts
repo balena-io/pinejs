@@ -1,7 +1,7 @@
 import supertest from 'supertest';
 import { expect } from 'chai';
-const configPath = __dirname + '/fixtures/00-basic/config.js';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init';
+const configPath = import.meta.dirname + '/fixtures/00-basic/config.js';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
 
 describe('00 basic tests', function () {
 	let pineServer: Awaited<ReturnType<typeof testInit>>;
