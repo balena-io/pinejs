@@ -1,4 +1,4 @@
-import type { ConfigLoader } from '../../../out/server-glue/module';
+import type { ConfigLoader } from '../../..';
 
 const apiRoot = 'example';
 const modelName = 'example';

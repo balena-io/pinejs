@@ -1,4 +1,4 @@
-import type { ConfigLoader } from '../../../../../out/server-glue/module';
+import type { ConfigLoader } from '../../../../..';
 import { getAbstractSqlModelFromFile } from '../../../../../out/bin/utils';
 import type {
 	AbstractSqlQuery,

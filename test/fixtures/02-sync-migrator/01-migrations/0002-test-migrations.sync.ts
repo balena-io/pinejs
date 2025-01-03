@@ -1,4 +1,4 @@
-import type { Migrator } from '../../../../out/server-glue/module';
+import type { Migrator } from '../../../..';
 
 const migration: Migrator.MigrationFn = async (tx) => {
 	const staticSql = `\

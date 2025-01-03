@@ -1,4 +1,4 @@
-import { sbvrUtils } from '../../../../../out/server-glue/module';
+import { sbvrUtils } from '../../../../..';
 
 const addHook = (
 	methods: Array<Parameters<typeof sbvrUtils.addPureHook>[0]>,

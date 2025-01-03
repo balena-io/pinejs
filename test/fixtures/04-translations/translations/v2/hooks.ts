@@ -1,5 +1,4 @@
-import { NotFoundError } from '../../../../../out/sbvr-api/errors';
-import { sbvrUtils } from '../../../../../out/server-glue/module';
+import { sbvrUtils, errors } from '../../../../..';
 
 const addHook = (
 	methods: Array<Parameters<typeof sbvrUtils.addPureHook>[0]>,
@@ -24,7 +23,7 @@ addHook(['PUT', 'POST', 'PATCH'], 'student', {
 			});
 
 			if (campus == null) {
-				throw new NotFoundError(
+				throw new errors.NotFoundError(
 					`Campus with name '${request.values.studies_at__campus}' does not exist`,
 				);
 			}

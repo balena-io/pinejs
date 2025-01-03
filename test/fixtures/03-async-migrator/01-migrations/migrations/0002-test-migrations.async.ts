@@ -1,6 +1,6 @@
-import type { AsyncMigration } from '../../../../../out/migrator/utils';
+import type { Migrator } from '../../../../..';
 
-const migration: AsyncMigration = {
+const migration: Migrator.AsyncMigration = {
 	asyncFn: async (tx, options) => {
 		const staticSql = `\
 		UPDATE "device"

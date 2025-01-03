@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { setTimeout } from 'node:timers/promises';
 import { PineTest } from 'pinejs-client-supertest';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
-import { tasks as tasksEnv } from '../out/config-loader/env';
+import { env } from '..';
 import type Model from '../out/tasks/tasks';
 import * as cronParser from 'cron-parser';
 import { PINE_TEST_SIGNALS } from './lib/common';
@@ -17,7 +17,7 @@ export async function waitFor(checkFn: () => Promise<boolean>): Promise<void> {
 	const maxCount = 10;
 	for (let i = 1; i <= maxCount; i++) {
 		console.log(`Waiting (${i}/${maxCount})...`);
-		await setTimeout(tasksEnv.queueIntervalMS);
+		await setTimeout(env.tasks.queueIntervalMS);
 		if (await checkFn()) {
 			return;
 		}
@@ -229,8 +229,8 @@ describe('08 task tests', function () {
 			expect(created).to.be.lessThan(started);
 
 			// Calculate the earliest and latest start times based on queue interval
-			const earliest = scheduled - tasksEnv.queueIntervalMS;
-			const latest = scheduled + tasksEnv.queueIntervalMS;
+			const earliest = scheduled - env.tasks.queueIntervalMS;
+			const latest = scheduled + env.tasks.queueIntervalMS;
 
 			// Check if the start time was within the expected range
 			expect(started)
@@ -423,7 +423,7 @@ describe('08 task tests', function () {
 			});
 
 			// Await more than the queue interval to ensure the task is not picked up
-			await setTimeout(2 * tasksEnv.queueIntervalMS);
+			await setTimeout(2 * env.tasks.queueIntervalMS);
 
 			await expectTask(pineTest, task.id, {
 				status: 'queued',

@@ -1,6 +1,5 @@
-import type { ConfigLoader } from '../../../out/server-glue/module';
-import type { WebResourceHandler } from '../../../out/webresource-handler';
-import { S3Handler } from '../../../out/webresource-handler/handlers/S3Handler';
+import type { ConfigLoader } from '../../..';
+import { webResourceHandler } from '../../..';
 import { v1AbstractSqlModel, v1Translations } from './translations/v1';
 import { requiredVar, intVar } from '@balena/env-parsing';
 
@@ -8,14 +7,15 @@ const apiRoot = 'example';
 const modelName = 'example';
 const modelFile = __dirname + '/example.sbvr';
 
-const s3Handler: WebResourceHandler = new S3Handler({
-	bucket: requiredVar('S3_STORAGE_ADAPTER_BUCKET'),
-	region: requiredVar('S3_REGION'),
-	accessKey: requiredVar('S3_ACCESS_KEY'),
-	secretKey: requiredVar('S3_SECRET_KEY'),
-	endpoint: requiredVar('S3_ENDPOINT'),
-	maxSize: intVar('PINEJS_WEBRESOURCE_MAXFILESIZE'),
-});
+const s3Handler: webResourceHandler.WebResourceHandler =
+	new webResourceHandler.S3Handler({
+		bucket: requiredVar('S3_STORAGE_ADAPTER_BUCKET'),
+		region: requiredVar('S3_REGION'),
+		accessKey: requiredVar('S3_ACCESS_KEY'),
+		secretKey: requiredVar('S3_SECRET_KEY'),
+		endpoint: requiredVar('S3_ENDPOINT'),
+		maxSize: intVar('PINEJS_WEBRESOURCE_MAXFILESIZE'),
+	});
 
 export default {
 	models: [

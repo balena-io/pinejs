@@ -1,6 +1,6 @@
 import express from 'express';
 import { exit } from 'process';
-import * as pine from '../../out/server-glue/module';
+import * as pine from '../..';
 
 export type PineTestOptions = {
 	configPath: string;
