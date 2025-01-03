@@ -2,7 +2,7 @@ import { exit } from 'process';
 import cluster from 'node:cluster';
 import type { PineTestOptions } from './pine-init';
 import { init } from './pine-init';
-import { tasks } from '../../src/server-glue/module';
+import { tasks } from '../../out/server-glue/module';
 import { PINE_TEST_SIGNALS } from './common';
 import { type Serializable } from 'child_process';
 

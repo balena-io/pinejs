@@ -1,5 +1,5 @@
 import { resolve } from 'path';
-import type { ConfigLoader } from '../../../../src/server-glue/module';
+import type { ConfigLoader } from '../../../../out/server-glue/module';
 
 const apiRoot = 'example';
 const modelName = 'example';

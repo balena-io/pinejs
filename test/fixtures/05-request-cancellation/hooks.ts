@@ -1,5 +1,5 @@
 import { setTimeout } from 'timers/promises';
-import { sbvrUtils } from '../../../src/server-glue/module';
+import { sbvrUtils } from '../../../out/server-glue/module';
 import { track } from './util';
 
 sbvrUtils.addPureHook('POST', 'example', 'slow_resource', {

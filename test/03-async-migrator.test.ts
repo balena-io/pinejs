@@ -2,9 +2,9 @@ import supertest from 'supertest';
 import type { ChildProcess } from 'child_process';
 import { assert, expect } from 'chai';
 import { setTimeout } from 'timers';
-import { dbModule } from '../src/server-glue/module';
+import { dbModule } from '../out/server-glue/module';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
-import type { MigrationStatus } from '../src/migrator/utils';
+import type { MigrationStatus } from '../out/migrator/utils';
 
 const fixturesBasePath = __dirname + '/fixtures/03-async-migrator/';
 

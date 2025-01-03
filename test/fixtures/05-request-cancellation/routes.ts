@@ -1,10 +1,10 @@
 import type express from 'express';
 import onFinished from 'on-finished';
-import * as pine from '../../../src/server-glue/module';
-import { handleHttpErrors } from '../../../src/sbvr-api/sbvr-utils';
+import * as pine from '../../../out/server-glue/module';
+import { handleHttpErrors } from '../../../out/sbvr-api/sbvr-utils';
 import { setTimeout } from 'timers/promises';
 import { track } from './util';
-import { BadRequestError } from '../../../src/sbvr-api/errors';
+import { BadRequestError } from '../../../out/sbvr-api/errors';
 
 export const initRoutes = (app: express.Express) => {
 	app.post('/slow-custom-endpoint', async (req, res) => {

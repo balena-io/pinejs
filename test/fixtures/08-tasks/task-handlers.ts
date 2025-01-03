@@ -1,5 +1,5 @@
 import type { FromSchema } from 'json-schema-to-ts';
-import { sbvrUtils, tasks } from '../../../src/server-glue/module';
+import { sbvrUtils, tasks } from '../../../out/server-glue/module';
 
 // Define JSON schema for accepted parameters
 const createDeviceParamsSchema = {
