@@ -1,4 +1,4 @@
-import type { ConfigLoader } from '../../../src/server-glue/module';
+import type { ConfigLoader } from '@balena/pinejs';
 
 const apiRoot = 'university';
 const modelName = 'university';

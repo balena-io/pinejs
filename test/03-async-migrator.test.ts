@@ -2,9 +2,9 @@ import supertest from 'supertest';
 import type { ChildProcess } from 'child_process';
 import { assert, expect } from 'chai';
 import { setTimeout } from 'timers';
-import { dbModule } from '../src/server-glue/module';
+import type { Migrator } from '@balena/pinejs';
+import { dbModule } from '@balena/pinejs';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init';
-import type { MigrationStatus } from '../src/migrator/utils';
 
 const fixturesBasePath = __dirname + '/fixtures/03-async-migrator/';
 
@@ -88,7 +88,9 @@ const waitForAllDataMigrated = async function (
 	return [result, allResults];
 };
 
-const getMigrationStatus = async function (): Promise<MigrationStatus[]> {
+const getMigrationStatus = async function (): Promise<
+	Migrator.MigrationStatus[]
+> {
 	const res = await supertest(testLocalServer).get(
 		'/migrations/migration_status',
 	);
@@ -142,7 +144,7 @@ describe('03 Async Migrations', function () {
 				.that.has.ownProperty('d')
 				.to.be.an('array');
 
-			res.body.d.map(async (migration: MigrationStatus) => {
+			res.body.d.map(async (migration: Migrator.MigrationStatus) => {
 				await supertest(testLocalServer)
 					.patch(`/migrations/migration_status('${migration.migration_key}')`)
 					.send({
@@ -153,7 +155,7 @@ describe('03 Async Migrations', function () {
 		});
 
 		it('should run one async migrator', async function () {
-			let result: MigrationStatus[] = [];
+			let result: Migrator.MigrationStatus[] = [];
 			// active wait until 1 row has been migrated
 			while (result.length === 0 || result[0]?.migrated_row_count < 1) {
 				result = await getMigrationStatus();
@@ -165,7 +167,7 @@ describe('03 Async Migrations', function () {
 
 		it('should complete / catch up data in one async migrator', async function () {
 			// active wait to check if migrations have catched up
-			let result: MigrationStatus[] = [];
+			let result: Migrator.MigrationStatus[] = [];
 			await waitForAllDataMigrated('device');
 			// active wait as updating migration status after migrations have done takes some time.
 			// dont want to wait for an artificial magic time delay.
@@ -177,7 +179,7 @@ describe('03 Async Migrations', function () {
 		});
 
 		it('should migrate future data change after first catch up', async function () {
-			let result: MigrationStatus[] = [];
+			let result: Migrator.MigrationStatus[] = [];
 
 			const startTime = Date.now().valueOf();
 			// first catch up is precondition from above test case.
@@ -218,7 +220,7 @@ describe('03 Async Migrations', function () {
 			pineFirstInstace = await testInit({ configPath, deleteDb: false });
 
 			await delay(200); // wait for one to have happened
-			let result: MigrationStatus[] = await getMigrationStatus();
+			let result: Migrator.MigrationStatus[] = await getMigrationStatus();
 			for (const row of result) {
 				expect(row.run_count).to.be.equal(0);
 			}
@@ -239,7 +241,7 @@ describe('03 Async Migrations', function () {
 			pineFirstInstace = await testInit({ configPath, deleteDb: false });
 
 			await delay(200); // wait for one to have happened
-			const result: MigrationStatus[] = await getMigrationStatus();
+			const result: Migrator.MigrationStatus[] = await getMigrationStatus();
 			for (const row of result) {
 				expect(row.run_count).to.be.greaterThan(0);
 			}
@@ -307,7 +309,7 @@ describe('03 Async Migrations', function () {
 		});
 
 		it('should start 2 migrations competitive', async function () {
-			let result: MigrationStatus[] = [];
+			let result: Migrator.MigrationStatus[] = [];
 			// active wait until 1 row has been migrated
 			while (
 				result.length < 2 ||
@@ -325,7 +327,7 @@ describe('03 Async Migrations', function () {
 		});
 
 		it('should complete / catch up all data in 2 migrations competitive', async function () {
-			let result: MigrationStatus[] = [];
+			let result: Migrator.MigrationStatus[] = [];
 			// active wait to check if migrations have catched up
 			await waitForAllDataMigrated('device');
 			await waitForAllDataMigrated('deviceb');
@@ -347,7 +349,7 @@ describe('03 Async Migrations', function () {
 		});
 
 		it('should migrate future data change after first catch up in 2 migrators', async function () {
-			let result: MigrationStatus[] = [];
+			let result: Migrator.MigrationStatus[] = [];
 			while (
 				result.length < 2 ||
 				result[0]?.is_backing_off === false ||
@@ -401,7 +403,7 @@ describe('03 Async Migrations', function () {
 			// It's meant to be a wait until we can 'surely' assume that the async migrations
 			// would have run at least one iteration. Still a magic number is undesired as it's error prone
 			await delay(2000); // wait for some migrations to have happened
-			let result: MigrationStatus[] = [];
+			let result: Migrator.MigrationStatus[] = [];
 
 			result = await getMigrationStatus();
 			expect(result).to.be.empty;
@@ -436,7 +438,7 @@ describe('03 Async Migrations', function () {
 		});
 
 		it('should report error in error count', async function () {
-			let rows: MigrationStatus[] = [];
+			let rows: Migrator.MigrationStatus[] = [];
 			// active wait until 1 row has been migrated
 			const errorMigrationKeys = ['0002', '0003'];
 			while (rows.length < 2 || !rows[0]?.error_count || !rows[1]?.run_count) {
@@ -455,7 +457,7 @@ describe('03 Async Migrations', function () {
 		});
 
 		it('should switch to backoff when exceeding error threshold and give error message', async function () {
-			let rows: MigrationStatus[] = [];
+			let rows: Migrator.MigrationStatus[] = [];
 			// active wait until 1 row has been migrated
 			const errorMigrationKeys = ['0002', '0003'];
 			while (
@@ -479,7 +481,7 @@ describe('03 Async Migrations', function () {
 		});
 
 		it('should remain in backoff when exceeding error threshold and give error message', async function () {
-			let rows: MigrationStatus[] = [];
+			let rows: Migrator.MigrationStatus[] = [];
 			// active wait until 1 row has been migrated
 			const errorMigrationKeys = ['0002', '0003'];
 			while (
@@ -504,7 +506,7 @@ describe('03 Async Migrations', function () {
 		});
 
 		it('should recover from error backoff when no migration error occurs and rows get migrated', async function () {
-			let rows: MigrationStatus[] = [];
+			let rows: Migrator.MigrationStatus[] = [];
 			// active wait until 1 row has been migrated
 			const errorMigrationKeys = ['0002'];
 			while (rows.length === 0 || rows[0]?.error_count <= 5) {
@@ -580,7 +582,7 @@ describe('03 Async Migrations', function () {
 		});
 
 		it('should complete / catch up massive data in one async migrator', async function () {
-			let rows: MigrationStatus[] = [];
+			let rows: Migrator.MigrationStatus[] = [];
 
 			const res = await supertest(testLocalServer)
 				.get('/example/device/$count')

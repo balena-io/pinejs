@@ -1,14 +1,14 @@
 import type { ChildProcess } from 'child_process';
 import { fork } from 'child_process';
 import { boolVar } from '@balena/env-parsing';
-import * as pine from '../../src/server-glue/module';
+import type { types } from '@balena/pinejs';
+import { dbModule } from '@balena/pinejs';
 import type { PineTestOptions } from './pine-init';
-import type { OptionalField } from '../../src/sbvr-api/common-types';
 export const listenPortDefault = 1337;
 export const testLocalServer = `http://localhost:${listenPortDefault}`;
 
 export async function testInit(
-	options: OptionalField<PineTestOptions, 'listenPort' | 'deleteDb'>,
+	options: types.OptionalField<PineTestOptions, 'listenPort' | 'deleteDb'>,
 ): Promise<ChildProcess> {
 	try {
 		const processArgs: PineTestOptions = {
@@ -72,7 +72,7 @@ async function cleanDb() {
 				) ?? 'postgres',
 			params: process.env.DATABASE_URL ?? 'localhost',
 		};
-		const initDb = pine.dbModule.connect(initDbOptions);
+		const initDb = dbModule.connect(initDbOptions);
 		await initDb.executeSql(
 			'DROP SCHEMA "public" CASCADE; CREATE SCHEMA "public";',
 		);

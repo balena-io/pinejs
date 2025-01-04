@@ -1,4 +1,4 @@
-import type { ConfigLoader } from '../../../src/server-glue/module';
+import type { ConfigLoader } from '@balena/pinejs';
 
 const apiRoot = 'example';
 const modelName = 'example';
@@ -23,7 +23,7 @@ export default {
 						CONCAT('a','b',trim(to_char(i,'0000000'))) as "name",
 						NULL as "note",
 						CONCAT('b','b',trim(to_char(i,'0000000'))) as "type"
-					FROM generate_series(21, 30) s(i);	
+					FROM generate_series(21, 30) s(i);
 					`);
 					},
 				},

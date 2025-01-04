@@ -1,4 +1,4 @@
-import type { ConfigLoader } from '../../../src/server-glue/module';
+import type { ConfigLoader } from '@balena/pinejs';
 
 const apiRoot = 'example';
 const modelName = 'example';
@@ -13,12 +13,12 @@ export default {
 			migrations: {
 				'0001': `
 					INSERT INTO "device" ("id", "name", "note", "type")
-					VALUES (2, 'no run', 'shouldNotRun', 'empty')			
+					VALUES (2, 'no run', 'shouldNotRun', 'empty')
 				`,
 			},
 			initSql: `
 				INSERT INTO "device" ("id", "name", "note", "type")
-				VALUES (1, 'initName', 'shouldBeInit', 'init')			
+				VALUES (1, 'initName', 'shouldBeInit', 'init')
 			`,
 		},
 	],
