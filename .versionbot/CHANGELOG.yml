@@ -1,4 +1,32 @@
 - commits:
+    - subject: "Tests: use `@balena/pinejs` for resolving to the runtime files"
+      hash: fc28f2efec230ea40150c14cbf7f062649f2fc40
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "Tests: avoid deep imports in favor of the standard module entrypoint"
+      hash: 8e26f0f37189809bfc517a580a37ff659a207ba6
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "Tests: run against compiled source rather than transpiling on the fly"
+      hash: cf6351dac10a89633624a5ebf3b1aad29f0ab8ec
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 19.7.3
+  title: ""
+  date: 2025-01-04T23:36:23.908Z
+- commits:
     - subject: Update dependencies
       hash: a909ee054f395de407ec4e1275fd0f5b7514fe29
       body: ""
@@ -2060,6 +2088,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2082,6 +2111,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2139,6 +2169,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2279,6 +2310,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2307,6 +2339,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2376,6 +2409,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2410,6 +2444,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2575,6 +2610,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
