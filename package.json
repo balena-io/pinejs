@@ -54,7 +54,7 @@
     "@types/websql": "^0.0.30",
     "ajv": "^8.17.1",
     "busboy": "^1.6.0",
-    "commander": "^12.1.0",
+    "commander": "^13.0.0",
     "cron-parser": "^4.9.0",
     "deep-freeze": "^0.0.1",
     "eventemitter3": "^5.0.1",
