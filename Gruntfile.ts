@@ -13,7 +13,7 @@ const serverConfigs = {
 	server: serverConfig,
 };
 
-_.forEach(serverConfigs, (config) => {
+for (const config of Object.values(serverConfigs)) {
 	config.optimization = {
 		minimizer: [
 			new TerserPlugin({
@@ -32,7 +32,7 @@ _.forEach(serverConfigs, (config) => {
 			}),
 		],
 	};
-});
+}
 
 export = (grunt: typeof Grunt) => {
 	grunt.initConfig({
@@ -96,8 +96,8 @@ export = (grunt: typeof Grunt) => {
 		},
 
 		rename: (() => {
-			const renames: _.Dictionary<{ src: string; dest: string }> = {};
-			_.forEach(serverConfigs, (_config, task) => {
+			const renames: Record<string, { src: string; dest: string }> = {};
+			for (const task of Object.keys(serverConfigs)) {
 				renames[task] = {
 					src: 'out/pine.js',
 					dest: `out/pine-${task}-<%= grunt.option('version') %>.js`,
@@ -106,7 +106,7 @@ export = (grunt: typeof Grunt) => {
 					src: 'out/pine.js.map',
 					dest: `out/pine-${task}-<%= grunt.option('version') %>.js.map`,
 				};
-			});
+			}
 			return renames;
 		})(),
 
