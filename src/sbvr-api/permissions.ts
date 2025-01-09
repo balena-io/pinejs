@@ -1742,7 +1742,7 @@ export const addPermissions = async (
 	request: ODataRequest & { permissionType?: PermissionCheck },
 ): Promise<void> => {
 	const { resourceName, odataQuery, odataBinds } = request;
-	const vocabulary = _.last(request.translateVersions)!;
+	const vocabulary = request.translateVersions.at(-1)!;
 	let abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 
 	let { permissionType } = request;
