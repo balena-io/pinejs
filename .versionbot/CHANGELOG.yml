@@ -1,4 +1,24 @@
 - commits:
+    - subject: Use for-of loops in preference of lodash `_.forEach`
+      hash: cef68084a2670d797559c2fd4a36825be67b7729
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Use `.at(-1)` in preference of lodash `_.last`
+      hash: c479508c98adfbb2354c149ad0ef09201f509103
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 19.7.5
+  title: ""
+  date: 2025-01-09T18:45:54.529Z
+- commits:
     - subject: Remove jsdoc typings from typescript file
       hash: c9a77da956c3d90589ce3002c34d30b541dcd48b
       body: ""
@@ -2102,6 +2122,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2124,6 +2145,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2183,6 +2205,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2327,6 +2350,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2355,6 +2379,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2428,6 +2453,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2462,6 +2488,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2629,6 +2656,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
