@@ -1,4 +1,16 @@
 - commits:
+    - subject: Remove jsdoc typings from typescript file
+      hash: c9a77da956c3d90589ce3002c34d30b541dcd48b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 19.7.4
+  title: ""
+  date: 2025-01-09T13:14:40.580Z
+- commits:
     - subject: "Tests: use `@balena/pinejs` for resolving to the runtime files"
       hash: fc28f2efec230ea40150c14cbf7f062649f2fc40
       body: ""
@@ -2089,6 +2101,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2111,6 +2124,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2169,6 +2183,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2311,6 +2326,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2339,6 +2355,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2410,6 +2427,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2444,6 +2462,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2610,6 +2629,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
