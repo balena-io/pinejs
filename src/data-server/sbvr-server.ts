@@ -70,7 +70,7 @@ export const setup: SetupFunction = async (app, sbvrUtils, db) => {
 						$select: 'id',
 					},
 				})
-				.then(async (/** @type { { [key: string]: any } } */ result) => {
+				.then(async (result) => {
 					if (result == null) {
 						// Add a model_area entry if it doesn't already exist.
 						return await uiApiTx.post({
@@ -144,7 +144,7 @@ export const setup: SetupFunction = async (app, sbvrUtils, db) => {
 							$select: 'text',
 						},
 					})
-					.then(async (/** @type { { [key: string]: any } } */ result) => {
+					.then(async (result) => {
 						if (result == null) {
 							throw new Error('Could not find the model to execute');
 						}
@@ -211,7 +211,7 @@ export const setup: SetupFunction = async (app, sbvrUtils, db) => {
 					await setupModels(tx);
 				});
 				res.status(200).end();
-			} catch (/** @type any */ err) {
+			} catch (err) {
 				console.error('Error clearing db', err);
 				res.status(503).end();
 			}
@@ -240,7 +240,7 @@ export const setup: SetupFunction = async (app, sbvrUtils, db) => {
 					}
 				});
 				res.status(200).end();
-			} catch (/** @type any */ err) {
+			} catch (err) {
 				console.error('Error importing db', err);
 				res.status(404).end();
 			}
@@ -284,7 +284,7 @@ export const setup: SetupFunction = async (app, sbvrUtils, db) => {
 					);
 				});
 				res.json(exported);
-			} catch (/** @type any */ err) {
+			} catch (err) {
 				console.error('Error exporting db', err);
 				res.status(503).end();
 			}
@@ -314,7 +314,7 @@ export const setup: SetupFunction = async (app, sbvrUtils, db) => {
 					);
 				});
 				res.status(200).end();
-			} catch (/** @type any */ err) {
+			} catch (err) {
 				console.error('Error backing up db', err);
 				res.status(404).end();
 			}
@@ -343,7 +343,7 @@ export const setup: SetupFunction = async (app, sbvrUtils, db) => {
 					);
 				});
 				res.status(200).end();
-			} catch (/** @type any */ err) {
+			} catch (err) {
 				console.error('Error restoring db', err);
 				res.status(404).end();
 			}
