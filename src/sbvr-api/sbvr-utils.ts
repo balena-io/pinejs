@@ -898,7 +898,7 @@ export const runRule = (() => {
 		}
 
 		let fetchingViolators = false;
-		const ruleAbs = _.last(abstractSqlModel.rules);
+		const ruleAbs = abstractSqlModel.rules.at(-1);
 		if (ruleAbs == null) {
 			throw new Error('Unable to generate rule');
 		}
@@ -1181,7 +1181,7 @@ const getFinalAbstractSqlModel = (
 		'translateVersions' | 'finalAbstractSqlModel'
 	>,
 ): AbstractSQLCompiler.AbstractSqlModel => {
-	const finalModel = _.last(request.translateVersions)!;
+	const finalModel = request.translateVersions.at(-1)!;
 	return (request.finalAbstractSqlModel ??= models[finalModel].abstractSql);
 };
 
@@ -1906,7 +1906,7 @@ const runPost = async (
 	if (rowsAffected === 0) {
 		throw new PermissionError();
 	}
-	await validateModel(tx, _.last(request.translateVersions)!, request);
+	await validateModel(tx, request.translateVersions.at(-1)!, request);
 
 	return insertId;
 };
@@ -1978,7 +1978,7 @@ const runPut = async (
 		({ rowsAffected } = await runQuery(tx, request, undefined, true));
 	}
 	if (rowsAffected > 0) {
-		await validateModel(tx, _.last(request.translateVersions)!, request);
+		await validateModel(tx, request.translateVersions.at(-1)!, request);
 	}
 };
 
@@ -2008,7 +2008,7 @@ const runDelete = async (
 ): Promise<void> => {
 	const { rowsAffected } = await runQuery(tx, request, undefined, true);
 	if (rowsAffected > 0) {
-		await validateModel(tx, _.last(request.translateVersions)!, request);
+		await validateModel(tx, request.translateVersions.at(-1)!, request);
 	}
 };
 
