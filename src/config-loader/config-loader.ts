@@ -240,7 +240,7 @@ export const setup = (app: Express.Application) => {
 						);
 					} catch (err: any) {
 						const message = `Failed to execute '${model.modelName}' model from '${model.modelFile}'`;
-						if (_.isError(err)) {
+						if (err instanceof Error) {
 							err.message = `${message} due to: ${err.message}`;
 							throw err;
 						}

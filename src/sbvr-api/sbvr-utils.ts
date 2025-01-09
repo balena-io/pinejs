@@ -1157,7 +1157,7 @@ export const runURI = async (
 
 	const [response] = await promise;
 
-	if (_.isError(response)) {
+	if (response instanceof Error) {
 		throw response;
 	}
 
@@ -1468,7 +1468,7 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 
 			const responses = results.map(
 				(result): Response | Response[] | HttpError => {
-					if (_.isError(result)) {
+					if (result instanceof Error) {
 						return convertToHttpError(result);
 					} else {
 						if (
