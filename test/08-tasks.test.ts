@@ -3,14 +3,14 @@ import { strict } from 'node:assert';
 import { randomUUID } from 'node:crypto';
 import { setTimeout } from 'node:timers/promises';
 import { PineTest } from 'pinejs-client-supertest';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
 import { env } from '@balena/pinejs';
-import type Model from '@balena/pinejs/out/tasks/tasks';
-import * as cronParser from 'cron-parser';
-import { PINE_TEST_SIGNALS } from './lib/common';
+import type Model from '@balena/pinejs/out/tasks/tasks.js';
+import cronParser from 'cron-parser';
+import { PINE_TEST_SIGNALS } from './lib/common.js';
 
 const actorId = 1;
-const fixturesBasePath = __dirname + '/fixtures/08-tasks/';
+const fixturesBasePath = import.meta.dirname + '/fixtures/08-tasks/';
 
 // Wait for a condition to be true, or throw an error if it doesn't happen in time.
 export async function waitFor(checkFn: () => Promise<boolean>): Promise<void> {

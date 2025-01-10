@@ -1,2 +1,1 @@
-export * from './NoopHandler';
-export * from './S3Handler';
+export * from './NoopHandler.js';

@@ -1,8 +1,8 @@
 {
   "name": "@balena/pinejs",
   "version": "19.7.5",
-  "main": "out/server-glue/module",
-  "type": "commonjs",
+  "main": "out/server-glue/module.js",
+  "type": "module",
   "repository": "git@github.com:balena-io/pinejs.git",
   "license": "Apache-2.0",
   "bin": {
@@ -13,16 +13,16 @@
   "scripts": {
     "prepublish": "require-npm4-to-publish",
     "prepare": "node -e \"try { (await import('husky')).default() } catch (e) { if (e.code !== 'ERR_MODULE_NOT_FOUND') throw e }\" --input-type module && npm run build",
-    "build": "grunt build",
-    "webpack-browser": "grunt browser",
-    "webpack-module": "grunt module",
-    "webpack-server": "grunt server",
+    "build": "grunt --preload ts-node/register/transpile-only --gruntfile Gruntfile.cts build",
+    "webpack-browser": "grunt  --preload ts-node/register/transpile-only --gruntfile Gruntfile.cts browser",
+    "webpack-module": "grunt  --preload ts-node/register/transpile-only --gruntfile Gruntfile.cts module",
+    "webpack-server": "grunt  --preload ts-node/register/transpile-only --gruntfile Gruntfile.cts server",
     "webpack-build": "npm run webpack-browser && npm run webpack-module && npm run webpack-server",
-    "lint": "balena-lint -t tsconfig.dev.json -e js -e ts src build typings Gruntfile.ts && npx tsc --project tsconfig.dev.json --noEmit",
+    "lint": "balena-lint -t tsconfig.dev.json -e js -e ts src build typings Gruntfile.cts && npx tsc --project tsconfig.dev.json --noEmit",
     "test": "npm run build && npm run lint && npm run webpack-build && npm run test:compose && npm run test:generated-types",
     "test:compose": "trap 'docker compose -f docker-compose.npm-test.yml down ; echo Stopped ; exit 0' INT; docker compose -f docker-compose.npm-test.yml up -d && sleep 2 && DATABASE_URL=postgres://docker:docker@localhost:5431/postgres PINEJS_WEBRESOURCE_MAXFILESIZE=1000000000 S3_ENDPOINT=http://localhost:43680 S3_ACCESS_KEY=USERNAME S3_SECRET_KEY=PASSWORD S3_STORAGE_ADAPTER_BUCKET=balena-pine-web-resources S3_REGION=us-east-1 PINEJS_QUEUE_CONCURRENCY=1 TZ=UTC npx mocha",
     "test:generated-types": "npm run generate-types && git diff --exit-code ./src/sbvr-api/user.ts ./src/migrator/migrations.ts ./src/sbvr-api/dev.ts",
-    "lint-fix": "balena-lint -t tsconfig.dev.json -e js -e ts --fix src test build typings Gruntfile.ts",
+    "lint-fix": "balena-lint -t tsconfig.dev.json -e js -e ts --fix src test build typings Gruntfile.cts",
     "generate-types": "node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/user.sbvr ./src/sbvr-api/user.ts && node ./bin/sbvr-compiler.js generate-types ./src/migrator/migrations.sbvr ./src/migrator/migrations.ts && node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/dev.sbvr ./src/sbvr-api/dev.ts && node ./bin/sbvr-compiler.js generate-types ./src/tasks/tasks.sbvr ./src/tasks/tasks.ts && balena-lint -t tsconfig.dev.json --fix ./src/sbvr-api/user.ts ./src/migrator/migrations.ts ./src/sbvr-api/dev.ts"
   },
   "dependencies": {
@@ -54,7 +54,7 @@
     "@types/websql": "^0.0.30",
     "ajv": "^8.17.1",
     "busboy": "^1.6.0",
-    "commander": "^12.1.0",
+    "commander": "^13.0.0",
     "cron-parser": "^4.9.0",
     "deep-freeze": "^0.0.1",
     "eventemitter3": "^5.0.1",
@@ -69,9 +69,10 @@
   "devDependencies": {
     "@balena/lint": "^8.2.8",
     "@balena/pinejs": "file:./",
+    "@balena/pinejs-webresource-s3": "^1.0.2",
     "@faker-js/faker": "^9.3.0",
     "@types/busboy": "^1.5.4",
-    "@types/chai": "^4.3.20",
+    "@types/chai": "^5.0.1",
     "@types/grunt": "^0.4.31",
     "@types/mocha": "^10.0.10",
     "@types/on-finished": "^2.3.4",
@@ -79,7 +80,7 @@
     "@types/supertest": "^6.0.2",
     "@types/terser-webpack-plugin": "^5.2.0",
     "@types/webpack": "^5.28.5",
-    "chai": "^4.5.0",
+    "chai": "^5.1.2",
     "grunt": "^1.6.1",
     "grunt-check-dependencies": "^1.0.0",
     "grunt-cli": "^1.5.0",
@@ -126,7 +127,7 @@
     "serve-static": "^1.16.2"
   },
   "engines": {
-    "node": ">=20.14.0",
+    "node": "^20.14.0 || ^22.0.0",
     "npm": ">=10.7.0"
   },
   "lint-staged": {
@@ -141,7 +142,7 @@
     "extension": [
       ".test.ts"
     ],
-    "require": "ts-node/register/transpile-only",
+    "loader": "ts-node/esm/transpile-only",
     "exit": true,
     "timeout": 60000,
     "recursive": true

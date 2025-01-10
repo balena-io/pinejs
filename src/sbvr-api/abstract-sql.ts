@@ -1,18 +1,18 @@
 import _ from 'lodash';
 
-import * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
+import AbstractSQLCompiler from '@balena/abstract-sql-compiler';
 import type { BindKey } from '@balena/odata-parser';
 import {
 	type ODataBinds,
 	odataNameToSqlName,
 	isBindReference,
 } from '@balena/odata-to-abstract-sql';
-import deepFreeze = require('deep-freeze');
+import deepFreeze from 'deep-freeze';
 import memoize from 'memoizee';
-import * as env from '../config-loader/env';
-import { BadRequestError, SqlCompilationError } from './errors';
-import * as sbvrUtils from './sbvr-utils';
-import type { ODataRequest } from './uri-parser';
+import * as env from '../config-loader/env.js';
+import { BadRequestError, SqlCompilationError } from './errors.js';
+import * as sbvrUtils from './sbvr-utils.js';
+import type { ODataRequest } from './uri-parser.js';
 
 const getMemoizedCompileRule = memoize(
 	(engine: AbstractSQLCompiler.Engines) =>

@@ -1,4 +1,4 @@
-import type { RequiredField } from '../src/sbvr-api/common-types';
+import type { RequiredField } from '../src/sbvr-api/common-types.js' with { 'resolution-mode': 'import' };
 
 import * as path from 'path';
 import * as webpack from 'webpack';
@@ -46,6 +46,10 @@ const config: RequiredField<
 	},
 	resolve: {
 		extensions: ['.js', '.ts'],
+		extensionAlias: {
+			'.js': ['.ts', '.js'],
+			'.mjs': ['.mts', '.mjs'],
+		},
 	},
 	plugins: [new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 })],
 	module: {

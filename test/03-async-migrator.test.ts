@@ -4,9 +4,9 @@ import { assert, expect } from 'chai';
 import { setTimeout } from 'timers';
 import type { Migrator } from '@balena/pinejs';
 import { dbModule } from '@balena/pinejs';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
 
-const fixturesBasePath = __dirname + '/fixtures/03-async-migrator/';
+const fixturesBasePath = import.meta.dirname + '/fixtures/03-async-migrator/';
 
 type TestDevice = {
 	created_at: Date;

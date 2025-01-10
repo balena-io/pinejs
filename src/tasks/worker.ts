@@ -1,14 +1,14 @@
 import type { ValidateFunction } from 'ajv';
 import { setTimeout } from 'node:timers/promises';
 import type { AnyObject } from 'pinejs-client-core';
-import { tasks as tasksEnv } from '../config-loader/env';
-import type * as Db from '../database-layer/db';
-import * as permissions from '../sbvr-api/permissions';
-import { PinejsClient } from '../sbvr-api/sbvr-utils';
-import { sbvrUtils } from '../server-glue/module';
-import { ajv } from './common';
-import type { Task } from './tasks';
-import type TasksModel from './tasks';
+import { tasks as tasksEnv } from '../config-loader/env.js';
+import type * as Db from '../database-layer/db.js';
+import * as permissions from '../sbvr-api/permissions.js';
+import { PinejsClient } from '../sbvr-api/sbvr-utils.js';
+import { sbvrUtils } from '../server-glue/module.js';
+import { ajv } from './common.js';
+import type { Task } from './tasks.js';
+import type TasksModel from './tasks.js';
 
 interface TaskArgs<T = AnyObject> {
 	api: PinejsClient;

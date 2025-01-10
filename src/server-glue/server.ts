@@ -1,18 +1,9 @@
-import type BodyParser from 'body-parser';
-import type Compression from 'compression';
-import type CookieParser from 'cookie-parser';
-import type ExpressSession from 'express-session';
-import type MethodOverride from 'method-override';
-import type * as Passport from 'passport';
-import type * as Path from 'path';
-import type ServeStatic from 'serve-static';
+import * as Pinejs from './module.js';
+export { sbvrUtils, PinejsSessionStore } from './module.js';
 
-import * as Pinejs from './module';
-export { sbvrUtils, PinejsSessionStore } from './module';
+export { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser.js';
 
-export { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
-
-import { mountLoginRouter } from '../passport-pinejs/mount-login-router';
+import { mountLoginRouter } from '../passport-pinejs/mount-login-router.js';
 
 import express from 'express';
 
@@ -27,20 +18,18 @@ switch (app.get('env')) {
 }
 
 if (!process.browser) {
-	/* eslint-disable @typescript-eslint/no-var-requires */
-	const passport: typeof Passport = require('passport');
-	const path: typeof Path = require('path');
-	const compression: typeof Compression = require('compression');
-	const serveStatic: typeof ServeStatic = require('serve-static');
-	const cookieParser: typeof CookieParser = require('cookie-parser');
-	const bodyParser: typeof BodyParser = require('body-parser');
-	const methodOverride: typeof MethodOverride = require('method-override');
-	const expressSession: typeof ExpressSession = require('express-session');
-	/* eslint-enable @typescript-eslint/no-var-requires */
+	const { default: passport } = await import('passport');
+	const { default: path } = await import('path');
+	const { default: compression } = await import('compression');
+	const { default: serveStatic } = await import('serve-static');
+	const { default: cookieParser } = await import('cookie-parser');
+	const { default: bodyParser } = await import('body-parser');
+	const { default: methodOverride } = await import('method-override');
+	const { default: expressSession } = await import('express-session');
 
 	app.use(compression());
 
-	const root = process.argv[2] || __dirname;
+	const root = process.argv[2] || import.meta.dirname;
 	app.use('/', serveStatic(path.join(root, 'static')));
 
 	app.use(cookieParser());

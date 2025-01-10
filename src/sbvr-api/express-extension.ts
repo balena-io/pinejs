@@ -1,5 +1,5 @@
 // Augment express.js with pinejs-specific attributes via declaration merging.
-import type { User as PineUser } from './sbvr-utils';
+import type { User as PineUser } from './sbvr-utils.js';
 
 declare global {
 	// eslint-disable-next-line @typescript-eslint/no-namespace
@@ -10,7 +10,7 @@ declare global {
 
 		interface Request {
 			user?: User;
-			apiKey?: import('./sbvr-utils').ApiKey;
+			apiKey?: import('./sbvr-utils.js').ApiKey;
 		}
 	}
 }

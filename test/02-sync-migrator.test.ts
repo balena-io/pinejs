@@ -1,9 +1,9 @@
 import supertest from 'supertest';
 import type { ChildProcess } from 'child_process';
 import { expect } from 'chai';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
 
-const fixturesBasePath = __dirname + '/fixtures/02-sync-migrator/';
+const fixturesBasePath = import.meta.dirname + '/fixtures/02-sync-migrator/';
 
 type TestDevice = {
 	created_at: Date;

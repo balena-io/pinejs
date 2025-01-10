@@ -1,12 +1,12 @@
-import type { OptionalField, Resolvable } from './common-types';
-import type { Result, Tx } from '../database-layer/db';
-import type { ODataRequest, ParsedODataRequest } from './uri-parser';
+import type { OptionalField, Resolvable } from './common-types.js';
+import type { Result, Tx } from '../database-layer/db.js';
+import type { ODataRequest, ParsedODataRequest } from './uri-parser.js';
 import type { AnyObject } from 'pinejs-client-core';
 import type { TypedError } from 'typed-error';
 import type { SupportedMethod } from '@balena/odata-to-abstract-sql';
 
 import _ from 'lodash';
-import { settleMapSeries } from './control-flow';
+import { settleMapSeries } from './control-flow.js';
 import memoize from 'memoizee';
 import {
 	type User,
@@ -15,7 +15,7 @@ import {
 	getAbstractSqlModel,
 	api,
 	type Response,
-} from './sbvr-utils';
+} from './sbvr-utils.js';
 
 export interface HookReq {
 	user?: User;

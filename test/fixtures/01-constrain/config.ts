@@ -2,7 +2,7 @@ import type { ConfigLoader } from '@balena/pinejs';
 
 const apiRoot = 'university';
 const modelName = 'university';
-const modelFile = __dirname + '/university.sbvr';
+const modelFile = import.meta.dirname + '/university.sbvr';
 
 export default {
 	models: [

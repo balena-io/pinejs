@@ -1,20 +1,20 @@
 import type { Schema } from 'ajv';
-import * as cronParser from 'cron-parser';
-import { tasks as tasksEnv } from '../config-loader/env';
-import { addPureHook } from '../sbvr-api/hooks';
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-import type { ConfigLoader } from '../server-glue/module';
-import { ajv, apiRoot } from './common';
-import type { TaskHandler } from './worker';
-import { Worker } from './worker';
-import type TasksModel from './tasks';
-import type { Task } from './tasks';
+import cronParser from 'cron-parser';
+import { tasks as tasksEnv } from '../config-loader/env.js';
+import { addPureHook } from '../sbvr-api/hooks.js';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
+import type { ConfigLoader } from '../server-glue/module.js';
+import { ajv, apiRoot } from './common.js';
+import type { TaskHandler } from './worker.js';
+import { Worker } from './worker.js';
+import type TasksModel from './tasks.js';
+import type { Task } from './tasks.js';
 import type { FromSchema } from 'json-schema-to-ts';
-import { requireSBVR } from '../server-glue/sbvr-loader';
+import { importSBVR } from '../server-glue/sbvr-loader.js';
 
-export type * from './tasks';
+export type * from './tasks.js';
 
-const modelText = requireSBVR('./tasks.sbvr', require);
+const modelText = await importSBVR('./tasks.sbvr', import.meta);
 
 // Create index for polling tasks table
 const initSql = `
@@ -25,7 +25,7 @@ CREATE INDEX IF NOT EXISTS idx_task_poll ON task USING btree (
 ) WHERE status = 'queued';
 `;
 
-declare module '../sbvr-api/sbvr-utils' {
+declare module '../sbvr-api/sbvr-utils.js' {
 	export interface API {
 		[apiRoot]: PinejsClient<TasksModel>;
 	}

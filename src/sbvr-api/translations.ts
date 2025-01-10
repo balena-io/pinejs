@@ -14,7 +14,7 @@ import type {
 	UnknownTypeNodes,
 	NullNode,
 } from '@balena/abstract-sql-compiler';
-import type { Dictionary } from './common-types';
+import type { Dictionary } from './common-types.js';
 
 export type AliasValidNodeType =
 	| ReferencedFieldNode

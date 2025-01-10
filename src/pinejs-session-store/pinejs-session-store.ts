@@ -1,9 +1,9 @@
-import type { Config } from '../config-loader/config-loader';
-import type { AnyObject } from '../sbvr-api/common-types';
+import type { Config } from '../config-loader/config-loader.js';
+import type { AnyObject } from '../sbvr-api/common-types.js';
 
 import { Store } from 'express-session';
-import * as permissions from '../sbvr-api/permissions';
-import { api } from '../sbvr-api/sbvr-utils';
+import * as permissions from '../sbvr-api/permissions.js';
+import { api } from '../sbvr-api/sbvr-utils.js';
 
 export { Store };
 

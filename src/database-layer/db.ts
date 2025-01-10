@@ -1,15 +1,15 @@
 /// <references types="websql"/>
-import type * as Mysql from 'mysql';
-import type * as Pg from 'pg';
-import type * as PgConnectionString from 'pg-connection-string';
-import type { Dictionary, Resolvable } from '../sbvr-api/common-types';
+import type Mysql from 'mysql';
+import type Pg from 'pg';
+import type PgConnectionString from 'pg-connection-string';
+import type { Dictionary, Resolvable } from '../sbvr-api/common-types.js';
 
 import { Engines } from '@balena/abstract-sql-compiler';
 import { EventEmitter } from 'eventemitter3';
 import _ from 'lodash';
 import { TypedError } from 'typed-error';
-import * as env from '../config-loader/env';
-import { fromCallback, timeout } from '../sbvr-api/control-flow';
+import * as env from '../config-loader/env.js';
+import { fromCallback, timeout } from '../sbvr-api/control-flow.js';
 
 export const metrics = new EventEmitter();
 
@@ -487,8 +487,10 @@ const createTransaction = (createFunc: CreateTransactionFn): TransactionFn => {
 };
 
 let maybePg: typeof Pg | undefined;
+let maybePgConnectionString: typeof PgConnectionString | undefined;
 try {
-	maybePg = require('pg');
+	maybePg = (await import('pg')).default;
+	maybePgConnectionString = (await import('pg-connection-string')).default;
 } catch {
 	// Ignore errors
 }
@@ -543,10 +545,15 @@ if (maybePg != null) {
 		let pool: Pg.Pool;
 		let replica: Pg.Pool;
 		if (typeof connectString === 'string') {
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const pgConnectionString: typeof PgConnectionString = require('pg-connection-string');
+			if (maybePgConnectionString == null) {
+				throw new Error(
+					'pg-connection-string is required for string connection strings',
+				);
+			}
 			// We have to cast because of the use of null vs undefined
-			const config = pgConnectionString.parse(connectString) as Pg.PoolConfig;
+			const config = maybePgConnectionString.parse(
+				connectString,
+			) as Pg.PoolConfig;
 			pool = initPool(config);
 		} else {
 			const config = connectString;
@@ -728,7 +735,7 @@ if (maybePg != null) {
 
 let maybeMysql: typeof Mysql | undefined;
 try {
-	maybeMysql = require('mysql');
+	maybeMysql = (await import('mysql')).default;
 } catch {
 	// Ignore errors
 }

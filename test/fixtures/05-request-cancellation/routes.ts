@@ -2,7 +2,7 @@ import type express from 'express';
 import onFinished from 'on-finished';
 import { sbvrUtils, errors } from '@balena/pinejs';
 import { setTimeout } from 'timers/promises';
-import { track } from './util';
+import { track } from './util.js';
 
 export const initRoutes = (app: express.Express) => {
 	app.post('/slow-custom-endpoint', async (req, res) => {

@@ -1,7 +1,7 @@
-import type * as Express from 'express';
-import type * as Db from '../database-layer/db';
-import type { Model } from '../config-loader/config-loader';
-import type { AnyObject, RequiredField } from './common-types';
+import type Express from 'express';
+import type * as Db from '../database-layer/db.js';
+import type { Model } from '../config-loader/config-loader.js';
+import type { AnyObject, RequiredField } from './common-types.js';
 import type {
 	PickDeferred,
 	Resource,
@@ -21,12 +21,14 @@ declare global {
 import _ from 'lodash';
 
 import type { TypedError } from 'typed-error';
-import { cachedCompile } from './cached-compile';
+import { cachedCompile } from './cached-compile.js';
 
 type LFModel = any[];
-import * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
-import { version as AbstractSQLCompilerVersion } from '@balena/abstract-sql-compiler/package.json';
-import * as LF2AbstractSQL from '@balena/lf-to-abstract-sql';
+import AbstractSQLCompiler from '@balena/abstract-sql-compiler';
+import AbstractSqlCompilerPackage from '@balena/abstract-sql-compiler/package.json' with { type: 'json' };
+const { version: AbstractSQLCompilerVersion } = AbstractSqlCompilerPackage;
+
+import LF2AbstractSQL from '@balena/lf-to-abstract-sql';
 
 import {
 	type ODataBinds,
@@ -34,21 +36,22 @@ import {
 	sqlNameToODataName,
 	type SupportedMethod,
 } from '@balena/odata-to-abstract-sql';
-import sbvrTypes from '@balena/sbvr-types';
-import deepFreeze = require('deep-freeze');
+import $sbvrTypes from '@balena/sbvr-types';
+const { default: sbvrTypes } = $sbvrTypes;
+import deepFreeze from 'deep-freeze';
 import type { ODataOptions, Params } from 'pinejs-client-core';
 import { PinejsClientCore, type PromiseResultTypes } from 'pinejs-client-core';
 
-import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser';
+import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser.js';
 
-import * as asyncMigrator from '../migrator/async';
-import * as syncMigrator from '../migrator/sync';
-import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator';
-import { requireSBVR } from '../server-glue/sbvr-loader';
+import * as asyncMigrator from '../migrator/async.js';
+import * as syncMigrator from '../migrator/sync.js';
+import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator.js';
+import { importSBVR } from '../server-glue/sbvr-loader.js';
 
-import type DevModel from './dev';
-const devModel = requireSBVR('./dev.sbvr', require);
-import * as permissions from './permissions';
+import type DevModel from './dev.js';
+const devModel = await importSBVR('./dev.sbvr', import.meta);
+import * as permissions from './permissions.js';
 import {
 	BadRequestError,
 	ConflictError,
@@ -63,9 +66,9 @@ import {
 	statusCodeToError,
 	TranslationError,
 	UnauthorizedError,
-} from './errors';
-import * as uriParser from './uri-parser';
-export type { ODataRequest } from './uri-parser';
+} from './errors.js';
+import * as uriParser from './uri-parser.js';
+export type { ODataRequest } from './uri-parser.js';
 import {
 	type HookReq,
 	type HookArgs,
@@ -73,7 +76,7 @@ import {
 	getHooks,
 	runHooks,
 	type InstantiatedHooks,
-} from './hooks';
+} from './hooks.js';
 export {
 	type HookReq,
 	type HookArgs,
@@ -81,30 +84,33 @@ export {
 	type Hooks,
 	addPureHook,
 	addSideEffectHook,
-} from './hooks';
+} from './hooks.js';
 
-import memoizeWeak from 'memoizee/weak';
-import * as controlFlow from './control-flow';
+import memoizeWeak from 'memoizee/weak.js';
+import * as controlFlow from './control-flow.js';
 
 export let db = undefined as any as Db.Database;
 
 export { sbvrTypes };
 
-import { version as LF2AbstractSQLVersion } from '@balena/lf-to-abstract-sql/package.json';
-import { version as sbvrTypesVersion } from '@balena/sbvr-types/package.json';
+import LF2AbstractSQLPackage from '@balena/lf-to-abstract-sql/package.json' with { type: 'json' };
+const { version: LF2AbstractSQLVersion } = LF2AbstractSQLPackage;
+import SbvrTypesPackage from '@balena/sbvr-types/package.json' with { type: 'json' };
+const { version: sbvrTypesVersion } = SbvrTypesPackage;
+
 import {
 	compileRequest,
 	getAndCheckBindValues,
 	isRuleAffected,
-} from './abstract-sql';
-export { resolveOdataBind } from './abstract-sql';
-import * as odataResponse from './odata-response';
-import { env } from '../server-glue/module';
-import { translateAbstractSqlModel } from './translations';
+} from './abstract-sql.js';
+export { resolveOdataBind } from './abstract-sql.js';
+import * as odataResponse from './odata-response.js';
+import { env } from '../server-glue/module.js';
+import { translateAbstractSqlModel } from './translations.js';
 import {
 	type MigrationExecutionResult,
 	setExecutedMigrations,
-} from '../migrator/utils';
+} from '../migrator/utils.js';
 
 const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
 const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVersion}`;
@@ -1151,7 +1157,7 @@ export const runURI = async (
 
 	const [response] = await promise;
 
-	if (_.isError(response)) {
+	if (response instanceof Error) {
 		throw response;
 	}
 
@@ -1462,7 +1468,7 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 
 			const responses = results.map(
 				(result): Response | Response[] | HttpError => {
-					if (_.isError(result)) {
+					if (result instanceof Error) {
 						return convertToHttpError(result);
 					} else {
 						if (

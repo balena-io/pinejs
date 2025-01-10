@@ -1,8 +1,8 @@
-import { getAbstractSqlModelFromFile } from '@balena/pinejs/out/bin/utils';
+import { getAbstractSqlModelFromFile } from '@balena/pinejs/out/bin/utils.js';
 import type { AbstractSqlQuery } from '@balena/abstract-sql-compiler';
 
-export const v5AbstractSqlModel = getAbstractSqlModelFromFile(
-	__dirname + '/university.sbvr',
+export const v5AbstractSqlModel = await getAbstractSqlModelFromFile(
+	import.meta.dirname + '/university.sbvr',
 	undefined,
 );
 

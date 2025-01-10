@@ -1,5 +1,9 @@
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
-import type { IncomingFile, UploadResponse, WebResourceHandler } from '..';
+import type {
+	IncomingFile,
+	UploadResponse,
+	WebResourceHandler,
+} from '../index.js';
 
 export class NoopHandler implements WebResourceHandler {
 	public async handleFile(resource: IncomingFile): Promise<UploadResponse> {

@@ -5,7 +5,7 @@ declare module '@balena/lf-to-abstract-sql' {
 	export const LF2AbstractSQL: {
 		createInstance: () => {
 			match: (lfModel: LFModel, rule: 'Process') => AbstractSqlModel;
-			addTypes: (types: typeof sbvrTypes) => void;
+			addTypes: (types: typeof sbvrTypes.default) => void;
 			reset: () => void;
 		};
 	};
@@ -14,6 +14,6 @@ declare module '@balena/lf-to-abstract-sql' {
 		_extend(obj: object): typeof LF2AbstractSQLPrep;
 	};
 	export const createTranslator: (
-		types: typeof sbvrTypes,
+		types: typeof sbvrTypes.default,
 	) => (lfModel: LFModel, rule: 'Process') => AbstractSqlModel;
 }

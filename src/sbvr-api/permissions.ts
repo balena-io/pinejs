@@ -1,4 +1,4 @@
-import type AuthModel from './user';
+import type AuthModel from './user.js';
 import type {
 	AbstractSqlModel,
 	AbstractSqlQuery,
@@ -14,16 +14,16 @@ import type {
 	SelectNode,
 	SelectQueryNode,
 } from '@balena/abstract-sql-compiler';
-import './express-extension';
-import type * as Express from 'express';
+import './express-extension.js';
+import type Express from 'express';
 import type {
 	ODataBinds,
 	ODataQuery,
 	SupportedMethod,
 } from '@balena/odata-parser';
-import type { Tx } from '../database-layer/db';
-import type { ApiKey, User } from '../sbvr-api/sbvr-utils';
-import type { AnyObject, Dictionary } from './common-types';
+import type { Tx } from '../database-layer/db.js';
+import type { ApiKey, User } from '../sbvr-api/sbvr-utils.js';
+import type { AnyObject, Dictionary } from './common-types.js';
 
 import {
 	isBindReference,
@@ -32,32 +32,32 @@ import {
 	type ResourceFunction,
 	sqlNameToODataName,
 } from '@balena/odata-to-abstract-sql';
-import * as ODataParser from '@balena/odata-parser';
+import ODataParser from '@balena/odata-parser';
 
 import _ from 'lodash';
 import memoize from 'memoizee';
-import * as randomstring from 'randomstring';
-import * as env from '../config-loader/env';
-import * as sbvrUtils from '../sbvr-api/sbvr-utils';
-import { type HookReq, addPureHook, addHook } from './hooks';
+import randomstring from 'randomstring';
+import * as env from '../config-loader/env.js';
+import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
+import { type HookReq, addPureHook, addHook } from './hooks.js';
 import {
 	BadRequestError,
 	PermissionError,
 	PermissionParsingError,
-} from './errors';
+} from './errors.js';
 import {
 	memoizedGetOData2AbstractSQL,
 	memoizedParseOdata,
 	metadataEndpoints,
 	type ODataRequest,
-} from './uri-parser';
-import memoizeWeak from 'memoizee/weak';
-import type { Config } from '../config-loader/config-loader';
+} from './uri-parser.js';
+import memoizeWeak from 'memoizee/weak.js';
+import type { Config } from '../config-loader/config-loader.js';
 import type { ODataOptions } from 'pinejs-client-core';
-import type { Permission } from './user';
-import { requireSBVR } from '../server-glue/sbvr-loader';
+import type { Permission } from './user.js';
+import { importSBVR } from '../server-glue/sbvr-loader.js';
 
-const userModel = requireSBVR('./user.sbvr', require);
+const userModel = await importSBVR('./user.sbvr', import.meta);
 
 const DEFAULT_ACTOR_BIND = '@__ACTOR_ID';
 const DEFAULT_ACTOR_BIND_REGEX = new RegExp(
@@ -1779,7 +1779,7 @@ export const addPermissions = async (
 	}
 };
 
-declare module './sbvr-utils' {
+declare module './sbvr-utils.js' {
 	export interface API {
 		[authModelConfig.apiRoot]: PinejsClient<AuthModel>;
 	}
