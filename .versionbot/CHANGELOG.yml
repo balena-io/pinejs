@@ -1,4 +1,57 @@
 - commits:
+    - subject: Update node engines entry to clarify we don't actively support 21.x
+      hash: bb75825da9bf23f38f1c0fe2bae301d171d84de6
+      body: |
+        It might work but we don't actively support it/worry if it breaks
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Use `instanceof Error` rather than lodash `_.isError`
+      hash: b13fb81d3586938003b915c11ac0c4c35d31f1fe
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Drop exposed S3 handler in favor of @balena/pinejs-webresource-s3 handler
+      hash: ec99776fbf3c0731c47349e06a5d566f35e9758b
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Otavio Jacobi
+      nested: []
+    - subject: Update commander to 13.x
+      hash: 3ee1971703b3e07974b87915e298e67e4c876a5d
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Update chai to 5.x
+      hash: 03604c3aad00e6e27162d8db0ebcbcb4b76e17a5
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Convert to ESM
+      hash: e42d7ce07ab7401abb633540c128d0128f876bc9
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 20.0.0
+  title: ""
+  date: 2025-01-10T18:15:01.199Z
+- commits:
     - subject: Use for-of loops in preference of lodash `_.forEach`
       hash: cef68084a2670d797559c2fd4a36825be67b7729
       body: ""
@@ -2123,6 +2176,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2145,6 +2199,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2205,6 +2260,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2351,6 +2407,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2379,6 +2436,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2454,6 +2512,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2488,6 +2547,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2656,6 +2716,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
