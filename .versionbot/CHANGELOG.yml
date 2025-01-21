@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update postgres Docker tag to v17
+      hash: cfd7adeb986bad2fa6bfdf266ffd36c50c30a9f9
+      body: |
+        Update postgres from 16 to 17
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 20.0.1
+  title: ""
+  date: 2025-01-21T16:53:29.494Z
+- commits:
     - subject: Update node engines entry to clarify we don't actively support 21.x
       hash: bb75825da9bf23f38f1c0fe2bae301d171d84de6
       body: |
@@ -2177,6 +2190,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2199,6 +2213,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2260,6 +2275,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2408,6 +2424,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2436,6 +2453,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2513,6 +2531,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2547,6 +2566,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2716,6 +2736,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
