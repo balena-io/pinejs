@@ -1,4 +1,16 @@
 - commits:
+    - subject: "Migrations.md: Update the rollbackable migrations guide"
+      hash: 192216f3f07fa8637bc024bb634227d1b09b26d8
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 20.0.2
+  title: ""
+  date: 2025-02-05T12:49:36.855Z
+- commits:
     - subject: Update postgres Docker tag to v17
       hash: cfd7adeb986bad2fa6bfdf266ffd36c50c30a9f9
       body: |
@@ -2191,6 +2203,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2213,6 +2226,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2275,6 +2289,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2425,6 +2440,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2453,6 +2469,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2532,6 +2549,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2566,6 +2584,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2736,6 +2755,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
