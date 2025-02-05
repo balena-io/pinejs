@@ -65,23 +65,6 @@ Async migrations are stored in the migrations folder, alongside synchronous migr
 The async migration query must have a `LIMIT` statement to limit the maximum number of affected rows per batch.
 
 
-### Async migration procedure
-* Deployment 1
-	- Add new column (with independent sync migration) to contain new data and add code accessing the new column.
-	- Update the service's implementation to set both the old & new column on each write.
-	- The service's implementation should only read the old column since the async migration still migrates data from old column to new column.
-	- Async migrator runs forever.
-* Deployment 2
-	- Finalize async migration => only sync migration part gets executed.
-	- Sync migration migrates all left over data from old column to new column.
-	- Update the service's implementation to only read the new column, but still write the old one as well.
-	- Mark the old field as optional in the sbvr if it isn't, or set a default value for it.
-* Deployment 3
-	- Update the service's implementation to stop settings the old column and remove it from the sbvr.
-	- Make the old field NULLable if it isn't.
-* Deployment 4
-	- Delete the old column with a sync migration.
-
 ### TS migration file format with SQL query string
 
 The placeholder `%%ASYNC_BATCH_SIZE%%` will be replaced with the value specified by asyncBatchSize parameter
@@ -148,3 +131,34 @@ export = {
 ```
 ### SQL query file (plain text)
 Plain SQL files are not supported as they cannot bundle async and sync migration statements in one file. Moreover they cannot carry migration metadata.
+
+## Rollbackable no-down-time suggested migration procedure
+
+* Deployment 1
+	- Add the new column with an independent sync migration.
+	- Add an Async migrator that starts migrating data from the old column to new column (optional optimization for big tables).
+	- Update the service's implementation to set both the old & new column on each write.  
+	  The service's implementation should only read the old column, since not all data has been migrated to the new column yet.
+* Deployment 2
+	- Complete the data migration from the old to the new column:
+		- Either finalize the async migration from deployment 1 if you are using one.  
+		  This causes the sync part of the migration to execute.
+		- Or write a sync migration otherwise.
+	- Mark the new column as non-NULL if applicable as part of the above migration.
+	- Update the service's implementation to only read the new column, but still write to the old one as well.
+	- Test that the implementation works even if we keep the old column as NOT NULLable.  
+	  This makes sure that older service instances can still work during the deployment.
+		- Only then mark the old field as NULLable if it isn't.
+* Deployment 3
+	- Update the service's implementation to stop writing to the old column.
+	- Remove the old column from the SBVR, and add it in the `initSql`/`initSqlPath` of the model  
+	  (so that the SBVR & DB stay in sync) with a TODO to DROP it from the DB in a follow-up.  
+	  The old column needs to stay in the DB so that older service instances can still work during the deployment.
+* Deployment 4
+	- DROP the old column with a sync migration.
+
+### Testing rollbacks
+For each step, be sure and utilize testing to ensure you can safely rollback to previous versions of your service even with the updated database schemas (with data) deployed.
+Before merging each step, try rolling back your development environment to the previous deployment and make sure that everything still works without issues.
+The old deployment should be able to operate with DB records created by the new deployment and leave the DB in a valid state.
+Eg: While testing the PR for deployment 2 on your development environment, make sure that if you push deplpoyment 1 everything still works without issues.
