@@ -101,16 +101,16 @@ type PermissionCheck = NestedCheck<string>;
 
 type MappedType<I, O> =
 	O extends NestedCheck<infer T>
-		? Exclude<Exclude<I, string> | T, boolean>
-		: Exclude<Exclude<I, string> | O, boolean>;
+	? Exclude<Exclude<I, string> | T, boolean>
+	: Exclude<Exclude<I, string> | O, boolean>;
 type MappedNestedCheck<T extends NestedCheck<I>, I, O> =
 	T extends NestedCheckOr<I>
-		? NestedCheckOr<MappedType<I, O>>
-		: T extends NestedCheckAnd<I>
-			? NestedCheckAnd<MappedType<I, O>>
-			: T extends NestedCheckArray<I>
-				? NestedCheckArray<MappedType<I, O>>
-				: Exclude<I, string> | O;
+	? NestedCheckOr<MappedType<I, O>>
+	: T extends NestedCheckAnd<I>
+	? NestedCheckAnd<MappedType<I, O>>
+	: T extends NestedCheckArray<I>
+	? NestedCheckArray<MappedType<I, O>>
+	: Exclude<I, string> | O;
 
 const methodPermissions: {
 	[method in Exclude<SupportedMethod, 'OPTIONS'>]: PermissionCheck;
@@ -392,7 +392,7 @@ const $checkPermissions = (
 				if (resourceName != null) {
 					const maybeVocabularyResourcePermission =
 						permissionsLookup[
-							vocabulary + '.' + resourceName + '.' + permissionCheck
+						vocabulary + '.' + resourceName + '.' + permissionCheck
 						];
 					if (maybeVocabularyResourcePermission === true) {
 						return true;
@@ -842,7 +842,7 @@ const rewriteRelationship = memoizeWeak(
 
 					const targetResourceEscaped = sqlNameToODataName(
 						abstractSqlModel.tables[possibleTargetResourceName]?.name ??
-							possibleTargetResourceName,
+						possibleTargetResourceName,
 					);
 
 					// This is either a translated or bypassed resource we don't
@@ -1656,26 +1656,26 @@ export const checkPermissions = async (
 
 export const checkPermissionsMiddleware =
 	(action: PermissionCheck): Express.RequestHandler =>
-	async (req, res, next) => {
-		try {
-			const allowed = await checkPermissions(req, action);
-			switch (allowed) {
-				case false:
-					res.status(401).end();
-					return;
-				case true:
-					next();
-					return;
-				default:
-					throw new Error(
-						'checkPermissionsMiddleware returned a conditional permission',
-					);
+		async (req, res, next) => {
+			try {
+				const allowed = await checkPermissions(req, action);
+				switch (allowed) {
+					case false:
+						res.status(401).end();
+						return;
+					case true:
+						next();
+						return;
+					default:
+						throw new Error(
+							'checkPermissionsMiddleware returned a conditional permission',
+						);
+				}
+			} catch (err: any) {
+				sbvrUtils.logger.Auth.error('Error checking permissions', err);
+				res.status(503).end();
 			}
-		} catch (err: any) {
-			sbvrUtils.logger.Auth.error('Error checking permissions', err);
-			res.status(503).end();
-		}
-	};
+		};
 
 let guestPermissionsInitialized = false;
 const getGuestPermissions = memoize(
@@ -1828,6 +1828,25 @@ const authModelConfig = {
 export const config = {
 	models: [authModelConfig],
 } satisfies Config;
+
+export const convertToCanAccess = (request: ODataRequest & { permissionType?: PermissionCheck }) => {
+	const abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
+	const resourceName = sbvrUtils.resolveSynonym(request);
+	const resourceTable = abstractSqlModel.tables[resourceName];
+	if (resourceTable == null) {
+		throw new Error('Unknown resource: ' + request.resourceName);
+	}
+	const idField = resourceTable.idField;
+	request.odataQuery.options = {
+		$select: { properties: [{ name: idField }] },
+		$top: 1,
+	};
+	request.odataQuery.resource = request.resourceName;
+	delete request.odataQuery.property;
+	request.method = 'GET';
+	request.custom.isAction = 'canAccess';
+};
+
 export function setup() {
 	addHook('all', 'all', 'all', {
 		sideEffects: false,
@@ -1866,7 +1885,6 @@ export function setup() {
 					request.permissionType = action;
 				}
 
-				const abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 				request.resourceName = request.resourceName.slice(
 					0,
 					-'#canAccess'.length,
@@ -1875,36 +1893,34 @@ export function setup() {
 					0,
 					-'#canAccess'.length,
 				);
-				const resourceName = sbvrUtils.resolveSynonym(request);
-				const resourceTable = abstractSqlModel.tables[resourceName];
-				if (resourceTable == null) {
-					throw new Error('Unknown resource: ' + request.resourceName);
-				}
-				const idField = resourceTable.idField;
-				request.odataQuery.options = {
-					$select: { properties: [{ name: idField }] },
-					$top: 1,
-				};
-				request.odataQuery.resource = request.resourceName;
-				delete request.odataQuery.property;
-				request.method = 'GET';
-				request.custom.isAction = 'canAccess';
+
+				convertToCanAccess(request);
 			}
 			await addPermissions(req, request);
 		},
 		PRERESPOND: ({ request, response }) => {
+
+			if (request.custom.multiPartUploadAction === 'beginUpload') {
+				console.log(request);
+			}
 			if (
 				request.custom.isAction === 'canAccess' &&
 				(response.body == null ||
 					typeof response.body === 'string' ||
 					_.isEmpty(response.body?.d))
 			) {
+
+				
 				// If the caller does not have any permissions to access the
 				// resource pine will throw a PermissionError. To have the
 				// same behavior for the case that the user has permissions
 				// to access the resource, but not this instance we also
 				// throw a PermissionError if the result is empty.
 				throw new PermissionError();
+			}
+
+			if (request.custom.multiPartUploadAction === 'beginUpload') {
+				return request.custom.beginUploadResponse;
 			}
 		},
 	});
