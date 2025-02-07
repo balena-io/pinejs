@@ -18,8 +18,13 @@ import { TypedError } from 'typed-error';
 import type { Resolvable } from '../sbvr-api/common-types.js';
 import type WebresourceModel from './webresource.js';
 import { importSBVR } from '../server-glue/sbvr-loader.js';
+import {
+	isMultipartUploadAvailable,
+	multipartUploadHooks,
+} from './multipartUpload.js';
 
 export * from './handlers/index.js';
+export type { BeginUploadResponse } from './multipartUpload.js';
 
 export interface IncomingFile {
 	fieldname: string;
@@ -332,6 +337,10 @@ const throwIfWebresourceNotInMultipart = (
 	{ req, request }: HookArgs,
 ) => {
 	if (
+		request.custom.isAction !== 'beginUpload' &&
+		request.custom.isAction !== 'commitUpload' &&
+		request.custom.isAction !== 'cancelUpload' &&
+		req.user !== permissions.root.user &&
 		!req.is?.('multipart') &&
 		webResourceFields.some((field) => request.values[field] != null)
 	) {
@@ -528,6 +537,15 @@ export const setupUploadHooks = (
 		resourceName,
 		getCreateWebResourceHooks(handler),
 	);
+
+	if (isMultipartUploadAvailable(handler)) {
+		sbvrUtils.addPureHook(
+			'POST',
+			apiRoot,
+			resourceName,
+			multipartUploadHooks(handler),
+		);
+	}
 };
 
 const initSql = `
