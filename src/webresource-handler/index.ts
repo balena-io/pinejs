@@ -14,6 +14,7 @@ import {
 import { errors, permissions } from '../server-glue/module.js';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 import { TypedError } from 'typed-error';
+import type { Resolvable } from '../sbvr-api/common-types.js';
 
 export * from './handlers/index.js';
 
@@ -63,19 +64,19 @@ export const setupWebresourceHandler = (handler: WebResourceHandler): void => {
 export const getWebresourceHandler = (): WebResourceHandler | undefined => {
 	return configuredWebResourceHandler;
 };
+const notValidUpload = () => false;
 
-const isValidUpload = async (
-	fieldname: string,
+const getRequestUploadValidator = async (
 	req: Express.Request,
 	odataRequest: uriParser.ParsedODataRequest,
-): Promise<boolean> => {
+): Promise<(fieldName: string) => Resolvable<boolean>> => {
 	if (req.method !== 'POST' && req.method !== 'PATCH') {
-		return false;
+		return notValidUpload;
 	}
 
 	const apiRoot = getApiRoot(req);
 	if (apiRoot == null) {
-		return false;
+		return notValidUpload;
 	}
 	const model = getModel(apiRoot);
 	const sqlResourceName = sbvrUtils.resolveSynonym(odataRequest);
@@ -83,7 +84,7 @@ const isValidUpload = async (
 	const table = model.abstractSql.tables[sqlResourceName];
 
 	if (table == null) {
-		return false;
+		return notValidUpload;
 	}
 
 	const permission = req.method === 'POST' ? 'create' : 'update';
@@ -98,20 +99,22 @@ const isValidUpload = async (
 	);
 
 	if (!hasPermissions) {
-		return false;
+		return notValidUpload;
 	}
 
-	const dbFieldName = odataNameToSqlName(fieldname);
-	return table.fields.some(
-		(field) =>
-			field.fieldName === dbFieldName && field.dataType === 'WebResource',
-	);
+	return async (fieldname: string) => {
+		const dbFieldName = odataNameToSqlName(fieldname);
+		return table.fields.some(
+			(field) =>
+				field.fieldName === dbFieldName && field.dataType === 'WebResource',
+		);
+	};
 };
 
 export const getUploaderMiddlware = (
 	handler: WebResourceHandler,
 ): Express.RequestHandler => {
-	return (req, res, next) => {
+	return async (req, res, next) => {
 		if (!req.is('multipart')) {
 			next();
 			return;
@@ -129,6 +132,11 @@ export const getUploaderMiddlware = (
 		const webResourcesFieldNames = getWebResourceFields(
 			parsedOdataRequest,
 			false,
+		);
+
+		const isValidUpload = await getRequestUploadValidator(
+			req,
+			parsedOdataRequest,
 		);
 
 		const finishFileUpload = () => {
@@ -158,7 +166,7 @@ export const getUploaderMiddlware = (
 			completeUploads.push(
 				(async () => {
 					try {
-						if (!(await isValidUpload(fieldname, req, parsedOdataRequest))) {
+						if (!(await isValidUpload(fieldname))) {
 							filestream.resume();
 							return;
 						}
@@ -180,7 +188,10 @@ export const getUploaderMiddlware = (
 						uploadedFilePaths.push(result.filename);
 					} catch (err: any) {
 						filestream.resume();
-						throw err;
+						bb.emit(
+							'error',
+							new errors.BadRequestError(err.message ?? 'Error uploading file'),
+						);
 					}
 				})(),
 			);
