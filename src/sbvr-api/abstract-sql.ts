@@ -1,5 +1,6 @@
 import _ from 'lodash';
 
+import type { Engines } from '@balena/abstract-sql-compiler';
 import AbstractSQLCompiler from '@balena/abstract-sql-compiler';
 import type { BindKey } from '@balena/odata-parser';
 import {
@@ -78,7 +79,7 @@ export const getAndCheckBindValues = async (
 	return await Promise.all(
 		bindings.map(async (binding) => {
 			let fieldName = '';
-			let field: { dataType: string };
+			let dataType: string;
 			let value: any;
 			if (binding[0] === 'Bind') {
 				const bindValue = binding[1];
@@ -103,7 +104,7 @@ export const getAndCheckBindValues = async (
 					if (maybeField == null) {
 						throw new Error(`Could not find field '${fieldName}'`);
 					}
-					field = maybeField;
+					dataType = maybeField.dataType;
 				} else if (Number.isInteger(bindValue)) {
 					if (bindValue >= odataBinds.length) {
 						console.error(
@@ -112,9 +113,7 @@ export const getAndCheckBindValues = async (
 						);
 						throw new Error('Invalid binding');
 					}
-					let dataType;
 					[dataType, value] = odataBinds[bindValue];
-					field = { dataType };
 				} else if (typeof bindValue === 'string') {
 					if (!Object.hasOwn(odataBinds, bindValue)) {
 						console.error(
@@ -123,16 +122,12 @@ export const getAndCheckBindValues = async (
 						);
 						throw new Error('Invalid binding');
 					}
-					let dataType;
 					[dataType, value] = odataBinds[bindValue as BindKey];
-					field = { dataType };
 				} else {
 					throw new Error(`Unknown binding: ${binding}`);
 				}
 			} else {
-				let dataType;
 				[dataType, value] = binding;
-				field = { dataType };
 			}
 
 			if (value === undefined) {
@@ -140,12 +135,36 @@ export const getAndCheckBindValues = async (
 			}
 
 			try {
-				return await AbstractSQLCompiler[engine].dataTypeValidate(value, field);
+				return await validateBindingType(engine, value, dataType);
 			} catch (err: any) {
 				throw new BadRequestError(`"${fieldName}" ${err.message}`);
 			}
 		}),
 	);
+};
+
+const validateBindingType = async (
+	engine: Engines,
+	$value: any,
+	$dataType: string,
+): Promise<any> => {
+	if ($dataType === 'List') {
+		if (!Array.isArray($value)) {
+			throw new Error('List value binding must be an array');
+		}
+		return await Promise.all(
+			$value.map(async ([dataType, value]: [string, any]) => {
+				// Null is a special case for list values
+				if (dataType === 'Null') {
+					return null;
+				}
+				return await validateBindingType(engine, value, dataType);
+			}),
+		);
+	}
+	return await AbstractSQLCompiler[engine].dataTypeValidate($value, {
+		dataType: $dataType,
+	});
 };
 
 const checkModifiedFields = (
