@@ -1,4 +1,23 @@
 - commits:
+    - subject: Fix missing required validation on bindings
+      hash: 5eac96faefde83ce9d1964b407cf6a490df83920
+      body: |
+        In previous commit `bdb34d` the code path for `getAndCheckBindValues` was simplified
+        considering the declared type of `{dataType: string}`. That typing is not complete and thus the simplification was wrong.
+
+        The field property may also contain a `required` property which is used for doing oData validation (from sbvr-types)
+        In that simplification we excluded the required information for bound variables: https://github.com/balena-io/pinejs/commit/bdb34d9df39e0d9d00db492cbb1ef6dfc61e8450#diff-abade937407ef92d95cd36b5719e481229475da7d3f8bdc613bebef8971c35d2R107
+
+        This reverts back the code simplification but keeping the necessary changes for List binding type.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 20.0.4
+  title: ""
+  date: 2025-02-14T04:13:50.720Z
+- commits:
     - subject: Compile in as (= ANY($singleListBinding))
       hash: bdb34d9df39e0d9d00db492cbb1ef6dfc61e8450
       body: |
@@ -1599,6 +1618,7 @@
                                                               hash: be8fc31c3754186dd4c43ca8d4c056b0def7ffbd
                                                               body: >
                                                                 
+                                                                
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1620,11 +1640,12 @@
                                                               hash: 46a369117c9d1222089498a8794c32d14edef85b
                                                               body: >
                                                                 
-                                                                As engine and
-                                                                npm is now required
-                                                                as part of
-                                                                package.json we can
-                                                                drop this dependency
+                                                                
+                                                                As engine and npm is
+                                                                now required as part
+                                                                of package.json we
+                                                                can drop this
+                                                                dependency
                                                               footer:
                                                                 Change-type: patch
                                                                 change-type: patch
@@ -1655,6 +1676,7 @@
                                                             - subject: Assert that JSON input typeof is object
                                                               hash: 1819ee97811e20da93c6e0f227db6a62ada8c00e
                                                               body: >
+                                                                
                                                                 
                                                                 Ensure that the
                                                                 input passed in for
@@ -1755,9 +1777,9 @@
                                                               hash: 19c2760ecf76b4097d7d3045c2eefbf74fd7c2da
                                                               body: >
                                                                 
-                                                                This also
-                                                                deprecates the
-                                                                legacy version
+                                                                
+                                                                This also deprecates
+                                                                the legacy version
                                                               footer:
                                                                 Change-type: minor
                                                                 change-type: minor
@@ -1783,10 +1805,11 @@
                                                               hash: 1c25d9b8d011791a9e98a5929ad48cdd9f3bab6b
                                                               body: >
                                                                 
-                                                                It can in fact
-                                                                be a lot of
-                                                                different things and
-                                                                that is now also
+                                                                
+                                                                It can in fact be a
+                                                                lot of different
+                                                                things and that is
+                                                                now also
 
                                                                 reflected in the
                                                                 typing
@@ -1811,11 +1834,11 @@
                                                               hash: 6fcb2c4257f9fc50f6b4b1070dec86ace9f71237
                                                               body: >
                                                                 
-                                                                We know what
-                                                                type they return and
-                                                                they should be
-                                                                explicitly accepted
-                                                                as
+                                                                
+                                                                We know what type
+                                                                they return and they
+                                                                should be explicitly
+                                                                accepted as
 
                                                                 those types instead
                                                                 where it is valid to
@@ -1844,6 +1867,7 @@
                                                             - subject: Update dependencies
                                                               hash: 39058b2dacac51da96158d594b2d72e3238d0cbc
                                                               body: >
+                                                                
                                                                 
                                                                 Update
                                                                 @balena/sbvr-types
@@ -1989,10 +2013,11 @@
                                                               hash: d589fb6cd92a3a7570e3b2ebea14acbb84807d8a
                                                               body: >
                                                                 
-                                                                This also
-                                                                deprecates the
-                                                                legacy use of direct
-                                                                true/false entries
+                                                                
+                                                                This also deprecates
+                                                                the legacy use of
+                                                                direct true/false
+                                                                entries
                                                               footer:
                                                                 Change-type: minor
                                                                 change-type: minor
@@ -5106,6 +5131,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5128,6 +5154,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5192,6 +5219,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5346,6 +5374,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -5374,6 +5403,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5457,6 +5487,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -5491,6 +5522,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5663,6 +5695,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
