@@ -79,7 +79,7 @@ export const getAndCheckBindValues = async (
 	return await Promise.all(
 		bindings.map(async (binding) => {
 			let fieldName = '';
-			let dataType: string;
+			let field: { dataType: string; required?: boolean };
 			let value: any;
 			if (binding[0] === 'Bind') {
 				const bindValue = binding[1];
@@ -104,7 +104,7 @@ export const getAndCheckBindValues = async (
 					if (maybeField == null) {
 						throw new Error(`Could not find field '${fieldName}'`);
 					}
-					dataType = maybeField.dataType;
+					field = maybeField;
 				} else if (Number.isInteger(bindValue)) {
 					if (bindValue >= odataBinds.length) {
 						console.error(
@@ -113,7 +113,9 @@ export const getAndCheckBindValues = async (
 						);
 						throw new Error('Invalid binding');
 					}
+					let dataType;
 					[dataType, value] = odataBinds[bindValue];
+					field = { dataType };
 				} else if (typeof bindValue === 'string') {
 					if (!Object.hasOwn(odataBinds, bindValue)) {
 						console.error(
@@ -122,12 +124,16 @@ export const getAndCheckBindValues = async (
 						);
 						throw new Error('Invalid binding');
 					}
+					let dataType;
 					[dataType, value] = odataBinds[bindValue as BindKey];
+					field = { dataType };
 				} else {
 					throw new Error(`Unknown binding: ${binding}`);
 				}
 			} else {
+				let dataType;
 				[dataType, value] = binding;
+				field = { dataType };
 			}
 
 			if (value === undefined) {
@@ -135,7 +141,7 @@ export const getAndCheckBindValues = async (
 			}
 
 			try {
-				return await validateBindingType(engine, value, dataType);
+				return await validateBindingType(engine, value, field);
 			} catch (err: any) {
 				throw new BadRequestError(`"${fieldName}" ${err.message}`);
 			}
@@ -146,9 +152,9 @@ export const getAndCheckBindValues = async (
 const validateBindingType = async (
 	engine: Engines,
 	$value: any,
-	$dataType: string,
+	field: { dataType: string; required?: boolean },
 ): Promise<any> => {
-	if ($dataType === 'List') {
+	if (field.dataType === 'List') {
 		if (!Array.isArray($value)) {
 			throw new Error('List value binding must be an array');
 		}
@@ -158,13 +164,11 @@ const validateBindingType = async (
 				if (dataType === 'Null') {
 					return null;
 				}
-				return await validateBindingType(engine, value, dataType);
+				return await validateBindingType(engine, value, { dataType });
 			}),
 		);
 	}
-	return await AbstractSQLCompiler[engine].dataTypeValidate($value, {
-		dataType: $dataType,
-	});
+	return await AbstractSQLCompiler[engine].dataTypeValidate($value, field);
 };
 
 const checkModifiedFields = (

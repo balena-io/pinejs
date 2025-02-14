@@ -73,5 +73,14 @@ describe('01 basic constrain tests', function () {
 					'It is necessary that each student that has a semester credits, has a semester credits that is greater than or equal to 4 and is less than or equal to 16.',
 				);
 		});
+
+		it('should error on invalid parameter type', async () => {
+			await supertest(testLocalServer)
+				.patch('/university/student(1)')
+				.send({
+					name: null,
+				})
+				.expect(400, '"\\"name\\" cannot be null"');
+		});
 	});
 });
