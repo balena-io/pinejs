@@ -1,4 +1,25 @@
 - commits:
+    - subject: Optimise webresource upload permissions check for multiple uploads in
+        single request
+      hash: 40f30c18e26bcb3de0d4f0bc5ef1f7b92dbe6ffa
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+    - subject: Avoid non-blob webresources fields on multipart requests
+      hash: 978b425e1d90bb8fa6c09944e8a70c06ea68b1a8
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 20.0.5
+  title: ""
+  date: 2025-02-17T17:33:46.101Z
+- commits:
     - subject: Fix missing required validation on bindings
       hash: 5eac96faefde83ce9d1964b407cf6a490df83920
       body: |
@@ -1619,6 +1640,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1641,6 +1663,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 As engine and npm is
                                                                 now required as part
                                                                 of package.json we
@@ -1678,6 +1701,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 Ensure that the
                                                                 input passed in for
                                                                 JSON types is either
@@ -1778,6 +1802,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1806,6 +1831,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 It can in fact be a
                                                                 lot of different
                                                                 things and that is
@@ -1835,6 +1861,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -1869,6 +1896,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -2014,6 +2042,7 @@
                                                               body: >
                                                                 
                                                                 
+
                                                                 This also deprecates
                                                                 the legacy use of
                                                                 direct true/false
@@ -5132,6 +5161,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5154,6 +5184,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5219,6 +5250,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5375,6 +5407,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -5403,6 +5436,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5488,6 +5522,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -5522,6 +5557,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5695,6 +5731,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
