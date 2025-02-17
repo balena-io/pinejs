@@ -14,6 +14,7 @@ import {
 import { errors, permissions } from '../server-glue/module.js';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 import { TypedError } from 'typed-error';
+import type { Resolvable } from '../sbvr-api/common-types.js';
 
 export * from './handlers/index.js';
 
@@ -63,30 +64,27 @@ export const setupWebresourceHandler = (handler: WebResourceHandler): void => {
 export const getWebresourceHandler = (): WebResourceHandler | undefined => {
 	return configuredWebResourceHandler;
 };
+const notValidUpload = () => false;
 
-const isFileInValidPath = async (
-	fieldname: string,
+const getRequestUploadValidator = async (
 	req: Express.Request,
-): Promise<boolean> => {
+	odataRequest: uriParser.ParsedODataRequest,
+): Promise<(fieldName: string) => Resolvable<boolean>> => {
 	if (req.method !== 'POST' && req.method !== 'PATCH') {
-		return false;
+		return notValidUpload;
 	}
 
 	const apiRoot = getApiRoot(req);
 	if (apiRoot == null) {
-		return false;
+		return notValidUpload;
 	}
 	const model = getModel(apiRoot);
-	const odataRequest = uriParser.parseOData({
-		url: req.url,
-		method: req.method,
-	});
 	const sqlResourceName = sbvrUtils.resolveSynonym(odataRequest);
 
 	const table = model.abstractSql.tables[sqlResourceName];
 
 	if (table == null) {
-		return false;
+		return notValidUpload;
 	}
 
 	const permission = req.method === 'POST' ? 'create' : 'update';
@@ -101,20 +99,22 @@ const isFileInValidPath = async (
 	);
 
 	if (!hasPermissions) {
-		return false;
+		return notValidUpload;
 	}
 
-	const dbFieldName = odataNameToSqlName(fieldname);
-	return table.fields.some(
-		(field) =>
-			field.fieldName === dbFieldName && field.dataType === 'WebResource',
-	);
+	return async (fieldname: string) => {
+		const dbFieldName = odataNameToSqlName(fieldname);
+		return table.fields.some(
+			(field) =>
+				field.fieldName === dbFieldName && field.dataType === 'WebResource',
+		);
+	};
 };
 
 export const getUploaderMiddlware = (
 	handler: WebResourceHandler,
 ): Express.RequestHandler => {
-	return (req, res, next) => {
+	return async (req, res, next) => {
 		if (!req.is('multipart')) {
 			next();
 			return;
@@ -124,6 +124,20 @@ export const getUploaderMiddlware = (
 
 		const bb = busboy({ headers: req.headers });
 		let isAborting = false;
+
+		const parsedOdataRequest = uriParser.parseOData({
+			url: req.url,
+			method: req.method,
+		});
+		const webResourcesFieldNames = getWebResourceFields(
+			parsedOdataRequest,
+			false,
+		);
+
+		const isValidUpload = await getRequestUploadValidator(
+			req,
+			parsedOdataRequest,
+		);
 
 		const finishFileUpload = () => {
 			req.unpipe(bb);
@@ -152,7 +166,7 @@ export const getUploaderMiddlware = (
 			completeUploads.push(
 				(async () => {
 					try {
-						if (!(await isFileInValidPath(fieldname, req))) {
+						if (!(await isValidUpload(fieldname))) {
 							filestream.resume();
 							return;
 						}
@@ -174,7 +188,10 @@ export const getUploaderMiddlware = (
 						uploadedFilePaths.push(result.filename);
 					} catch (err: any) {
 						filestream.resume();
-						throw err;
+						bb.emit(
+							'error',
+							new errors.BadRequestError(err.message ?? 'Error uploading file'),
+						);
 					}
 				})(),
 			);
@@ -184,6 +201,14 @@ export const getUploaderMiddlware = (
 		// This receives the form fields and transforms them into a standard JSON body
 		// This is a similar behavior as previous multer library did
 		bb.on('field', (name, val) => {
+			if (webResourcesFieldNames.includes(name)) {
+				isAborting = true;
+				bb.emit(
+					'error',
+					new errors.BadRequestError('WebResource field must be a blob.'),
+				);
+				return;
+			}
 			req.body[name] = val;
 		});
 
@@ -209,7 +234,7 @@ export const getUploaderMiddlware = (
 			}
 		});
 
-		bb.on('error', async (err) => {
+		bb.on('error', async (err: Error) => {
 			finishFileUpload();
 			await clearFiles();
 
@@ -221,15 +246,17 @@ export const getUploaderMiddlware = (
 				);
 			}
 
-			getLogger(getApiRoot(req)).error('Error uploading file', err);
-			next(err);
+			if (!sbvrUtils.handleHttpErrors(req, res, err)) {
+				getLogger(getApiRoot(req)).error('Error uploading file', err);
+				next(err);
+			}
 		});
 		req.pipe(bb);
 	};
 };
 
-const getWebResourceFields = (
-	request: uriParser.ODataRequest,
+export const getWebResourceFields = (
+	request: uriParser.ParsedODataRequest,
 	useTranslations = true,
 ): string[] => {
 	// Translations will use modifyFields(translated) rather than fields(original) so we need to

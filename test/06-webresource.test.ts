@@ -486,6 +486,16 @@ describe('06 webresources tests', function () {
 					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
 				});
 
+				it('should not accept webresource payload that is not a blob', async () => {
+					const res = await supertest(testLocalServer)
+						.post(`/${resourceName}/organization`)
+						.field('name', 'John')
+						.field(resourcePath, 'not a blob')
+						.expect(400);
+
+					expect(res.body).to.equal('WebResource field must be a blob.');
+				});
+
 				it('should not accept webresource payload on application/json requests', async () => {
 					const uniqueFilename = `${randomUUID()}_${filename}`;
 
