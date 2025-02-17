@@ -770,6 +770,13 @@ export const executeModels = async (
 				await asyncMigrator.run(tx, model);
 			}),
 		);
+		// Allow the migrations to be GCed after we are done
+		// executing the models & their migrations.
+		for (const model of execModels) {
+			if (model.migrations != null) {
+				delete model.migrations;
+			}
+		}
 	} catch (err) {
 		for (const { apiRoot } of execModels) {
 			cleanupModel(apiRoot);

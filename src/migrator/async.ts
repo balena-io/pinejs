@@ -28,7 +28,7 @@ import {
 import { booleanToEnabledString } from '../config-loader/env.js';
 
 export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
-	const { migrations } = model;
+	const { migrations, apiRoot: apiRootModelName } = model;
 	if (migrations == null || _.isEmpty(migrations)) {
 		return;
 	}
@@ -38,25 +38,8 @@ export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 		return;
 	}
 
-	await $run(tx, model, asyncMigrations);
-};
-
-const $run = async (
-	setupTx: Tx,
-	model: ApiRootModel,
-	migrations: RunnableAsyncMigrations,
-): Promise<void> => {
-	const modelName = model.apiRoot;
-
-	const asyncMigrationSetup: Array<{
-		key: string;
-		initMigrationState: InitialMigrationStatus;
-		asyncRunnerMigratorFn: (tx: Tx) => Promise<number>;
-	}> = [];
-
 	// get a transaction for setting up the async migrator
-
-	const executedMigrations = await getExecutedMigrations(setupTx, modelName);
+	const executedMigrations = await getExecutedMigrations(tx, apiRootModelName);
 
 	// if the model is new, the sync migration parts (marked by finalize=true) are already marked in the sync migration runner.
 
@@ -100,9 +83,25 @@ const $run = async (
 	 */
 
 	const pendingMigrations: MigrationTuple[] = filterAndSortPendingMigrations(
-		migrations,
+		asyncMigrations,
 		executedMigrations,
 	);
+
+	// Pass the minimum and simplest parameters to the async migrator runner,
+	// so that everything else (eg: finalized migrations) can be GCed,
+	await $run(tx, apiRootModelName, pendingMigrations);
+};
+
+const $run = async (
+	setupTx: Tx,
+	apiRootModelName: string,
+	pendingMigrations: MigrationTuple[],
+): Promise<void> => {
+	const asyncMigrationSetup: Array<{
+		key: string;
+		initMigrationState: InitialMigrationStatus;
+		asyncRunnerMigratorFn: (tx: Tx) => Promise<number>;
+	}> = [];
 
 	// Just schedule the migration workers and don't wait for any return of them
 	// the migration workers run until the next deployment and may synchronise with other
@@ -203,7 +202,7 @@ const $run = async (
 					const $migrationState = await sbvrUtils.db.transaction(
 						async (tx) =>
 							await lockMigrations(
-								{ tx, modelName, blocking: false },
+								{ tx, modelName: apiRootModelName, blocking: false },
 								async () => {
 									const migrationState = await readMigrationStatus(tx, key);
 
