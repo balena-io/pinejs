@@ -1374,13 +1374,18 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 				>;
 				// Add/check the relevant permissions
 				try {
-					let resolvedResourceName = resolveSynonym($request);
-					if (resolvedResourceName.endsWith('#canAccess')) {
-						resolvedResourceName = resolvedResourceName.slice(
-							0,
-							-'#canAccess'.length,
-						);
-					}
+					const resolvedResourceName = $request.resourceName.endsWith(
+						'#canAccess',
+					)
+						? resolveSynonym({
+								...$request,
+								resourceName: $request.resourceName.slice(
+									0,
+									-'#canAccess'.length,
+								),
+							})
+						: resolveSynonym($request);
+
 					if (abstractSqlModel.tables[resolvedResourceName] == null) {
 						throw new UnauthorizedError();
 					}
