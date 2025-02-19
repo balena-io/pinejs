@@ -1,4 +1,16 @@
 - commits:
+    - subject: "fix: Resolve `\\canAccess` for term forms"
+      hash: 3695f922218b0f40bcfa24c2426a280be26c5582
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 20.0.6
+  title: ""
+  date: 2025-02-19T17:11:29.159Z
+- commits:
     - subject: Optimise webresource upload permissions check for multiple uploads in
         single request
       hash: 40f30c18e26bcb3de0d4f0bc5ef1f7b92dbe6ffa
@@ -1641,6 +1653,7 @@
                                                                 
                                                                 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1663,6 +1676,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
                                                                 As engine and npm is
                                                                 now required as part
@@ -1701,6 +1715,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
                                                                 Ensure that the
                                                                 input passed in for
@@ -1803,6 +1818,7 @@
                                                                 
                                                                 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1831,6 +1847,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
                                                                 It can in fact be a
                                                                 lot of different
@@ -1861,6 +1878,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
                                                                 We know what type
                                                                 they return and they
@@ -1896,6 +1914,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
                                                                 Update
                                                                 @balena/sbvr-types
@@ -2042,6 +2061,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
                                                                 This also deprecates
                                                                 the legacy use of
@@ -5162,6 +5182,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5184,6 +5205,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5250,6 +5272,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5408,6 +5431,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -5436,6 +5460,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5523,6 +5548,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -5557,6 +5583,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5731,6 +5758,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
