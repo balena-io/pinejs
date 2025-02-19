@@ -67,6 +67,41 @@ describe('07 permissions tests', function () {
 				})
 				.expect(200);
 		});
+
+		it('should be able to create a badge for a student', async () => {
+			const { body } = await supertest(testLocalServer)
+				.post('/university/student_badge')
+				.set('Cookie', adminCookie)
+				.send({
+					student: 1,
+					badge_key: 'role',
+					badge_value: 'admin',
+				})
+				.expect(201);
+			expect(body.id).to.be.eq(1);
+			expect(body.badge_key).to.be.eq('role');
+			expect(body.badge_value).to.be.eq('admin');
+		});
+
+		it('should be able to check access for student__has__badge_key', async () => {
+			await supertest(testLocalServer)
+				.post('/university/student__has__badge_key(1)/canAccess')
+				.set('Cookie', adminCookie)
+				.send({
+					method: 'GET',
+				})
+				.expect(200);
+		});
+
+		it('should be able to check access for student_badge (term form)', async () => {
+			await supertest(testLocalServer)
+				.post('/university/student_badge(1)/canAccess')
+				.set('Cookie', adminCookie)
+				.send({
+					method: 'GET',
+				})
+				.expect(200);
+		});
 	});
 
 	describe('university vocabulary with guest permissions', () => {

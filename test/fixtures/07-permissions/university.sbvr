@@ -15,6 +15,11 @@ Term: semester credits
 Term: matrix number
 	Concept Type: Integer (Type)
 
+Term: badge key
+	Concept Type: Short Text (Type)
+
+Term: badge value
+	Concept Type: Short Text (Type)
 
 Term: student
 
@@ -34,3 +39,10 @@ Fact Type: student has birthday
 Fact Type: student has semester credits
 	Necessity: each student has at most one semester credits
 	Necessity: each student that has a semester credits, has a semester credits that is greater than or equal to 4 and is less than or equal to 16.
+
+Fact Type: student has badge key
+	Term Form: student badge
+	Database Table Name: student badge
+
+Fact type: student badge has badge value
+	Necessity: each student badge has exactly one badge value.
