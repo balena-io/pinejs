@@ -1,4 +1,16 @@
 - commits:
+    - subject: Free up migration related memory after the models get executed
+      hash: 6dde0e76a1bc1b70b1d212fb76b2222e72742fed
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 20.0.7
+  title: ""
+  date: 2025-02-20T10:39:41.686Z
+- commits:
     - subject: "fix: Resolve `\\canAccess` for term forms"
       hash: 3695f922218b0f40bcfa24c2426a280be26c5582
       body: ""
@@ -1654,6 +1666,7 @@
                                                                 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1676,6 +1689,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 As engine and npm is
@@ -1715,6 +1729,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 Ensure that the
@@ -1819,6 +1834,7 @@
                                                                 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1847,6 +1863,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 It can in fact be a
@@ -1878,6 +1895,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 We know what type
@@ -1914,6 +1932,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 Update
@@ -2061,6 +2080,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
                                                                 This also deprecates
@@ -5183,6 +5203,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5205,6 +5226,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5272,6 +5294,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5432,6 +5455,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -5460,6 +5484,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5549,6 +5574,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -5583,6 +5609,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5758,6 +5785,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
