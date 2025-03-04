@@ -1960,10 +1960,13 @@ const respondPost = async (
 	}
 
 	const response = {
-		statusCode: 201,
+		// When there is nothing returned (eg b/c not having the permission to read the result
+		// or in case the result got deleted in the mean time) we use a 204 w/o a content-type,
+		// since using application/json could make clients try to parse the response as JSON, which would fail.
+		statusCode: result.d.length === 0 ? 204 : 201,
 		body: result.d[0],
 		headers: {
-			'content-type': 'application/json',
+			...(result.d.length > 0 && { 'content-type': 'application/json' }),
 			location,
 		},
 	};
