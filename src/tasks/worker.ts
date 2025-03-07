@@ -246,6 +246,9 @@ export class Worker {
 				});
 			} catch (err) {
 				console.error('Failed polling for tasks:', err);
+				// Add some delay after an error to avoid retrying at max speed
+				// TODO: This should be configurable/adaptive
+				await setTimeout(100);
 			} finally {
 				if (!executed) {
 					await setTimeout(this.interval);
