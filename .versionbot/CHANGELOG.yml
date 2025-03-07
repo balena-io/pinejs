@@ -1,4 +1,16 @@
 - commits:
+    - subject: "Tasks: add a 100ms retry delay after a failed poll"
+      hash: 908e687c9d9e315ef3a9a649ffcd3c3abf3336f4
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 20.0.8
+  title: ""
+  date: 2025-03-07T18:06:36.151Z
+- commits:
     - subject: Free up migration related memory after the models get executed
       hash: 6dde0e76a1bc1b70b1d212fb76b2222e72742fed
       body: ""
@@ -1667,6 +1679,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1689,6 +1702,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1729,6 +1743,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1835,6 +1850,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -1863,6 +1879,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1895,6 +1912,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1932,6 +1950,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2080,6 +2099,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5204,6 +5224,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5226,6 +5247,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5294,6 +5316,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5456,6 +5479,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -5484,6 +5508,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5575,6 +5600,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -5609,6 +5635,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5785,6 +5812,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
