@@ -1,4 +1,19 @@
 - commits:
+    - subject: "Tests: use faster config for postgres"
+      hash: bd764d463a99e9b05082de3c96365ba3d7d03ca6
+      body: |
+        These settings are not safe for data we care about as we might lose
+        or corrupt data in the case of power failure, but for test data where
+        that is not an issue they offer a performance benefit
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 20.0.11
+  title: ""
+  date: 2025-03-21T23:48:29.813Z
+- commits:
     - subject: Fix some linting issues
       hash: 9e15788b2a6c0b3e353ab13f25a46dc6c3167fe4
       body: ""
@@ -1914,6 +1929,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1936,6 +1952,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -1979,6 +1996,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2091,6 +2109,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2119,6 +2138,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2160,6 +2180,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2194,6 +2215,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2345,6 +2367,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5475,6 +5498,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5497,6 +5521,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5568,6 +5593,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5736,6 +5762,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -5764,6 +5791,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5861,6 +5889,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -5895,6 +5924,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6074,6 +6104,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
