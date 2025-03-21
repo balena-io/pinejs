@@ -471,7 +471,7 @@ const bindsForAffectedIds = (
 	return odataBinds;
 };
 
-export const validateModel = async (
+const validateModel = async (
 	tx: Db.Tx,
 	modelName: string,
 	request?: Pick<
@@ -833,34 +833,6 @@ export const deleteModel = async (vocabulary: string) => {
 		});
 	}
 	cleanupModel(vocabulary);
-};
-
-const isWhereNode = (
-	x: AbstractSQLCompiler.AbstractSqlType,
-): x is AbstractSQLCompiler.WhereNode => x[0] === 'Where';
-const isEqualsNode = (
-	x: AbstractSQLCompiler.AbstractSqlType,
-): x is AbstractSQLCompiler.EqualsNode => x[0] === 'Equals';
-export const getID = (vocab: string, request: uriParser.ODataRequest) => {
-	if (request.abstractSqlQuery == null) {
-		throw new Error('Can only get the id if an abstractSqlQuery is provided');
-	}
-	const { idField } = models[vocab].abstractSql.tables[request.resourceName];
-	for (const whereClause of request.abstractSqlQuery) {
-		if (isWhereNode(whereClause)) {
-			for (const comparison of whereClause.slice(1)) {
-				if (isEqualsNode(comparison)) {
-					if (comparison[1][2] === idField) {
-						return comparison[2][1];
-					}
-					if (comparison[2][2] === idField) {
-						return comparison[1][1];
-					}
-				}
-			}
-		}
-	}
-	return 0;
 };
 
 export const runRule = (() => {

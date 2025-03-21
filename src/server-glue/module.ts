@@ -70,13 +70,7 @@ export const init = async <T extends string>(
 		const promises: Array<Promise<void>> = [];
 		if (process.env.SBVR_SERVER_ENABLED) {
 			const sbvrServer = await import('../data-server/sbvr-server.js');
-			const transactions = await import('../http-transactions/transactions.js');
 			promises.push(cfgLoader.loadConfig(sbvrServer.config));
-			promises.push(
-				cfgLoader.loadConfig(transactions.config).then(() => {
-					transactions.addModelHooks('data');
-				}),
-			);
 		}
 		if (!process.env.CONFIG_LOADER_DISABLED) {
 			promises.push(cfgLoader.loadApplicationConfig(config));
