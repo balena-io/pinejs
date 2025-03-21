@@ -807,34 +807,6 @@ const cleanupModel = (vocab: string) => {
 	delete api[vocab];
 };
 
-export const deleteModel = async (vocabulary: string) => {
-	const { sql } = models[vocabulary];
-	if (sql) {
-		await db.transaction(async (tx) => {
-			const dropStatements: Array<Promise<any>> = sql.dropSchema.map(
-				(dropStatement) => tx.executeSql(dropStatement),
-			);
-			await Promise.all(
-				dropStatements.concat([
-					api.dev.delete({
-						resource: 'model',
-						passthrough: {
-							tx,
-							req: permissions.root,
-						},
-						options: {
-							$filter: {
-								is_of__vocabulary: vocabulary,
-							},
-						},
-					}),
-				]),
-			);
-		});
-	}
-	cleanupModel(vocabulary);
-};
-
 export const runRule = (() => {
 	const LF2AbstractSQLPrepHack = LF2AbstractSQL.LF2AbstractSQLPrep._extend({
 		CardinalityOptimisation() {
@@ -2043,7 +2015,7 @@ const devModelConfig = {
 		},
 	},
 } as const satisfies ExecutableModel;
-export const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
+const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
 	try {
 		// dev model must run first
 		await executeModel(tx, devModelConfig);
