@@ -56,7 +56,7 @@ const getResourceWithOdataParams = async function (
 	const res = await supertest(testLocalServer).get(
 		`/example/${resource}${odataParams ? '?' + odataParams : ''}`,
 	);
-	return res?.body?.d || [];
+	return res?.body?.d ?? [];
 };
 
 const updateOneTableRow = async function (
@@ -94,7 +94,7 @@ const getMigrationStatus = async function (): Promise<
 	const res = await supertest(testLocalServer).get(
 		'/migrations/migration_status',
 	);
-	return res?.body?.d || [];
+	return res?.body?.d ?? [];
 };
 
 describe('03 Async Migrations', function () {
@@ -612,7 +612,7 @@ describe('03 Async Migrations', function () {
 				try {
 					await apiTestCall();
 					await delay(50);
-				} catch (err: any) {
+				} catch {
 					assert('Parallel database access should not fail');
 				}
 			}

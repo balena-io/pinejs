@@ -24,7 +24,7 @@ export class HttpError extends TypedError {
 	}
 
 	public getResponseBody() {
-		return this.body !== undefined ? this.body : this.message;
+		return this.body ?? this.message;
 	}
 }
 
