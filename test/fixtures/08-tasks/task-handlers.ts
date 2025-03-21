@@ -60,7 +60,7 @@ export const initTaskHandlers = () => {
 		createDeviceParamsSchema,
 	);
 
-	tasks.addTaskHandler('will_fail', async () => {
+	tasks.addTaskHandler('will_fail', () => {
 		try {
 			throw new Error('This task is supposed to fail');
 		} catch (err: any) {

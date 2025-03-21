@@ -102,7 +102,7 @@ const getRequestUploadValidator = async (
 		return notValidUpload;
 	}
 
-	return async (fieldname: string) => {
+	return (fieldname: string) => {
 		const dbFieldName = odataNameToSqlName(fieldname);
 		return table.fields.some(
 			(field) =>

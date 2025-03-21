@@ -1,6 +1,7 @@
-process.env.PINEJS_CACHE_FILE =
-	process.env.PINEJS_CACHE_FILE ||
-	fileURLToPath(new URL('.pinejs-cache.json', import.meta.url));
+process.env.PINEJS_CACHE_FILE = optionalVar(
+	'PINEJS_CACHE_FILE',
+	fileURLToPath(new URL('.pinejs-cache.json', import.meta.url)),
+);
 
 import type { SqlModel } from '@balena/abstract-sql-compiler';
 import type { Config, Model } from '../config-loader/config-loader.js';
@@ -11,6 +12,7 @@ import path from 'path';
 import '../server-glue/sbvr-loader.js';
 import { fileURLToPath } from 'url';
 import { loadSBVR } from '../server-glue/sbvr-loader.js';
+import { optionalVar } from '@balena/env-parsing';
 
 export { version } from '../config-loader/env.js';
 

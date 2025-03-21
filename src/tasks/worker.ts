@@ -9,13 +9,14 @@ import { sbvrUtils } from '../server-glue/module.js';
 import { ajv } from './common.js';
 import type { Task } from './tasks.js';
 import type TasksModel from './tasks.js';
+import type { Resolvable } from '../sbvr-api/common-types.js';
 
 interface TaskArgs<T = AnyObject> {
 	api: PinejsClient;
 	params: T;
 }
 
-type TaskResponse = Promise<{
+type TaskResponse = Resolvable<{
 	status: Task['Read']['status'];
 	error?: string;
 }>;
@@ -260,7 +261,7 @@ export class Worker {
 		})();
 	}
 
-	public async stop(): Promise<void> {
+	public stop(): void {
 		this.running = false;
 	}
 
