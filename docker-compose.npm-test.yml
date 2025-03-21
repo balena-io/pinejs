@@ -9,6 +9,13 @@ services:
       TZ: UTC
     ports:
       - "5431:5432"
+    command:
+      - -c
+      - synchronous_commit=off
+      - -c
+      - fsync=off
+      - -c
+      - full_page_writes=off
   minio-server:
     image: minio/minio:RELEASE.2024-09-22T00-33-43Z
     environment:
