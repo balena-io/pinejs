@@ -31,7 +31,6 @@ const config: Configuration = {
 			'process.browser': true,
 			'process.env.CONFIG_LOADER_DISABLED': true,
 			'process.env.PINEJS_DEBUG': true,
-			'process.env.SBVR_SERVER_ENABLED': true,
 		}),
 	],
 };
