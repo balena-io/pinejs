@@ -188,6 +188,7 @@ const getRejectedFunctions: RejectedFunctions = env.DEBUG
 			// In debug mode we create the error here to give the stack trace of where we first closed the transaction,
 			// but it adds significant overhead for a production environment
 			const rejectionValue = new TransactionClosedError(message);
+			// eslint-disable-next-line @typescript-eslint/require-await -- We need to return a promise for compatibility reasons.
 			const rejectFn = async () => {
 				// We return a new rejected promise on each call so that errors are automatically logged if the
 				// rejection is not handled (but only if it is not handled)
@@ -199,6 +200,7 @@ const getRejectedFunctions: RejectedFunctions = env.DEBUG
 			};
 		}
 	: (message) => {
+			// eslint-disable-next-line @typescript-eslint/require-await -- We need to return a promise for compatibility reasons.
 			const rejectFn = async () => {
 				throw new TransactionClosedError(message);
 			};
@@ -418,8 +420,9 @@ export abstract class Tx {
 	protected abstract _rollback(): Promise<void>;
 	protected abstract _commit(): Promise<void>;
 
-	// TODO: Re-enable the lint rule once eslint properly supports abstract class base implementations
+	// eslint-disable-next-line @typescript-eslint/require-await -- We need to return a promise for compatibility reasons.
 	public async getTxLevelLock(
+		// TODO: Re-enable the lint rule once eslint properly supports abstract class base implementations
 		/* eslint-disable @typescript-eslint/no-unused-vars */
 		_namespaceKey: string,
 		_key: number,
@@ -939,6 +942,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 				await this.tx.rollback();
 			}
 
+			// eslint-disable-next-line @typescript-eslint/require-await -- We need to return a promise for compatibility reasons.
 			protected async _commit() {
 				this.tx.commit();
 			}
@@ -988,7 +992,7 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 						resolve(results);
 					};
 					const errorCallback: SQLStatementErrorCallback = (_tx, err) => {
-						reject(err);
+						reject(err as any as Error);
 						return false;
 					};
 

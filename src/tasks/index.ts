@@ -44,7 +44,7 @@ export const config: ConfigLoader.Config = {
 };
 
 export let worker: Worker | null = null;
-export async function setup(): Promise<void> {
+export function setup(): void {
 	// Async task functionality is only supported on Postgres
 	if (sbvrUtils.db.engine !== 'postgres') {
 		console.warn('Skipping task setup as database not supported');

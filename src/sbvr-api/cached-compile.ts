@@ -1,8 +1,9 @@
 import type Fs from 'fs';
 
+import { optionalVar } from '@balena/env-parsing';
 import _ from 'lodash';
 
-const cacheFile = process.env.PINEJS_CACHE_FILE || '.pinejs-cache.json';
+const cacheFile = optionalVar('PINEJS_CACHE_FILE', '.pinejs-cache.json');
 let cache: null | {
 	[name: string]: {
 		[version: string]: {

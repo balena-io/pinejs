@@ -79,7 +79,7 @@ export const fromCallback = <T>(
 	new Promise<T>((resolve, reject) => {
 		resolver((err, result?: T) => {
 			if (err) {
-				reject(err);
+				reject(err as Error);
 			} else {
 				resolve(result as T);
 			}

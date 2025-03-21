@@ -6,6 +6,7 @@ import type {
 } from '../index.js';
 
 export class NoopHandler implements WebResourceHandler {
+	// eslint-disable-next-line @typescript-eslint/require-await -- We need to return a promise for compatibility reasons.
 	public async handleFile(resource: IncomingFile): Promise<UploadResponse> {
 		// handleFile must consume the file stream
 		resource.stream.resume();
@@ -16,9 +17,10 @@ export class NoopHandler implements WebResourceHandler {
 	}
 
 	public async removeFile(): Promise<void> {
-		return;
+		// noop
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await -- We need to return a promise for compatibility reasons.
 	public async onPreRespond(webResource: WebResource): Promise<WebResource> {
 		return webResource;
 	}

@@ -60,7 +60,7 @@ const app = (function () {
 	) {
 		if (!handlers[method]) {
 			// TODO: Consider changing this to a custom Error
-			// eslint-disable-next-line no-throw-literal
+			// eslint-disable-next-line no-throw-literal, @typescript-eslint/only-throw-error
 			throw [404, null, null];
 		}
 		const req = {
@@ -102,6 +102,7 @@ const app = (function () {
 				},
 				end(/** @type any */ data) {
 					if (this.statusCode >= 400) {
+						// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
 						reject([this.statusCode, data, null]);
 					} else {
 						resolve([this.statusCode, data, null]);
@@ -111,12 +112,14 @@ const app = (function () {
 					/** @type undefined | number */ statusCode = this.statusCode,
 				) {
 					if (statusCode >= 400) {
+						// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
 						reject([statusCode, null, null]);
 					} else {
 						resolve([statusCode, null, null]);
 					}
 				},
 				redirect() {
+					// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
 					reject([307]);
 				},
 				set() {

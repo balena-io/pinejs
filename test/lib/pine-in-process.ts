@@ -26,7 +26,7 @@ export async function forkInit() {
 
 	if (cluster.isPrimary) {
 		const readyWorkers = new Set<number>();
-		process.on('message', async (message: Serializable) => {
+		process.on('message', (message: Serializable) => {
 			console.log('Received message in primary process', message);
 			for (const id of readyWorkers.keys()) {
 				cluster.workers?.[id]?.send(message);
@@ -96,7 +96,7 @@ async function runApp(processArgs: PineTestOptions) {
 			if (message === PINE_TEST_SIGNALS.STOP_TASK_WORKER) {
 				// This avoids the worker from picking up any new tasks
 				// Useful for stopping running process on a sigterm, for example
-				await tasks.worker?.stop();
+				tasks.worker?.stop();
 			}
 
 			if (message === PINE_TEST_SIGNALS.START_TASK_WORKER) {

@@ -233,7 +233,7 @@ export const setup: SetupFunction = async (app, sbvrUtils, db) => {
 								await tx.executeSql(query);
 							} catch (err) {
 								// TODO: Consider changing this to a custom Error
-								// eslint-disable-next-line no-throw-literal
+								// eslint-disable-next-line no-throw-literal, @typescript-eslint/only-throw-error
 								throw [query, err];
 							}
 						}

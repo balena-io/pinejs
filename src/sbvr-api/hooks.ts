@@ -36,6 +36,7 @@ export interface HookArgs<Vocab extends string = string> {
 	api: (typeof api)[Vocab];
 	tx?: Tx | undefined;
 }
+// eslint-disable-next-line @typescript-eslint/no-invalid-void-type -- This makes the type far easier to use when defining functions that typescript defaults as void rather than undefined
 export type HookResponse = PromiseLike<any> | null | void;
 
 export interface Hooks<Vocab extends string = string> {
