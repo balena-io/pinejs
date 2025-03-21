@@ -46,9 +46,6 @@ export const cache = {
 	odataToAbstractSql: {
 		max: 10000,
 	} as CacheOpts,
-	abstractSqlCompiler: {
-		max: 10000,
-	} as CacheOpts,
 	userPermissions: false as CacheOpts,
 	apiKeyPermissions: false as CacheOpts,
 	apiKeyActorId: false as CacheOpts,
