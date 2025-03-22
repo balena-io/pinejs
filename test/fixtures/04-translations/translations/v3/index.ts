@@ -20,7 +20,7 @@ v3AbstractSqlModel.relationships['version'] = { v3: {} };
 
 export const v3Translations: ConfigLoader.Model['translations'] = {
 	campus: {
-		$toResource: `faculty$${toVersion}`,
+		$toResource: 'faculty',
 	},
 	student: {
 		'studies at-campus': 'studies at-faculty',

@@ -2,7 +2,6 @@ import type { OptionalField, Resolvable } from './common-types.js';
 import type { Result, Tx } from '../database-layer/db.js';
 import type { ODataRequest, ParsedODataRequest } from './uri-parser.js';
 import type { AnyObject } from 'pinejs-client-core';
-import type { TypedError } from 'typed-error';
 import type { SupportedMethod } from '@balena/odata-to-abstract-sql';
 
 import _ from 'lodash';
@@ -60,7 +59,7 @@ export interface Hooks<Vocab extends string = string> {
 	) => HookResponse;
 	/** These are run in reverse translation order from newest to oldest */
 	'POSTRUN-ERROR'?: (
-		options: HookArgs<Vocab> & { tx: Tx; error: TypedError | any },
+		options: HookArgs<Vocab> & { tx: Tx; error: unknown },
 	) => HookResponse;
 }
 export type HookBlueprints = {

@@ -67,21 +67,9 @@ export const init = async <T extends string>(
 		await cfgLoader.loadConfig(migrator.config);
 		await cfgLoader.loadConfig(tasks.config);
 
-		const promises: Array<Promise<void>> = [];
-		if (process.env.SBVR_SERVER_ENABLED) {
-			const sbvrServer = await import('../data-server/sbvr-server.js');
-			const transactions = await import('../http-transactions/transactions.js');
-			promises.push(cfgLoader.loadConfig(sbvrServer.config));
-			promises.push(
-				cfgLoader.loadConfig(transactions.config).then(() => {
-					transactions.addModelHooks('data');
-				}),
-			);
-		}
 		if (!process.env.CONFIG_LOADER_DISABLED) {
-			promises.push(cfgLoader.loadApplicationConfig(config));
+			await cfgLoader.loadApplicationConfig(config);
 		}
-		await Promise.all(promises);
 		// Execute it after all other promises have resolved. Execution of promises is not neccessarily
 		// guaranteed to be sequentially resolving them with Promise.all
 		await sbvrUtils.postSetup(app, db);

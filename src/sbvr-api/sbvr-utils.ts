@@ -471,7 +471,7 @@ const bindsForAffectedIds = (
 	return odataBinds;
 };
 
-export const validateModel = async (
+const validateModel = async (
 	tx: Db.Tx,
 	modelName: string,
 	request?: Pick<
@@ -805,62 +805,6 @@ export const postExecuteModels = async (tx: Db.Tx): Promise<void> => {
 const cleanupModel = (vocab: string) => {
 	delete models[vocab];
 	delete api[vocab];
-};
-
-export const deleteModel = async (vocabulary: string) => {
-	const { sql } = models[vocabulary];
-	if (sql) {
-		await db.transaction(async (tx) => {
-			const dropStatements: Array<Promise<any>> = sql.dropSchema.map(
-				(dropStatement) => tx.executeSql(dropStatement),
-			);
-			await Promise.all(
-				dropStatements.concat([
-					api.dev.delete({
-						resource: 'model',
-						passthrough: {
-							tx,
-							req: permissions.root,
-						},
-						options: {
-							$filter: {
-								is_of__vocabulary: vocabulary,
-							},
-						},
-					}),
-				]),
-			);
-		});
-	}
-	cleanupModel(vocabulary);
-};
-
-const isWhereNode = (
-	x: AbstractSQLCompiler.AbstractSqlType,
-): x is AbstractSQLCompiler.WhereNode => x[0] === 'Where';
-const isEqualsNode = (
-	x: AbstractSQLCompiler.AbstractSqlType,
-): x is AbstractSQLCompiler.EqualsNode => x[0] === 'Equals';
-export const getID = (vocab: string, request: uriParser.ODataRequest) => {
-	if (request.abstractSqlQuery == null) {
-		throw new Error('Can only get the id if an abstractSqlQuery is provided');
-	}
-	const { idField } = models[vocab].abstractSql.tables[request.resourceName];
-	for (const whereClause of request.abstractSqlQuery) {
-		if (isWhereNode(whereClause)) {
-			for (const comparison of whereClause.slice(1)) {
-				if (isEqualsNode(comparison)) {
-					if (comparison[1][2] === idField) {
-						return comparison[2][1];
-					}
-					if (comparison[2][2] === idField) {
-						return comparison[1][1];
-					}
-				}
-			}
-		}
-	}
-	return 0;
 };
 
 export const runRule = (() => {
@@ -2071,7 +2015,7 @@ const devModelConfig = {
 		},
 	},
 } as const satisfies ExecutableModel;
-export const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
+const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
 	try {
 		// dev model must run first
 		await executeModel(tx, devModelConfig);

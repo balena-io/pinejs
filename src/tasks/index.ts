@@ -56,7 +56,7 @@ export function setup(): void {
 
 	// Add resource hooks
 	addPureHook('POST', apiRoot, 'task', {
-		POSTPARSE: async ({ req, request }) => {
+		POSTPARSE: ({ req, request }) => {
 			// Set the actor
 			request.values.is_created_by__actor =
 				req.user?.actor ?? req.apiKey?.actor;
