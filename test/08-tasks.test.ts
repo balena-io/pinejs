@@ -6,7 +6,7 @@ import { PineTest } from 'pinejs-client-supertest';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
 import { env } from '@balena/pinejs';
 import type Model from '@balena/pinejs/out/tasks/tasks.js';
-import cronParser from 'cron-parser';
+import { CronExpressionParser } from 'cron-parser';
 import { PINE_TEST_SIGNALS } from './lib/common.js';
 
 const actorId = 1;
@@ -241,7 +241,7 @@ describe('08 task tests', function () {
 		it('should set scheduled execution time when cron expression is provided', async () => {
 			// Create a task to create a new device record in 3s
 			const cron = '0 0 2,8,12,14 * * *';
-			const expectedSchedule = cronParser.parseExpression(cron).next().toDate();
+			const expectedSchedule = CronExpressionParser.parse(cron).next().toDate();
 			const task = await createTask(pineTest, apikey, {
 				is_executed_by__handler: 'create_device',
 				is_executed_with__parameter_set: {
@@ -363,8 +363,7 @@ describe('08 task tests', function () {
 					},
 				});
 
-				const nextExecutionDate = cronParser
-					.parseExpression(cron)
+				const nextExecutionDate = CronExpressionParser.parse(cron)
 					.next()
 					.toISOString();
 				await waitFor(async () => {
