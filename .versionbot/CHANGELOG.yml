@@ -1,4 +1,54 @@
 - commits:
+    - subject: Update @balena/lint to 9.x
+      hash: a48d8d3e901671a0e0a9c836e60340445c770eb6
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: "Translations: switch warning to an error when aliasing a $toResource"
+      hash: 3d55c635df0614509d535da40b587dd2040bf91a
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Replace the cached abstractSqlQuery with the compiled sqlQuery once
+        generated
+      hash: b5d51b27fa6bfa6e38093a00ba7ecfb21db38520
+      body: |
+        This allows freeing up all the memory used by the abstractSqlQuery tree
+        once the sqlQuery has been generated at the cost that the
+        abstractSqlQuery cannot be recompiled for another db engines. In
+        practice this shouldn't be a limitation as using multiple db engines
+        with a single model is not supported and unlikely to work.
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Drop sbvr-server built-in module
+      hash: ef648b0c43ca67aeed637250964ccdbf34f609d7
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Drop http-transactions built-in module
+      hash: 94ca15ace9b736bb212a8863527c5bf6e24d7694
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+  version: 21.0.0
+  title: ""
+  date: 2025-03-24T15:16:13.363Z
+- commits:
     - subject: Update cron-parser to v5
       hash: 44721754b32264e048f2b5aa695ca18224a17fb9
       body: ""
@@ -1943,6 +1993,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -1965,6 +2016,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2010,6 +2062,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2126,6 +2179,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2154,6 +2208,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2199,6 +2254,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2233,6 +2289,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2386,6 +2443,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5520,6 +5578,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5542,6 +5601,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5615,6 +5675,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5787,6 +5848,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -5815,6 +5877,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5916,6 +5979,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -5950,6 +6014,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6131,6 +6196,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
