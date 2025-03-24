@@ -9,33 +9,37 @@ import {
 	isBindReference,
 } from '@balena/odata-to-abstract-sql';
 import deepFreeze from 'deep-freeze';
-import memoize from 'memoizee';
-import * as env from '../config-loader/env.js';
 import { BadRequestError, SqlCompilationError } from './errors.js';
 import * as sbvrUtils from './sbvr-utils.js';
-import type { ODataRequest } from './uri-parser.js';
+import type { CachedSqlQuery, ODataRequest } from './uri-parser.js';
 
-const getMemoizedCompileRule = memoize(
-	(engine: AbstractSQLCompiler.Engines) =>
-		env.createCache(
-			'abstractSqlCompiler',
-			(abstractSqlQuery: AbstractSQLCompiler.AbstractSqlQuery) => {
-				const sqlQuery =
-					AbstractSQLCompiler[engine].compileRule(abstractSqlQuery);
-				const modifiedFields =
-					AbstractSQLCompiler[engine].getModifiedFields(abstractSqlQuery);
-				if (modifiedFields != null) {
-					deepFreeze(modifiedFields);
-				}
-				return {
-					sqlQuery,
-					modifiedFields,
-				};
-			},
-			{ weak: true },
-		),
-	{ primitive: true },
-);
+const compileQuery = (
+	engine: AbstractSQLCompiler.Engines,
+	abstractSqlQuery: NonNullable<ODataRequest['abstractSqlQuery']>,
+) => {
+	if (!('sqlQuery' in abstractSqlQuery)) {
+		const sqlQuery = AbstractSQLCompiler[engine].compileRule(abstractSqlQuery);
+		const modifiedFields =
+			AbstractSQLCompiler[engine].getModifiedFields(abstractSqlQuery);
+		if (modifiedFields != null) {
+			deepFreeze(modifiedFields);
+		}
+		abstractSqlQuery = abstractSqlQuery as any as CachedSqlQuery;
+		abstractSqlQuery.length = 0;
+		abstractSqlQuery.engine = engine;
+		abstractSqlQuery.sqlQuery = sqlQuery;
+		abstractSqlQuery.modifiedFields = modifiedFields;
+	}
+	if (engine !== abstractSqlQuery.engine) {
+		throw new Error(
+			'Trying to recompile a cached abstract sql query with a different engine than it was compiled with is not supported',
+		);
+	}
+	return {
+		sqlQuery: abstractSqlQuery.sqlQuery,
+		modifiedFields: abstractSqlQuery.modifiedFields,
+	};
+};
 
 export const compileRequest = (request: ODataRequest) => {
 	if (request.abstractSqlQuery != null) {
@@ -44,7 +48,8 @@ export const compileRequest = (request: ODataRequest) => {
 			throw new SqlCompilationError('No database engine specified');
 		}
 		try {
-			const { sqlQuery, modifiedFields } = getMemoizedCompileRule(engine)(
+			const { sqlQuery, modifiedFields } = compileQuery(
+				engine,
 				request.abstractSqlQuery,
 			);
 			request.sqlQuery = sqlQuery;

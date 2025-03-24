@@ -206,30 +206,17 @@ export const translateAbstractSqlModel = (
 			const { $toResource, ...definition } = translationDefinition;
 			const hasToResource = typeof $toResource === 'string';
 
-			const unaliasedToResource = hasToResource
-				? $toResource.endsWith(toVersionSuffix)
-					? // Ideally we want to rename to the unaliased resource of the next version
-						// so when the alias matches the next version we can just strip it
-						$toResource.slice(0, -toVersionSuffix.length)
-					: // But if we can't safely strip the suffix then we'll use as-is, at least until the next major
-						$toResource
-				: key;
-			let aliasedToResource;
+			const unaliasedToResource = hasToResource ? $toResource : key;
 			if (hasToResource) {
-				resourceRenames[key] = unaliasedToResource;
 				if ($toResource.includes('$')) {
-					// TODO-MAJOR: Change this to an error
-					console.warn(
+					throw new Error(
 						`'$toResource' should be the unaliased name of the resource in the subsequent model and not be targeting a specific model, got '${$toResource}'`,
-						$toResource,
 					);
-					aliasedToResource = $toResource;
-				} else {
-					aliasedToResource = `${$toResource}${toVersionSuffix}`;
 				}
-			} else {
-				aliasedToResource = `${key}${toVersionSuffix}`;
+				resourceRenames[key] = unaliasedToResource;
 			}
+			const aliasedToResource = `${unaliasedToResource}${toVersionSuffix}`;
+
 			const toTable = toAbstractSqlModel.tables[unaliasedToResource];
 			if (!toTable) {
 				if (hasToResource) {

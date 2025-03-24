@@ -16,7 +16,6 @@ import _ from 'lodash';
 import memoizeWeak from 'memoizee/weak.js';
 
 export { BadRequestError, ParsingError, TranslationError } from './errors.js';
-import deepFreeze from 'deep-freeze';
 import * as env from '../config-loader/env.js';
 import {
 	BadRequestError,
@@ -53,11 +52,19 @@ export interface ParsedODataRequest {
 	id?: number | undefined;
 	_defer?: boolean;
 }
+export interface CachedSqlQuery extends Array<never> {
+	length: 0;
+	engine: AbstractSQLCompiler.Engines;
+	sqlQuery: AbstractSQLCompiler.SqlResult | AbstractSQLCompiler.SqlResult[];
+	modifiedFields?: ReturnType<
+		AbstractSQLCompiler.EngineInstance['getModifiedFields']
+	>;
+}
 export interface ODataRequest extends ParsedODataRequest {
 	translateVersions: string[];
 	abstractSqlModel?: AbstractSQLCompiler.AbstractSqlModel;
 	finalAbstractSqlModel?: AbstractSQLCompiler.AbstractSqlModel;
-	abstractSqlQuery?: AbstractSQLCompiler.AbstractSqlQuery;
+	abstractSqlQuery?: AbstractSQLCompiler.AbstractSqlQuery | CachedSqlQuery;
 	sqlQuery?: AbstractSQLCompiler.SqlResult | AbstractSQLCompiler.SqlResult[];
 	tx?: Tx;
 	modifiedFields?: ReturnType<
@@ -178,8 +185,8 @@ const memoizedOdata2AbstractSQL = (() => {
 					bodyKeys,
 					existingBindVarsLength,
 				);
-				// We deep freeze to prevent mutations, which would pollute the cache
-				deepFreeze(abstractSql);
+				// We do not deep freeze as the sql compilation intentionally mutates this object
+				// to clear the abstractSql tree and replace it with the compile sqlQuery to save memory
 				return abstractSql;
 			} catch (e) {
 				if (e instanceof PermissionError) {

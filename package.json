@@ -67,7 +67,7 @@
     "typed-error": "^3.2.2"
   },
   "devDependencies": {
-    "@balena/lint": "^8.2.8",
+    "@balena/lint": "^9.1.4",
     "@balena/pinejs": "file:./",
     "@balena/pinejs-webresource-s3": "^1.0.3",
     "@faker-js/faker": "^9.6.0",
