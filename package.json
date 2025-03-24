@@ -55,7 +55,7 @@
     "ajv": "^8.17.1",
     "busboy": "^1.6.0",
     "commander": "^13.1.0",
-    "cron-parser": "^4.9.0",
+    "cron-parser": "^5.0.6",
     "deep-freeze": "^0.0.1",
     "eventemitter3": "^5.0.1",
     "express-session": "^1.18.1",

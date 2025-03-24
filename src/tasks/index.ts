@@ -1,5 +1,5 @@
 import type { Schema } from 'ajv';
-import cronParser from 'cron-parser';
+import { CronExpressionParser } from 'cron-parser';
 import { tasks as tasksEnv } from '../config-loader/env.js';
 import { addPureHook } from '../sbvr-api/hooks.js';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
@@ -77,11 +77,12 @@ export function setup(): void {
 				request.values.is_scheduled_to_execute_on__time == null
 			) {
 				try {
-					request.values.is_scheduled_to_execute_on__time = cronParser
-						.parseExpression(request.values.is_scheduled_with__cron_expression)
-						.next()
-						.toDate()
-						.toISOString();
+					request.values.is_scheduled_to_execute_on__time =
+						CronExpressionParser.parse(
+							request.values.is_scheduled_with__cron_expression,
+						)
+							.next()
+							.toISOString();
 				} catch {
 					throw new Error(
 						`Invalid cron expression: ${request.values.is_scheduled_with__cron_expression}`,
