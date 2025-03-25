@@ -335,15 +335,13 @@ const prettifyConstraintError = (
 							tableName +
 							'" violates foreign key constraint ".*?" on table "(.*?)"',
 					).exec(err.message);
-					if (keyMatches == null) {
-						keyMatches = new RegExp(
-							'"' +
-								tableName +
-								'" violates foreign key constraint "' +
-								tableName +
-								'_(.*?)_fkey"',
-						).exec(err.message);
-					}
+					keyMatches ??= new RegExp(
+						'"' +
+							tableName +
+							'" violates foreign key constraint "' +
+							tableName +
+							'_(.*?)_fkey"',
+					).exec(err.message);
 					break;
 				}
 			}
