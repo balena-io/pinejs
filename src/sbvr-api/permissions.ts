@@ -307,9 +307,11 @@ const namespaceRelationships = (
 	relationships: Relationship,
 	alias: string,
 ): void => {
-	_.forEach(relationships, (relationship: Relationship, key) => {
+	for (const [key, relationship] of Object.entries(
+		relationships as RelationshipInternalNode,
+	)) {
 		if (key === '$') {
-			return;
+			continue;
 		}
 
 		let mapping = (relationship as RelationshipLeafNode).$;
@@ -323,7 +325,7 @@ const namespaceRelationships = (
 			};
 		}
 		namespaceRelationships(relationship, alias);
-	});
+	}
 };
 
 type PermissionLookup = Dictionary<true | string[]>;
