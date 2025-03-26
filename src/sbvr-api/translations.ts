@@ -102,7 +102,7 @@ const namespaceRelationships = (
 		relationships as RelationshipInternalNode,
 	)) {
 		if (key === '$') {
-			return;
+			continue;
 		}
 
 		let mapping = (relationship as RelationshipLeafNode).$;
