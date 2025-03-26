@@ -1,4 +1,24 @@
 - commits:
+    - subject: Convert permissions `namespaceRelationships` to for-of
+      hash: 74eb91db2c258904ed5cb0f2cbd395b7392f0812
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Fix unintentional return in translations `namespaceRelationships`
+      hash: f2ad063fd3953721b708bdf7262824a0648f5e88
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 21.0.2
+  title: ""
+  date: 2025-03-26T16:33:03.656Z
+- commits:
     - subject: Update dependencies
       hash: a72ff8a0f6347386e325ca60a7f0ae01c1230a80
       body: |
@@ -2125,6 +2145,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2147,6 +2168,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2194,6 +2216,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2314,6 +2337,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2342,6 +2366,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2391,6 +2416,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2425,6 +2451,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2580,6 +2607,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5718,6 +5746,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5740,6 +5769,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5815,6 +5845,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5991,6 +6022,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6019,6 +6051,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6124,6 +6157,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6158,6 +6192,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6341,6 +6376,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
