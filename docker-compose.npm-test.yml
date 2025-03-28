@@ -26,7 +26,7 @@ services:
       - "43680:9000"
       - "43697:9001"
   minio-client:
-    image: minio/mc:RELEASE.2024-07-22T20-02-49Z
+    image: minio/mc:RELEASE.2024-11-21T17-21-54Z
     depends_on:
       - minio-server
     entrypoint: >
