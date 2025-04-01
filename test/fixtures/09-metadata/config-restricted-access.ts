@@ -4,7 +4,7 @@ export default {
 	models: [
 		{
 			apiRoot: 'example',
-			modelFile: __dirname + '/example.sbvr',
+			modelFile: import.meta.dirname + '/example.sbvr',
 			modelName: 'example',
 		},
 	],

@@ -1,4 +1,4 @@
-import { writeFileSync } from 'fs';
+// import { writeFileSync } from 'fs';
 import { expect } from 'chai';
 import supertest from 'supertest';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
@@ -8,7 +8,7 @@ import { validate } from '@readme/openapi-parser';
 describe('08 metadata / openAPI spec', function () {
 	describe('Full model access specification', function () {
 		const fixturePath =
-			__dirname + '/fixtures/09-metadata/config-full-access.js';
+			import.meta.dirname + '/fixtures/09-metadata/config-full-access.js';
 		let pineServer: Awaited<ReturnType<typeof testInit>>;
 		before(async () => {
 			pineServer = await testInit({
@@ -35,7 +35,7 @@ describe('08 metadata / openAPI spec', function () {
 			expect(body).to.be.an('object');
 
 			const bodySpec = JSON.stringify(body, null, 2);
-			writeFileSync('openApiSpe-full.json', bodySpec);
+			// writeFileSync('openApiSpe-full.json', bodySpec);
 
 			// validate the openAPI spec and expect no validator errors.
 			try {
