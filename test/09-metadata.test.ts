@@ -1,12 +1,12 @@
 import { writeFileSync } from 'fs';
 import { expect } from 'chai';
 import supertest from 'supertest';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
 
-import OpenAPIParser from '@readme/openapi-parser';
+import { validate } from '@readme/openapi-parser';
 
 describe('08 metadata / openAPI spec', function () {
-	describe('Full model access specification', async function () {
+	describe('Full model access specification', function () {
 		const fixturePath =
 			__dirname + '/fixtures/09-metadata/config-full-access.js';
 		let pineServer: Awaited<ReturnType<typeof testInit>>;
@@ -17,8 +17,8 @@ describe('08 metadata / openAPI spec', function () {
 			});
 		});
 
-		after(async () => {
-			await testDeInit(pineServer);
+		after(() => {
+			testDeInit(pineServer);
 		});
 
 		it('should send OData CSDL JSON on /$metadata', async () => {
@@ -35,11 +35,11 @@ describe('08 metadata / openAPI spec', function () {
 			expect(body).to.be.an('object');
 
 			const bodySpec = JSON.stringify(body, null, 2);
-			await writeFileSync('openApiSpe-full.json', bodySpec);
+			writeFileSync('openApiSpe-full.json', bodySpec);
 
 			// validate the openAPI spec and expect no validator errors.
 			try {
-				const apiSpec = await OpenAPIParser.validate(JSON.parse(bodySpec));
+				const apiSpec = await validate(JSON.parse(bodySpec));
 				expect(apiSpec).to.be.an('object');
 			} catch (err) {
 				expect(err).to.be.undefined;

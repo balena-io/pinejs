@@ -72,6 +72,7 @@
     "@balena/pinejs": "file:./",
     "@balena/pinejs-webresource-s3": "^1.0.4",
     "@faker-js/faker": "^9.6.0",
+    "@readme/openapi-parser": "^3.0.1",
     "@types/busboy": "^1.5.4",
     "@types/chai": "^5.2.1",
     "@types/grunt": "^0.4.32",

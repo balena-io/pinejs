@@ -1,4 +1,4 @@
-import type { ConfigLoader } from '../../../src/server-glue/module';
+import type { ConfigLoader } from '../../../src/server-glue/module.js';
 
 export default {
 	models: [

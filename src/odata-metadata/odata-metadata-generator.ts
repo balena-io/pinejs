@@ -88,12 +88,7 @@ type ODataCsdlV4Property =
 type ODataCsdlV4EntityType = {
 	$Kind: 'EntityType';
 	$Key: string[];
-	[property: string]:
-		| true
-		| string[]
-		| string
-		| 'EntityType'
-		| ODataCsdlV4Property;
+	[property: string]: true | string[] | string | ODataCsdlV4Property;
 };
 
 type ODataCsdlV4EntityContainerEntries = {
@@ -110,7 +105,6 @@ type ODataCsdlV4EntityContainer = {
 	$Kind: 'EntityContainer';
 	'@Capabilities.BatchSupported'?: boolean;
 	[resourceOrAnnotation: string]:
-		| 'EntityContainer'
 		| boolean
 		| string
 		| ODataCsdlV4EntityContainerEntries

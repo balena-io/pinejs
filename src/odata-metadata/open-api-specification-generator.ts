@@ -1,7 +1,6 @@
 import * as odataMetadata from 'odata-openapi';
-import type { generateODataMetadata } from './odata-metadata-generator';
-import _ = require('lodash');
-// tslint:disable-next-line:no-var-requires
+import type { generateODataMetadata } from './odata-metadata-generator.js';
+import _ from 'lodash';
 
 export const generateODataMetadataAsOpenApi = (
 	odataCsdl: ReturnType<typeof generateODataMetadata>,

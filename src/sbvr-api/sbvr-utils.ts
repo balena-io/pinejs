@@ -48,7 +48,7 @@ import * as asyncMigrator from '../migrator/async.js';
 import * as syncMigrator from '../migrator/sync.js';
 import { generateODataMetadata } from '../odata-metadata/odata-metadata-generator.js';
 import { importSBVR } from '../server-glue/sbvr-loader.js';
-import { generateODataMetadataAsOpenApi } from '../odata-metadata/open-api-sepcification-generator.js';
+import { generateODataMetadataAsOpenApi } from '../odata-metadata/open-api-specification-generator.js';
 
 import type DevModel from './dev.js';
 const devModel = await importSBVR('./dev.sbvr', import.meta);
@@ -1337,7 +1337,10 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 							})
 						: resolveSynonym($request);
 
-					if (abstractSqlModel.tables[resolvedResourceName] == null && !metadataEndpoints.includes(resolvedResourceName)) {
+					if (
+						abstractSqlModel.tables[resolvedResourceName] == null &&
+						!metadataEndpoints.includes(resolvedResourceName)
+					) {
 						throw new UnauthorizedError();
 					}
 
