@@ -124,7 +124,7 @@
     "passport-local": "^1.0.0",
     "pg": "^8.14.1",
     "pg-connection-string": "^2.7.0",
-    "serve-static": "^1.16.2"
+    "serve-static": "^2.0.0"
   },
   "engines": {
     "node": "^20.14.0 || ^22.0.0",
