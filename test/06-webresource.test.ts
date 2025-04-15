@@ -435,7 +435,7 @@ describe('06 webresources tests', function () {
 					);
 				});
 
-				it(`deletes ${resourcePath} if transaction size rule is not respected`, async () => {
+				it(`deletes ${resourcePath} if transaction size rule is not respected on post`, async () => {
 					const uniqueFilename = `${randomUUID()}_${filename}`;
 					const { largeStream } = await getLargeFileStream(
 						1024 * 1024 * 600,
@@ -454,6 +454,35 @@ describe('06 webresources tests', function () {
 						`It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.`,
 					);
 					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
+				});
+
+				it(`deletes ${resourcePath} if transaction size rule is not respected on patch`, async () => {
+					const uniqueFilename = `${randomUUID()}_${filename}`;
+					const { largeStream } = await getLargeFileStream(
+						1024 * 1024 * 600,
+						filePath,
+					);
+
+					const { body: org1 } = await supertest(testLocalServer)
+						.post(`/${resourceName}/organization`)
+						.field('name', 'John')
+						.attach(resourcePath, filePath, {
+							filename: uniqueFilename,
+							contentType,
+						})
+						.expect(201);
+
+					const res = await supertest(testLocalServer)
+						.patch(`/${resourceName}/organization(${org1.id})`)
+						.attach(resourcePath, largeStream, {
+							filename: uniqueFilename,
+							contentType,
+						})
+						.expect(400);
+
+					expect(res.body).to.equal(
+						`It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.`,
+					);
 				});
 
 				it(`deletes ${resourcePath} if content type rule is not respected`, async () => {
