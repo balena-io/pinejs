@@ -1,4 +1,16 @@
 - commits:
+    - subject: Add test for webresource rule on patches
+      hash: 1294fc741b573723050e80458dbdebc21fd3e096
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 21.2.1
+  title: ""
+  date: 2025-04-16T14:00:43.482Z
+- commits:
     - subject: "Postgres: add the option to prepare db queries after N executions"
       hash: 1a6ee61f71b282a73fb0490fd32111a3c233ec7a
       body: ""
@@ -2370,6 +2382,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2392,6 +2405,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2444,6 +2458,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2574,6 +2589,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2602,6 +2618,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2661,6 +2678,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2695,6 +2713,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2855,6 +2874,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6003,6 +6023,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6025,6 +6046,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6105,6 +6127,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6291,6 +6314,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6319,6 +6343,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6434,6 +6459,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6468,6 +6494,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6656,6 +6683,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
