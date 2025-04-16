@@ -10,6 +10,7 @@ import _ from 'lodash';
 import { TypedError } from 'typed-error';
 import * as env from '../config-loader/env.js';
 import { fromCallback, timeout } from '../sbvr-api/control-flow.js';
+import fnv1a from '@sindresorhus/fnv1a';
 
 export const metrics = new EventEmitter();
 
@@ -165,6 +166,27 @@ export function registerTransactionLockNamespace(
 
 	transactionLockNamespaceMap[namespaceKey] = namespaceId;
 }
+
+const maybePrepareCache: {
+	[sqlHash: string]: number;
+} = {};
+const getPreparedName = (sql: Sql): string | undefined => {
+	if (env.db.prepareAfterN === false) {
+		return;
+	}
+	// Use a hash to minimize the size of the cache keys
+	const sqlHash = `${fnv1a(sql).toString(36)}${sql.length}`;
+	if (env.db.prepareAfterN === true) {
+		return sqlHash;
+	}
+
+	maybePrepareCache[sqlHash] ??= 0;
+	if (maybePrepareCache[sqlHash] > env.db.prepareAfterN) {
+		return sqlHash;
+	}
+	// Only increment if we haven't already reached the threshold as we don't care past that point
+	maybePrepareCache[sqlHash]++;
+};
 
 const atomicExecuteSql: Database['executeSql'] = async function (
 	sql,
@@ -609,9 +631,11 @@ if (maybePg != null) {
 
 				let result;
 				try {
+					const preparedName = getPreparedName(sql);
 					result = await this.db.query({
 						text: sql,
 						values: bindings,
+						name: preparedName,
 					});
 				} catch (err: any) {
 					if (err.code === PG_UNIQUE_VIOLATION) {
