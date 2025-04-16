@@ -112,6 +112,11 @@ export const db = {
 	 * Defaults to true when in DEBUG mode, false otherwise
 	 */
 	checkReadOnlyQueries: DEBUG,
+	/**
+	 * Prepare the statement after N executions, false to never prepare, true to always prepare, otherwise a positive number
+	 * Currently only supported for postgres
+	 */
+	prepareAfterN: false as boolean | number,
 };
 
 export const PINEJS_ADVISORY_LOCK = {
