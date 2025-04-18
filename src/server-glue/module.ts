@@ -7,6 +7,7 @@ import * as configLoader from '../config-loader/config-loader.js';
 import * as migrator from '../migrator/sync.js';
 import type * as migratorUtils from '../migrator/utils.js';
 import * as tasks from '../tasks/index.js';
+import * as webresource from '../webresource-handler/index.js';
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
 import { PINEJS_ADVISORY_LOCK } from '../config-loader/env.js';
@@ -66,6 +67,7 @@ export const init = async <T extends string>(
 		const cfgLoader = configLoader.setup(app);
 		await cfgLoader.loadConfig(migrator.config);
 		await cfgLoader.loadConfig(tasks.config);
+		await cfgLoader.loadConfig(webresource.config);
 
 		if (!process.env.CONFIG_LOADER_DISABLED) {
 			await cfgLoader.loadApplicationConfig(config);
