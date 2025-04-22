@@ -178,6 +178,28 @@ const migrationModelConfig = {
 				// No need to migrate for websql
 			}
 		},
+		'22.0.0-timestamps': async (tx, { db }) => {
+			switch (db.engine) {
+				// No need to migrate anything other than postgres
+				case 'postgres':
+					await tx.executeSql(`\
+						ALTER TABLE "migration"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
+					await tx.executeSql(`\
+						ALTER TABLE "migration lock"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
+					await tx.executeSql(`\
+						ALTER TABLE "migration status"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ,
+						ALTER COLUMN "start time" SET DATA TYPE TIMESTAMPTZ USING "start time"::TIMESTAMPTZ,
+						ALTER COLUMN "last run time" SET DATA TYPE TIMESTAMPTZ USING "last run time"::TIMESTAMPTZ,
+						ALTER COLUMN "converged time" SET DATA TYPE TIMESTAMPTZ USING "converged time"::TIMESTAMPTZ;`);
+					break;
+			}
+		},
 	},
 } as const satisfies sbvrUtils.ExecutableModel;
 export const config: Config = {

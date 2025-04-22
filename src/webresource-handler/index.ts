@@ -586,6 +586,20 @@ export const config: ConfigLoader.Config = {
 			modelName: 'webresource',
 			apiRoot: 'webresource',
 			modelText,
+			migrations: {
+				'22.0.0-timestamps': async (tx, { db }) => {
+					switch (db.engine) {
+						// No need to migrate anything other than postgres
+						case 'postgres':
+							await tx.executeSql(`\
+								ALTER TABLE "multipart upload"
+								ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+								ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ,
+								ALTER COLUMN "expiry date" SET DATA TYPE TIMESTAMPTZ USING "expiry date"::TIMESTAMPTZ;`);
+							break;
+					}
+				},
+			},
 		},
 	],
 };

@@ -1825,6 +1825,56 @@ const authModelConfig = {
 			ALTER TABLE "api key"
 			ADD COLUMN IF NOT EXISTS "expiry date" TIMESTAMP NULL;
 		`,
+		'22.0.0-timestamps': async (tx, { db }) => {
+			switch (db.engine) {
+				// No need to migrate anything other than postgres
+				case 'postgres':
+					await tx.executeSql(`\
+						ALTER TABLE "actor"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
+					await tx.executeSql(`\
+						ALTER TABLE "api key"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ,
+						ALTER COLUMN "expiry date" SET DATA TYPE TIMESTAMPTZ USING "expiry date"::TIMESTAMPTZ;`);
+					await tx.executeSql(`\
+						ALTER TABLE "api key-has-permission"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
+					await tx.executeSql(`\
+						ALTER TABLE "api key-has-role"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
+					await tx.executeSql(`\
+						ALTER TABLE "permission"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
+					await tx.executeSql(`\
+						ALTER TABLE "role"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
+					await tx.executeSql(`\
+						ALTER TABLE "role-has-permission"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
+					await tx.executeSql(`\
+						ALTER TABLE "user"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
+					await tx.executeSql(`\
+						ALTER TABLE "user-has-permission"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ,
+						ALTER COLUMN "expiry date" SET DATA TYPE TIMESTAMPTZ USING "expiry date"::TIMESTAMPTZ;`);
+					await tx.executeSql(`\
+						ALTER TABLE "user-has-role"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ,
+						ALTER COLUMN "expiry date" SET DATA TYPE TIMESTAMPTZ USING "expiry date"::TIMESTAMPTZ;`);
+					break;
+			}
+		},
 	},
 } as const satisfies sbvrUtils.ExecutableModel;
 export const config = {
