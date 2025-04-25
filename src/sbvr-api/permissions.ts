@@ -9,7 +9,6 @@ import type {
 	ReferencedFieldNode,
 	Relationship,
 	RelationshipInternalNode,
-	RelationshipLeafNode,
 	RelationshipMapping,
 	SelectNode,
 	SelectQueryNode,
@@ -56,6 +55,7 @@ import type { Config } from '../config-loader/config-loader.js';
 import type { ODataOptions } from 'pinejs-client-core';
 import type { Permission } from './user.js';
 import { importSBVR } from '../server-glue/sbvr-loader.js';
+import { namespaceRelationships } from './abstract-sql.js';
 
 const userModel = await importSBVR('./user.sbvr', import.meta);
 
@@ -301,31 +301,6 @@ const collapsePermissionFilters = <T>(
 		);
 	}
 	return v;
-};
-
-const namespaceRelationships = (
-	relationships: Relationship,
-	alias: string,
-): void => {
-	for (const [key, relationship] of Object.entries(
-		relationships as RelationshipInternalNode,
-	)) {
-		if (key === '$') {
-			continue;
-		}
-
-		let mapping = (relationship as RelationshipLeafNode).$;
-		if (mapping != null && mapping.length === 2) {
-			mapping = _.cloneDeep(mapping);
-			// we do check the length above, but typescript thinks the second
-			// element could be undefined
-			mapping[1]![0] = `${mapping[1]![0]}$${alias}`;
-			(relationships as RelationshipInternalNode)[`${key}$${alias}`] = {
-				$: mapping,
-			};
-		}
-		namespaceRelationships(relationship, alias);
-	}
 };
 
 type PermissionLookup = Dictionary<true | string[]>;
@@ -1174,7 +1149,9 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 							for (const relationship of origRelationships) {
 								relationships[`${relationship}$${alias}`] =
 									relationships[relationship];
-								namespaceRelationships(relationships[relationship], alias);
+								namespaceRelationships(relationships[relationship], alias, {
+									deleteOriginal: false,
+								});
 							}
 							return relationships[permissionResourceName];
 						},
