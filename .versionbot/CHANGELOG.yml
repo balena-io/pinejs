@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add multipart upload interface for handlers
+      hash: d78ee0da169cb9b252bfe8d51c4f57cd10051475
+      body: |
+        See: https://balena.fibery.io/search/PtK6F#Work/Improvement/Add-multipart-upload-interface-for-webresource-handlers-and-add-them-to-S3-Cloudfront-handlers-2584
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Otavio Jacobi
+      nested: []
+  version: 21.3.0
+  title: ""
+  date: 2025-04-28T17:28:32.044Z
+- commits:
     - subject: Add test for webresource rule on patches
       hash: 1294fc741b573723050e80458dbdebc21fd3e096
       body: ""
@@ -2383,6 +2396,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2405,6 +2419,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2458,6 +2473,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2590,6 +2606,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2618,6 +2635,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2679,6 +2697,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2713,6 +2732,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2874,6 +2894,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6024,6 +6045,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6046,6 +6068,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6127,6 +6150,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6315,6 +6339,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6343,6 +6368,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6460,6 +6486,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6494,6 +6521,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6683,6 +6711,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
