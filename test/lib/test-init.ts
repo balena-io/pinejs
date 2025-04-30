@@ -16,6 +16,7 @@ export async function testInit(
 			deleteDb: options.deleteDb ?? boolVar('DELETE_DB', false),
 			configPath: options.configPath,
 			hooksPath: options.hooksPath,
+			actionsPath: options.actionsPath,
 			taskHandlersPath: options.taskHandlersPath,
 			routesPath: options.routesPath,
 			withLoginRoute: options.withLoginRoute,
