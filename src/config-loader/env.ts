@@ -159,6 +159,13 @@ export const tasks = {
 	queueIntervalMS: intVar('PINEJS_QUEUE_INTERVAL_MS', 1000),
 };
 
+export const webResource = {
+	multipartUploadEnabled: boolVar(
+		'PINEJS_WEBRESOURCE_MULTIPART_ENABLED',
+		false,
+	),
+};
+
 export const guardTestMockOnly = () => {
 	if (process.env.DEPLOYMENT !== 'TEST') {
 		throw new Error('Attempting to use TEST_MOCK_ONLY outside of tests');
