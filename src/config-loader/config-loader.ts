@@ -33,6 +33,7 @@ import {
 	type WebResourceHandler,
 	setupUploadHooks,
 	setupWebresourceHandler,
+	setupUploadActions,
 } from '../webresource-handler/index.js';
 import type { AliasValidNodeType } from '../sbvr-api/translations.js';
 
@@ -221,18 +222,17 @@ export const setup = (app: Express.Application) => {
 							.delete(sbvrUtils.handleODataRequest);
 
 						const loadedModel = sbvrUtils.getModel(model.apiRoot!);
-						if (translateTo == null) {
-							const resourceNames = Object.values(
-								loadedModel.abstractSql.tables,
+						const resourceNames = Object.values(loadedModel.abstractSql.tables)
+							.filter((table) =>
+								table.fields.some((f) => f.dataType === 'WebResource'),
 							)
-								.filter((table) =>
-									table.fields.some((f) => f.dataType === 'WebResource'),
-								)
-								.map((table) => table.name);
+							.map((table) => table.name);
 
-							for (const resource of new Set(resourceNames)) {
+						for (const resource of new Set(resourceNames)) {
+							if (translateTo == null) {
 								setupUploadHooks(webResourceHandler, model.apiRoot!, resource);
 							}
+							setupUploadActions(model.apiRoot!, resource);
 						}
 
 						console.info(

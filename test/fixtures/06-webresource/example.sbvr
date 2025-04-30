@@ -15,6 +15,9 @@ Term: public artifacts
 Term: private artifacts
 	Concept Type: WebResource (Type)
 
+Term: unrestricted artifact
+	Concept Type: WebResource (Type)
+
 Term: organization
 
 Fact Type: organization has name
@@ -36,3 +39,7 @@ Fact Type: organization has private artifacts
 	Synonymous Form: private artifacts belongs to organization
 	Term Form: organization private artifacts
 	Database Table Name: organization private artifacts
+
+Fact Type: organization has unrestricted artifact
+	Necessity: each organization has at most one unrestricted artifact
+	Necessity: each unrestricted artifact is of exactly one organization
