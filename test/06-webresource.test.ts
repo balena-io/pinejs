@@ -1132,11 +1132,11 @@ describe('06 webresources tests', function () {
 });
 
 const removesSigning = (href: string): string => {
-	return href.split('?')[0];
+	return href.split('?', 1)[0];
 };
 
 const getStoredFileNameFromHref = (href: string): string => {
-	const splittedHref = href.split('/');
+	const splittedHref = removesSigning(href).split('/');
 	return splittedHref[splittedHref.length - 1];
 };
 
