@@ -231,7 +231,7 @@ export const setup = (app: Express.Application) => {
 								.map((table) => table.name);
 
 							for (const resource of new Set(resourceNames)) {
-								setupUploadHooks(webResourceHandler, model.apiRoot!, resource);
+								setupUploadHooks(model.apiRoot!, resource);
 							}
 						}
 

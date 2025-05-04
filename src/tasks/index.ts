@@ -11,6 +11,7 @@ import type TasksModel from './tasks.js';
 import type { Task } from './tasks.js';
 import type { FromSchema } from 'json-schema-to-ts';
 import { importSBVR } from '../server-glue/sbvr-loader.js';
+import { addPineTaskHandlers } from './pine-tasks.js';
 
 export type * from './tasks.js';
 
@@ -44,9 +45,14 @@ export const config: ConfigLoader.Config = {
 };
 
 export let worker: Worker | null = null;
+
+export function isPineTasksAvailable() {
+	return sbvrUtils.db.engine === 'postgres';
+}
+
 export function setup(): void {
 	// Async task functionality is only supported on Postgres
-	if (sbvrUtils.db.engine !== 'postgres') {
+	if (!isPineTasksAvailable()) {
 		console.warn('Skipping task setup as database not supported');
 		return;
 	}
@@ -125,6 +131,8 @@ export function setup(): void {
 			}
 		},
 	});
+
+	addPineTaskHandlers();
 }
 
 // Register a task handler

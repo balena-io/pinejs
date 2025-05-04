@@ -47,7 +47,8 @@ describe('06 webresources tests', function () {
 		newFileSize = newFileInfo.size;
 	});
 
-	after(() => {
+	after(async () => {
+		await clearBucket();
 		testDeInit(pineServer);
 	});
 
@@ -1131,11 +1132,11 @@ describe('06 webresources tests', function () {
 });
 
 const removesSigning = (href: string): string => {
-	return href.split('?')[0];
+	return href.split('?', 1)[0];
 };
 
 const getStoredFileNameFromHref = (href: string): string => {
-	const splittedHref = href.split('/');
+	const splittedHref = removesSigning(href).split('/');
 	return splittedHref[splittedHref.length - 1];
 };
 
@@ -1260,6 +1261,11 @@ const listAllFilesInBucket = async (
 		command.input.ContinuationToken = NextContinuationToken;
 	}
 	return s3ObjectKeys;
+};
+
+const clearBucket = async (bucket = 'balena-pine-web-resources') => {
+	const files = await listAllFilesInBucket(bucket);
+	await Promise.all(files.map((key) => deleteFileInS3(key, bucket)));
 };
 
 const getS3Client = (bucket: string) => {
