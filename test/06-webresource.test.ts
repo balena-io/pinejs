@@ -78,6 +78,9 @@ describe('06 webresources tests', function () {
 	transalations.forEach(
 		({ resourcePath, resourceName, sbvrTranslatedResource }) => {
 			describe(`webresource ${resourcePath} - ${resourceName}`, () => {
+				beforeEach(async () => {
+					await clearBucket();
+				});
 				it(`creates an organization with a ${resourcePath}`, async () => {
 					const { body: organization, headers } = await supertest(
 						testLocalServer,
@@ -99,7 +102,7 @@ describe('06 webresources tests', function () {
 
 					expect(getRes.body.d[0]).to.deep.equal(organization);
 
-					await expectToExist(organization[resourcePath].filename);
+					await expectToExist(organization[resourcePath].href);
 					await expectImageEquals(
 						organization[resourcePath].href,
 						filePath,
@@ -108,7 +111,6 @@ describe('06 webresources tests', function () {
 				});
 
 				it(`does not store ${resourcePath} if is bigger than PINEJS_WEBRESOURCE_MAXFILESIZE`, async () => {
-					const uniqueFilename = `${randomUUID()}_${filename}`;
 					const { largeStream } = await getLargeFileStream(
 						intVar('PINEJS_WEBRESOURCE_MAXFILESIZE') + 10 * 1024 * 1024,
 						filePath,
@@ -116,14 +118,11 @@ describe('06 webresources tests', function () {
 					const res = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'John')
-						.attach(resourcePath, largeStream, {
-							filename: uniqueFilename,
-							contentType,
-						})
+						.attach(resourcePath, largeStream, { filename, contentType })
 						.expect(400);
 
 					expect(res.body).to.include('File size exceeded');
-					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
+					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it(`creates a organization with a large ${resourcePath}`, async () => {
@@ -140,7 +139,7 @@ describe('06 webresources tests', function () {
 						.attach(resourcePath, largeStream, { filename, contentType })
 						.expect(201);
 
-					await expectToExist(organization[resourcePath].filename);
+					await expectToExist(organization[resourcePath].href);
 					expect(organization[resourcePath].size).to.equals(largeFileSize);
 					expect(organization[resourcePath].filename).to.equals(filename);
 					expect(organization[resourcePath].content_type).to.equals(
@@ -174,26 +173,20 @@ describe('06 webresources tests', function () {
 						.attach(resourcePath, filePath, { filename, contentType })
 						.expect(201);
 
-					const fileKey = getStoredFileNameFromHref(
-						res.body[resourcePath].href,
-					);
-
 					await supertest(testLocalServer)
 						.delete(`/${resourceName}/organization(${res.body.id})`)
 						.expect(200);
 
-					expect(await isEventuallyDeleted(fileKey)).to.be.true;
+					expect(await isEventuallyDeleted(res.body[resourcePath].href)).to.be
+						.true;
 				});
 
 				it(`removes uploaded file if patch on ${resourcePath} fails`, async () => {
-					const uniqueFilename = `${randomUUID()}_${filename}`;
-					const otherUniqueFilename = `${randomUUID()}_other-image.png`;
-
 					const { body: org } = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'John')
 						.attach(resourcePath, filePath, {
-							filename: uniqueFilename,
+							filename,
 							contentType,
 						})
 						.expect(201);
@@ -201,33 +194,26 @@ describe('06 webresources tests', function () {
 					const { body: res } = await supertest(testLocalServer)
 						.patch(`/${resourceName}/organization(${org.id})`)
 						.field('name', 'too long name')
-						.attach(resourcePath, newFilePath, {
-							filename: otherUniqueFilename,
-							contentType,
-						})
+						.attach(resourcePath, newFilePath, { filename, contentType })
 						.expect(400);
 
-					expect(res).to.be.eq(
+					expect(res).to.equal(
 						'It is necessary that each organization that has a name, has a name that has a Length (Type) that is greater than 0 and is less than or equal to 5',
 					);
 
-					await expectToExist(uniqueFilename);
-					expect(await isEventuallyDeleted(otherUniqueFilename)).to.be.true;
+					expect(await listAllFilesInBucket()).to.deep.equal([
+						getKeyFromHref(org[resourcePath].href),
+					]);
 				});
 
 				it(`removes uploaded file if patch on ${resourcePath} has no affected ids`, async () => {
-					const uniqueFilename = `${randomUUID()}_${filename}`;
-
 					await supertest(testLocalServer)
 						.patch(`/${resourceName}/organization(4242)`)
 						.field('name', 'john')
-						.attach(resourcePath, newFilePath, {
-							filename: uniqueFilename,
-							contentType,
-						})
+						.attach(resourcePath, newFilePath, { filename, contentType })
 						.expect(200);
 
-					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
+					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it(`does not fail if delete on ${resourcePath} has no affected ids`, async () => {
@@ -257,19 +243,13 @@ describe('06 webresources tests', function () {
 					const { body: org1 } = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'john')
-						.attach(resourcePath, filePath, {
-							filename,
-							contentType,
-						})
+						.attach(resourcePath, filePath, { filename, contentType })
 						.expect(201);
 
 					const { body: org2 } = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'peter')
-						.attach(resourcePath, filePath, {
-							filename,
-							contentType,
-						})
+						.attach(resourcePath, filePath, { filename, contentType })
 						.expect(201);
 
 					// Patching the name of all orgs
@@ -299,20 +279,15 @@ describe('06 webresources tests', function () {
 						fileSize,
 					);
 
-					expect(patchedOrg1.d[0][resourcePath].href).not.to.be.eq(
+					expect(patchedOrg1.d[0][resourcePath].href).not.to.equal(
 						patchedOrg2.d[0][resourcePath].href,
 					);
 				});
 
 				it(`fails to update multiple entities with same ${resourcePath}`, async () => {
-					const uniqueFilename = `${randomUUID()}_other-image.png`;
-
 					const res = await supertest(testLocalServer)
 						.patch(`/${resourceName}/organization`)
-						.attach(resourcePath, newFilePath, {
-							filename: uniqueFilename,
-							contentType,
-						})
+						.attach(resourcePath, newFilePath, { filename, contentType })
 						.expect(400);
 
 					expect(res.body)
@@ -321,30 +296,23 @@ describe('06 webresources tests', function () {
 							'WebResources can only be updated when providing a resource key.',
 						);
 
-					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
+					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it(`deletes multiple rows with a ${resourcePath}`, async () => {
-					const uniqueFilename = `${randomUUID()}_${filename}`;
-					const otherUniqueFilename = `${randomUUID()}_other-image.png`;
-
 					const { body: org1 } = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'John')
-						.attach(resourcePath, filePath, {
-							filename: uniqueFilename,
-							contentType,
-						})
+						.attach(resourcePath, filePath, { filename, contentType })
 						.expect(201);
 
 					const { body: org2 } = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'John')
-						.attach(resourcePath, newFilePath, {
-							filename: otherUniqueFilename,
-							contentType,
-						})
+						.attach(resourcePath, newFilePath, { filename, contentType })
 						.expect(201);
+
+					expect((await listAllFilesInBucket()).length).to.equal(2);
 
 					await supertest(testLocalServer)
 						.delete(`/${resourceName}/organization`)
@@ -357,11 +325,9 @@ describe('06 webresources tests', function () {
 						`/${resourceName}/organization(${org2.id})`,
 					);
 
-					expect(org1res.d.length).to.be.eq(0);
-					expect(org2res.d.length).to.be.eq(0);
-
-					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
-					expect(await isEventuallyDeleted(otherUniqueFilename)).to.be.true;
+					expect(org1res.d.length).to.equal(0);
+					expect(org2res.d.length).to.equal(0);
+					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it(`deletes old resource in storage engine after updating ${resourcePath}`, async () => {
@@ -371,45 +337,31 @@ describe('06 webresources tests', function () {
 						.attach(resourcePath, filePath, { filename, contentType })
 						.expect(201);
 
-					const fileKey = organization[resourcePath].href
-						.split('/')
-						.slice(-1)[0];
-					const newFileName = 'other-image.png';
-
 					await supertest(testLocalServer)
 						.patch(`/${resourceName}/organization(${organization.id})`)
-						.attach(resourcePath, newFilePath, {
-							filename: newFileName,
-							contentType,
-						});
+						.attach(resourcePath, newFilePath, { filename, contentType });
 
-					const getRes = await supertest(testLocalServer)
+					const { body } = await supertest(testLocalServer)
 						.get(`/${resourceName}/organization(${organization.id})`)
 						.expect(200);
 
-					await expectImageEquals(
-						getRes.body.d[0][resourcePath].href,
-						newFilePath,
-						newFileSize,
-					);
-
-					await expectToExist(newFileName);
-					expect(await isEventuallyDeleted(fileKey)).to.be.true;
+					const href = body.d[0][resourcePath].href;
+					await expectImageEquals(href, newFilePath, newFileSize);
+					expect(await listAllFilesInBucket()).to.deep.equal([
+						getKeyFromHref(href),
+					]);
 				});
 
 				it(`should not create an ${resourcePath} when content type is not an image`, async () => {
-					const uniqueFilename = `${randomUUID()}_${filename}`;
-
 					await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'John')
 						.attach(resourcePath, filePath, {
-							filename: uniqueFilename,
+							filename,
 							contentType: 'text/csv',
 						})
 						.expect(400);
-
-					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
+					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it(`does not change old ${resourcePath} in storage updating other field that is not webresource`, async () => {
@@ -437,7 +389,6 @@ describe('06 webresources tests', function () {
 				});
 
 				it(`deletes ${resourcePath} if transaction size rule is not respected on post`, async () => {
-					const uniqueFilename = `${randomUUID()}_${filename}`;
 					const { largeStream } = await getLargeFileStream(
 						1024 * 1024 * 600,
 						filePath,
@@ -445,20 +396,16 @@ describe('06 webresources tests', function () {
 					const res = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'John')
-						.attach(resourcePath, largeStream, {
-							filename: uniqueFilename,
-							contentType,
-						})
+						.attach(resourcePath, largeStream, { filename, contentType })
 						.expect(400);
 
 					expect(res.body).to.equal(
 						`It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.`,
 					);
-					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
+					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it(`deletes ${resourcePath} if transaction size rule is not respected on patch`, async () => {
-					const uniqueFilename = `${randomUUID()}_${filename}`;
 					const { largeStream } = await getLargeFileStream(
 						1024 * 1024 * 600,
 						filePath,
@@ -467,33 +414,29 @@ describe('06 webresources tests', function () {
 					const { body: org1 } = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'John')
-						.attach(resourcePath, filePath, {
-							filename: uniqueFilename,
-							contentType,
-						})
+						.attach(resourcePath, filePath, { filename, contentType })
 						.expect(201);
 
 					const res = await supertest(testLocalServer)
 						.patch(`/${resourceName}/organization(${org1.id})`)
-						.attach(resourcePath, largeStream, {
-							filename: uniqueFilename,
-							contentType,
-						})
+						.attach(resourcePath, largeStream, { filename, contentType })
 						.expect(400);
 
 					expect(res.body).to.equal(
 						`It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.`,
 					);
+
+					expect(await listAllFilesInBucket()).to.deep.equal([
+						getKeyFromHref(org1[resourcePath].href),
+					]);
 				});
 
 				it(`deletes ${resourcePath} if content type rule is not respected`, async () => {
-					const uniqueFilename = `${randomUUID()}_${filename}`;
-
 					const res = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'John')
 						.attach(resourcePath, filePath, {
-							filename: uniqueFilename,
+							filename,
 							contentType: 'text/csv',
 						})
 						.expect(400);
@@ -501,19 +444,15 @@ describe('06 webresources tests', function () {
 					expect(res.body).to.equal(
 						`It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.`,
 					);
-					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
+					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it('ignores files if they are not in a valid resource field', async () => {
-					const uniqueFilename = `${randomUUID()}_${filename}`;
 					await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'John')
-						.attach('another_logo_image', filePath, {
-							filename: uniqueFilename,
-							contentType,
-						});
-					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
+						.attach('another_logo_image', filePath, { filename, contentType });
+					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it('should not accept webresource payload that is not a blob', async () => {
@@ -527,14 +466,12 @@ describe('06 webresources tests', function () {
 				});
 
 				it('should not accept webresource payload on application/json requests', async () => {
-					const uniqueFilename = `${randomUUID()}_${filename}`;
-
 					const res = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.send({
 							name: 'John',
 							[resourcePath]: {
-								filename: uniqueFilename,
+								filename,
 								content_type: contentType,
 								size: fileSize,
 								href: 'http://dummy/bucket/other_href',
@@ -546,15 +483,10 @@ describe('06 webresources tests', function () {
 				});
 
 				it('does not modify stored file if uploading with application/json requests', async () => {
-					const uniqueFilename = `${randomUUID()}_${filename}`;
-
 					const { body: organization } = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'john')
-						.attach(resourcePath, filePath, {
-							filename: uniqueFilename,
-							contentType,
-						})
+						.attach(resourcePath, filePath, { filename, contentType })
 						.expect(201);
 
 					const href = organization[resourcePath].href;
@@ -568,18 +500,20 @@ describe('06 webresources tests', function () {
 						.get(`/${resourceName}/organization(${organization.id})`)
 						.expect(200);
 
-					expect(getRes.body.d[0].name).to.be.eq('test');
-					expect(getRes.body.d[0][resourcePath].href).to.be.eq(href);
+					expect(getRes.body.d[0].name).to.equal('test');
+					expect(getRes.body.d[0][resourcePath].href).to.equal(href);
+
+					expect(await listAllFilesInBucket()).to.deep.equal([
+						getKeyFromHref(href),
+					]);
 				});
 
 				it('should delete resource in S3 when passing null in application/json request', async () => {
-					const uniqueFilename = `${randomUUID()}_${filename}`;
-
 					const { body: organization } = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'john')
 						.attach(resourcePath, filePath, {
-							filename: uniqueFilename,
+							filename,
 							contentType,
 						})
 						.expect(201);
@@ -594,33 +528,31 @@ describe('06 webresources tests', function () {
 						.expect(200);
 
 					expect(getRes.body.d[0][resourcePath]).to.be.null;
-					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
+					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it('does not fail to serve if S3 resource is deleted but entry exists', async () => {
 					// This tests the current behavior, but we might want to change it in the future
-					// because the current behavior allows for a dangling reference to exist
+					// because this assumes a dangling reference exists (which should not be possible)
 					const { body: organization } = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'John')
 						.attach(resourcePath, filePath, { filename, contentType })
 						.expect(201);
 
-					const createdFilename = removesSigning(
-						getStoredFileNameFromHref(organization[resourcePath].href),
-					);
+					const key = getKeyFromHref(organization[resourcePath].href);
 
-					await deleteFileInS3(createdFilename);
-					expect(await isEventuallyDeleted(createdFilename)).to.be.true;
+					await deleteFileInS3(key);
+					expect(await isEventuallyDeleted(key)).to.be.true;
 
 					const getRes = await supertest(testLocalServer)
 						.get(`/${resourceName}/organization(${organization.id})`)
 						.expect(200);
 
-					const responseFilename = removesSigning(
-						getStoredFileNameFromHref(getRes.body['d'][0][resourcePath].href),
+					const responseKey = getKeyFromHref(
+						getRes.body['d'][0][resourcePath].href,
 					);
-					expect(responseFilename).to.equals(createdFilename);
+					expect(responseKey).to.equals(key);
 				});
 			});
 		},
@@ -643,40 +575,39 @@ describe('06 webresources tests', function () {
 		({ resourceName, firstResourcePath, secondResourcePath }) => {
 			describe(`operates multiple web resources at the same time on /${resourceName}`, () => {
 				const otherFilePath = `${testResourcePath}/other-image.png`;
-				let uniqueFilename = `${randomUUID()}_${filename}`;
-				let otherUniqueFilename = `${randomUUID()}_other-image.png`;
+				let hrefFirstResourceKey: string;
+				let hrefSecondResourceKey: string;
 				let organization: { [key: string]: { filename: string } | number };
+
+				before(async () => {
+					await clearBucket();
+				});
 
 				it('creates an organization', async () => {
 					const { body } = await supertest(testLocalServer)
 						.post(`/${resourceName}/organization`)
 						.field('name', 'John')
-						.attach(firstResourcePath, filePath, {
-							filename: uniqueFilename,
-							contentType,
-						})
+						.attach(firstResourcePath, filePath, { filename, contentType })
 						.attach(secondResourcePath, otherFilePath, {
-							filename: otherUniqueFilename,
+							filename,
 							contentType,
 						})
 						.expect(201);
 
 					organization = body;
 
-					await expectToExist(
-						(organization[firstResourcePath] as { filename: string }).filename,
-					);
-					await expectToExist(
-						(organization[firstResourcePath] as { filename: string }).filename,
-					);
+					await expectToExist(body[firstResourcePath].href);
+					await expectToExist(body[secondResourcePath].href);
+
+					hrefFirstResourceKey = getKeyFromHref(body[firstResourcePath].href);
+					hrefSecondResourceKey = getKeyFromHref(body[secondResourcePath].href);
 				});
 
 				it('can patch a single web resource on the same organization', async () => {
-					const newOtherUniqueFilename = `${randomUUID()}_other-image.png`;
 					await supertest(testLocalServer)
 						.patch(`/${resourceName}/organization(${organization.id})`)
 						.attach(secondResourcePath, otherFilePath, {
-							filename: newOtherUniqueFilename,
+							filename,
 							contentType,
 						})
 						.expect(200);
@@ -689,12 +620,15 @@ describe('06 webresources tests', function () {
 						.get(`/${resourceName}/organization(${organization.id})`)
 						.expect(200);
 
-					expect(org[secondResourcePath].filename).to.be.eq(
-						newOtherUniqueFilename,
-					);
-					await expectToExist(newOtherUniqueFilename);
-					expect(await isEventuallyDeleted(otherUniqueFilename)).to.be.true;
-					otherUniqueFilename = newOtherUniqueFilename;
+					const newSecondHrefKey = getKeyFromHref(org[secondResourcePath].href);
+					expect(newSecondHrefKey).to.be.not.eq(hrefSecondResourceKey);
+
+					const allFiles = await listAllFilesInBucket();
+					expect(allFiles).to.contain(hrefFirstResourceKey);
+					expect(allFiles).to.contain(newSecondHrefKey);
+					expect(allFiles.length).to.equal(2);
+
+					hrefSecondResourceKey = newSecondHrefKey;
 				});
 
 				it('can patch with application/json null on one without modifying the other', async () => {
@@ -711,23 +645,18 @@ describe('06 webresources tests', function () {
 						.expect(200);
 
 					expect(org[firstResourcePath]).to.be.null;
-					assertExists(org[secondResourcePath].filename);
-
-					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
-					await expectToExist(otherUniqueFilename);
+					assertExists(org[secondResourcePath].href);
+					expect(await listAllFilesInBucket()).to.deep.equal([
+						getKeyFromHref(org[secondResourcePath].href),
+					]);
 				});
 
 				it('can patch multiple web resources on the same organization', async () => {
-					const newUniqueFilename = `${randomUUID()}_${filename}`;
-					const newOtherUniqueFilename = `${randomUUID()}_other-image.png`;
 					await supertest(testLocalServer)
 						.patch(`/${resourceName}/organization(${organization.id})`)
-						.attach(firstResourcePath, filePath, {
-							filename: newUniqueFilename,
-							contentType,
-						})
+						.attach(firstResourcePath, filePath, { filename, contentType })
 						.attach(secondResourcePath, otherFilePath, {
-							filename: newOtherUniqueFilename,
+							filename,
 							contentType,
 						})
 						.expect(200);
@@ -740,84 +669,60 @@ describe('06 webresources tests', function () {
 						.get(`/${resourceName}/organization(${organization.id})`)
 						.expect(200);
 
-					expect(org[firstResourcePath].filename).to.be.eq(newUniqueFilename);
-					expect(org[secondResourcePath].filename).to.be.eq(
-						newOtherUniqueFilename,
-					);
+					await expectToExist(org[firstResourcePath].href);
+					await expectToExist(org[secondResourcePath].href);
 
-					await expectToExist(newUniqueFilename);
-					await expectToExist(newOtherUniqueFilename);
+					hrefFirstResourceKey = getKeyFromHref(org[firstResourcePath].href);
+					hrefSecondResourceKey = getKeyFromHref(org[secondResourcePath].href);
 
-					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
-					expect(await isEventuallyDeleted(otherUniqueFilename)).to.be.true;
-
-					uniqueFilename = newUniqueFilename;
-					otherUniqueFilename = newOtherUniqueFilename;
+					const allFiles = await listAllFilesInBucket();
+					expect(allFiles).to.contain(hrefFirstResourceKey);
+					expect(allFiles).to.contain(hrefSecondResourceKey);
+					expect(allFiles.length).length.to.equal(2);
 				});
 
 				it('deletes both web resources when delete organization', async () => {
-					await expectToExist(uniqueFilename);
-					await expectToExist(otherUniqueFilename);
-
 					await supertest(testLocalServer)
 						.delete(`/${resourceName}/organization(${organization.id})`)
 						.expect(200);
 
-					expect(await isEventuallyDeleted(uniqueFilename)).to.be.true;
-					expect(await isEventuallyDeleted(otherUniqueFilename)).to.be.true;
+					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it('deletes both web resources when deleting all organizations', async () => {
-					uniqueFilename = `${randomUUID()}_${filename}`;
-					otherUniqueFilename = `${randomUUID()}_other-image.png`;
-
-					const otherOrgUniqueFilename = `${randomUUID()}_${filename}`;
-					const otherOrgOtherUniqueFilename = `${randomUUID()}_other-image.png`;
-
 					const [{ body: org1 }, { body: org2 }] = await Promise.all([
 						supertest(testLocalServer)
 							.post(`/${resourceName}/organization`)
 							.field('name', 'John')
-							.attach(firstResourcePath, filePath, {
-								filename: uniqueFilename,
-								contentType,
-							})
+							.attach(firstResourcePath, filePath, { filename, contentType })
 							.attach(secondResourcePath, otherFilePath, {
-								filename: otherUniqueFilename,
+								filename,
 								contentType,
 							})
 							.expect(201),
 						supertest(testLocalServer)
 							.post(`/${resourceName}/organization`)
 							.field('name', 'John')
-							.attach(firstResourcePath, filePath, {
-								filename: otherOrgUniqueFilename,
-								contentType,
-							})
+							.attach(firstResourcePath, filePath, { filename, contentType })
 							.attach(secondResourcePath, otherFilePath, {
-								filename: otherOrgOtherUniqueFilename,
+								filename,
 								contentType,
 							})
 							.expect(201),
 					]);
 
-					await expectToExist(org1[firstResourcePath].filename);
-					await expectToExist(org1[secondResourcePath].filename);
-					await expectToExist(org2[firstResourcePath].filename);
-					await expectToExist(org2[secondResourcePath].filename);
+					await Promise.all([
+						expectToExist(org1[firstResourcePath].href),
+						expectToExist(org1[secondResourcePath].href),
+						expectToExist(org2[firstResourcePath].href),
+						expectToExist(org2[secondResourcePath].href),
+					]);
 
 					await supertest(testLocalServer)
 						.delete(`/${resourceName}/organization`)
 						.expect(200);
 
-					expect(await isEventuallyDeleted(org1[firstResourcePath].filename)).to
-						.be.true;
-					expect(await isEventuallyDeleted(org1[secondResourcePath].filename))
-						.to.be.true;
-					expect(await isEventuallyDeleted(org2[firstResourcePath].filename)).to
-						.be.true;
-					expect(await isEventuallyDeleted(org2[secondResourcePath].filename))
-						.to.be.true;
+					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 			});
 		},
@@ -842,26 +747,23 @@ describe('06 webresources tests', function () {
 			privateField,
 		}) => {
 			describe(`operates multiple 1-N associations on /${resourceName}`, () => {
-				let organization: { [key: string]: { filename: string } | number };
-				let publicArtifactsFilenames: string[];
-				let privateArtifactsFilenames: string[];
+				before(async () => {
+					await clearBucket();
+				});
 
 				const expectToInsertFile = async (
-					createFilename: string,
+					organizationId: number,
 					createPath: string,
 					field: string,
 				) => {
 					const { body } = await supertest(testLocalServer)
 						.post(createPath)
-						.field('organization', `${organization.id}`)
-						.attach(field, filePath, {
-							filename: createFilename,
-							contentType,
-						})
+						.field('organization', `${organizationId}`)
+						.attach(field, filePath, { filename, contentType })
 						.expect(201);
 
 					await Promise.all([
-						expectToExist(body[field].filename),
+						expectToExist(body[field].href),
 						expectImageEquals(body[field].href, filePath, fileSize),
 					]);
 				};
@@ -872,27 +774,24 @@ describe('06 webresources tests', function () {
 						.field('name', 'John')
 						.expect(201);
 
-					organization = body;
-
-					publicArtifactsFilenames = generateFilenames(3);
-					privateArtifactsFilenames = generateFilenames(3);
-
 					await Promise.all([
-						...publicArtifactsFilenames.map((file) =>
+						...Array.from({ length: 3 }).map(() =>
 							expectToInsertFile(
-								file,
+								body.id,
 								`/${resourceName}/${publicArtifacts}`,
 								publicField,
 							),
 						),
-						...privateArtifactsFilenames.map((file) =>
+						...Array.from({ length: 3 }).map(() =>
 							expectToInsertFile(
-								file,
+								body.id,
 								`/${resourceName}/${privateArtifacts}`,
 								privateField,
 							),
 						),
 					]);
+
+					expect((await listAllFilesInBucket()).length).to.equal(6);
 				});
 
 				it('is able to get resources with expanded organization', async () => {
@@ -908,20 +807,20 @@ describe('06 webresources tests', function () {
 								.expect(200),
 						]);
 
-					expect(artifactsPublic.d.length).to.be.eq(3);
-					expect(artifactsPrivate.d.length).to.be.eq(3);
+					expect(artifactsPublic.d.length).to.equal(3);
+					expect(artifactsPrivate.d.length).to.equal(3);
 
 					// Also asserts that file is reachable with presigned url
 					const promises: Array<Promise<void>> = [];
 					for (const artifact of artifactsPublic.d) {
-						promises.push(expectToExist(artifact[publicField].filename));
+						promises.push(expectToExist(artifact[publicField].href));
 						promises.push(
 							expectImageEquals(artifact[publicField].href, filePath, fileSize),
 						);
 					}
 
 					for (const artifact of artifactsPrivate.d) {
-						promises.push(expectToExist(artifact[privateField].filename));
+						promises.push(expectToExist(artifact[privateField].href));
 						promises.push(
 							expectImageEquals(
 								artifact[privateField].href,
@@ -945,20 +844,20 @@ describe('06 webresources tests', function () {
 						)
 						.expect(200);
 
-					expect(org[publicArtifacts].length).to.be.eq(3);
-					expect(org[privateArtifacts].length).to.be.eq(3);
+					expect(org[publicArtifacts].length).to.equal(3);
+					expect(org[privateArtifacts].length).to.equal(3);
 
 					// Also asserts that file is reachable with presigned url
 					const promises: Array<Promise<void>> = [];
 					for (const artifact of org[publicArtifacts]) {
-						promises.push(expectToExist(artifact[publicField].filename));
+						promises.push(expectToExist(artifact[publicField].href));
 						promises.push(
 							expectImageEquals(artifact[publicField].href, filePath, fileSize),
 						);
 					}
 
 					for (const artifact of org[privateArtifacts]) {
-						promises.push(expectToExist(artifact[privateField].filename));
+						promises.push(expectToExist(artifact[privateField].href));
 						promises.push(
 							expectImageEquals(
 								artifact[privateField].href,
@@ -992,28 +891,19 @@ describe('06 webresources tests', function () {
 							.expect(200),
 					]);
 
-					const [newPublicArtifactName, newPrivateArtifactName] =
-						generateFilenames(2);
-
 					await Promise.all([
 						supertest(testLocalServer)
 							.patch(
 								`/${resourceName}/${publicArtifacts}(${oldPublicArtifact.id})`,
 							)
-							.attach(publicField, newFilePath, {
-								filename: newPublicArtifactName,
-								contentType,
-							})
+							.attach(publicField, newFilePath, { filename, contentType })
 							.expect(200),
 
 						supertest(testLocalServer)
 							.patch(
 								`/${resourceName}/${privateArtifacts}(${oldPrivateArtifact.id})`,
 							)
-							.attach(privateField, newFilePath, {
-								filename: newPrivateArtifactName,
-								contentType,
-							})
+							.attach(privateField, newFilePath, { filename, contentType })
 							.expect(200),
 					]);
 
@@ -1038,8 +928,8 @@ describe('06 webresources tests', function () {
 					]);
 
 					await Promise.all([
-						expectToExist(newPublicArtifactName),
-						expectToExist(newPrivateArtifactName),
+						expectToExist(newPublicArtifact[publicField].href),
+						expectToExist(newPrivateArtifact[privateField].href),
 						expectImageEquals(
 							newPublicArtifact[publicField].href,
 							newFilePath,
@@ -1052,14 +942,7 @@ describe('06 webresources tests', function () {
 						),
 					]);
 
-					expect(
-						await isEventuallyDeleted(oldPublicArtifact[publicField].filename),
-					).to.be.true;
-					expect(
-						await isEventuallyDeleted(
-							oldPrivateArtifact[privateField].filename,
-						),
-					).to.be.true;
+					expect((await listAllFilesInBucket()).length).to.equal(6);
 				});
 
 				it('deletes the file if resource is deleted', async () => {
@@ -1109,17 +992,16 @@ describe('06 webresources tests', function () {
 								.expect(200),
 						]);
 
-					expect(artifactsPublic.d.length).to.be.eq(2);
-					expect(artifactsPrivate.d.length).to.be.eq(2);
+					expect(artifactsPublic.d.length).to.equal(2);
+					expect(artifactsPrivate.d.length).to.equal(2);
 
+					expect(await isEventuallyDeleted(oldPublicArtifact[publicField].href))
+						.to.be.true;
 					expect(
-						await isEventuallyDeleted(oldPublicArtifact[publicField].filename),
+						await isEventuallyDeleted(oldPrivateArtifact[privateField].href),
 					).to.be.true;
-					expect(
-						await isEventuallyDeleted(
-							oldPrivateArtifact[privateField].filename,
-						),
-					).to.be.true;
+
+					expect((await listAllFilesInBucket()).length).to.equal(4);
 
 					await Promise.all([
 						expectToBeUnreachable(oldPublicArtifact[publicField].href),
@@ -1135,48 +1017,52 @@ const removesSigning = (href: string): string => {
 	return href.split('?', 1)[0];
 };
 
-const getStoredFileNameFromHref = (href: string): string => {
+const getKeyFromHref = (href: string): string => {
 	const splittedHref = removesSigning(href).split('/');
 	return splittedHref[splittedHref.length - 1];
 };
 
-const generateFilenames = (count: number): string[] => {
-	return Array.from({ length: count }, () => `${randomUUID()}_filename`);
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isBucketEventuallyEmpty = async (attempts = 5, retryDelay = 1000) => {
+	for (let attempt = 0; attempt < attempts; attempt++) {
+		if ((await listAllFilesInBucket()).length === 0) {
+			return true;
+		}
+		await delay(retryDelay);
+	}
+
+	return false;
 };
 
 const isEventuallyDeleted = async (
-	filename: string,
+	href: string,
 	attempts = 5,
 	retryDelay = 1000,
 ): Promise<boolean> => {
 	// File deletion happens in background so it might need
 	// a few attempts until the file is actually deleted
-	const sleep = (ms: number) =>
-		new Promise((resolve) => setTimeout(resolve, ms));
-
 	for (let attempt = 0; attempt < attempts; attempt++) {
-		const fileExists = await bucketContainsFile(filename);
+		const fileExists = await bucketContainsFile(getKeyFromHref(href));
 		if (!fileExists) {
 			return true;
 		}
-		await sleep(retryDelay);
+		await delay(retryDelay);
 	}
 
-	return false; // File was not deleted after all attempts
+	return false;
 };
 
-const bucketContainsFile = async (filename: string): Promise<boolean> => {
-	// Inspects minio bucket to ensure file with this uuid_filename exists
-
-	const files = await listAllFilesInBucket(
+const bucketContainsFile = async (key: string): Promise<boolean> => {
+	const keys = await listAllFilesInBucket(
 		requiredVar('S3_STORAGE_ADAPTER_BUCKET'),
 	);
 
-	return files.some((file) => file.includes(filename));
+	return keys.includes(key);
 };
 
-const expectToExist = async (filename: string) => {
-	expect(await bucketContainsFile(filename)).to.be.true;
+const expectToExist = async (href: string) => {
+	expect(await bucketContainsFile(getKeyFromHref(href))).to.be.true;
 };
 
 const expectImageEquals = async (
@@ -1194,7 +1080,7 @@ const expectImageEquals = async (
 	expect(receivedSize).to.equals(fileSize);
 	const realImage = await fs.readFile(filePath);
 	const diff = realImage.compare(photoRes);
-	expect(diff).to.be.eq(0);
+	expect(diff).to.equal(0);
 };
 
 const expectToBeUnreachable = async (href: string) => {
@@ -1206,13 +1092,13 @@ const expectToBeUnreachable = async (href: string) => {
 };
 
 const deleteFileInS3 = async (
-	filename: string,
+	key: string,
 	bucket = 'balena-pine-web-resources',
 ) => {
 	const s3client = getS3Client(bucket);
 	const deleteCommand = new DeleteObjectCommand({
 		Bucket: bucket,
-		Key: filename,
+		Key: key,
 	});
 	await s3client.send(deleteCommand);
 };
