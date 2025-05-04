@@ -316,12 +316,12 @@ export const getWebResourceFields = (
 		.map((f) => sqlNameToODataName(f.fieldName));
 };
 
-const deleteFiles = async (
-	keysToDelete: string[],
-	webResourceHandler: WebResourceHandler,
-) => {
-	const promises = keysToDelete.map((r) => webResourceHandler.removeFile(r));
-	await Promise.all(promises);
+const deleteOnStorage = async (keysToDelete: string[]) => {
+	return await Promise.all(
+		keysToDelete.map(async (fileKey) => {
+			return await configuredWebResourceHandler?.removeFile(fileKey);
+		}),
+	);
 };
 
 const throwIfWebresourceNotInMultipart = (
@@ -338,17 +338,21 @@ const throwIfWebresourceNotInMultipart = (
 	}
 };
 
-const getCreateWebResourceHooks = (
-	webResourceHandler: WebResourceHandler,
-): sbvrUtils.Hooks => {
+const getCreateWebResourceHooks = (): sbvrUtils.Hooks => {
 	return {
 		PRERUN: (hookArgs) => {
 			const webResourceFields = getWebResourceFields(hookArgs.request);
 			throwIfWebresourceNotInMultipart(webResourceFields, hookArgs);
 		},
-		'POSTRUN-ERROR': ({ tx, request }) => {
+		'POSTRUN-ERROR': ({ request, tx }) => {
+			const fields = getWebResourceFields(request);
+
+			if (fields.length === 0) {
+				return;
+			}
+			const keysToDelete = getWebResourcesKeysFromRequest(fields, request);
 			tx.on('rollback', () => {
-				void deleteRollbackPendingFields(request, webResourceHandler);
+				void deleteOnStorage(keysToDelete);
 			});
 		},
 	};
@@ -378,20 +382,11 @@ const getWebResourcesKeysFromRequest = (
 		.filter((href) => href != null);
 };
 
-const getRemoveWebResourceHooks = (
-	webResourceHandler: WebResourceHandler,
-): sbvrUtils.Hooks => {
+const getRemoveWebResourceHooks = (): sbvrUtils.Hooks => {
 	return {
 		PRERUN: async (args) => {
 			const { api, request, tx } = args;
 			let webResourceFields = getWebResourceFields(request);
-
-			throwIfWebresourceNotInMultipart(webResourceFields, args);
-
-			// Request failed on DB roundtrip (e.g. DB constraint) and pending files need to be deleted
-			tx.on('rollback', () => {
-				void deleteRollbackPendingFields(request, webResourceHandler);
-			});
 
 			if (request.method === 'PATCH') {
 				webResourceFields = Object.entries(request.values)
@@ -401,6 +396,8 @@ const getRemoveWebResourceHooks = (
 					)
 					.map(([key]) => key);
 			}
+			request.custom.webResourceFields = webResourceFields;
+			throwIfWebresourceNotInMultipart(webResourceFields, args);
 
 			if (webResourceFields.length === 0) {
 				// No need to delete anything as no file is in the wire
@@ -411,43 +408,32 @@ const getRemoveWebResourceHooks = (
 			// This can only be validated here because we need to first ensure the
 			// request is actually modifying a webresource before erroring out
 			if (request.method === 'PATCH' && request.odataQuery?.key == null) {
-				// When we get here, files have already been uploaded. We need to mark them for deletion.
-				const keysToDelete = getWebResourcesKeysFromRequest(
-					webResourceFields,
-					request,
-				);
-
-				// Set deletion of files on the wire as request will throw
-				tx.on('end', () => {
-					deletePendingFiles(keysToDelete, request, webResourceHandler);
-				});
-
 				throw new errors.BadRequestError(
 					'WebResources can only be updated when providing a resource key.',
 				);
 			}
 
-			// This can be > 1 in both DELETE requests or PATCH requests to not accessible IDs.
 			const ids = await sbvrUtils.getAffectedIds(args);
 			if (ids.length === 0) {
 				// Set deletion of files on the wire as no resource was affected
-				// Note that for DELETE requests it should not find any request on the wire
-				const keysToDelete = getWebResourcesKeysFromRequest(
+				request.custom.onPostRunDelete = getWebResourcesKeysFromRequest(
 					webResourceFields,
 					request,
 				);
-				deletePendingFiles(keysToDelete, request, webResourceHandler);
 				return;
 			}
 
+			// If it reaches here, it means that it will try to patch/delete the webresource
+			// So we need (before postrun) get what are the current keys to be deleted
+			// if post run succeeds
 			const webResources = (await api.get({
 				resource: request.resourceName,
 				passthrough: {
-					tx: args.tx,
+					tx,
 					req: permissions.root,
 				},
 				options: {
-					$select: webResourceFields,
+					$select: request.custom.webResourceFields,
 					$filter: {
 						id: {
 							$in: ids,
@@ -455,60 +441,38 @@ const getRemoveWebResourceHooks = (
 					},
 				},
 			})) as WebResourcesDbResponse[] | undefined | null;
+			request.custom.onPostRunDelete = getWebResourcesHrefs(webResources);
+		},
 
-			// Deletes previous stored resources in case they were patched or the whole entity was deleted
+		POSTRUN: ({ request, tx }) => {
+			// Either patch or delete worked. In either case, schedule the previous existing files to delete
+			// Done on the tx.end to ensure it only deletes when the transaction actually finishes succesfully
 			tx.on('end', () => {
-				deletePendingFiles(
-					getWebResourcesHrefs(webResources),
-					request,
-					webResourceHandler,
-				);
+				void deleteOnStorage(request.custom.onPostRunDelete ?? []);
+			});
+		},
+		'POSTRUN-ERROR': ({ request, tx }) => {
+			const keysToDelete = getWebResourcesKeysFromRequest(
+				request.custom.webResourceFields,
+				request,
+			);
+			tx.on('rollback', () => {
+				void deleteOnStorage(keysToDelete);
 			});
 		},
 	};
-};
-
-const deleteRollbackPendingFields = async (
-	request: uriParser.ODataRequest,
-	webResourceHandler: WebResourceHandler,
-) => {
-	const fields = getWebResourceFields(request);
-
-	if (fields.length === 0) {
-		return;
-	}
-
-	const keysToDelete = getWebResourcesKeysFromRequest(fields, request);
-	await deleteFiles(keysToDelete, webResourceHandler);
-};
-
-const deletePendingFiles = (
-	keysToDelete: string[],
-	request: uriParser.ODataRequest,
-	webResourceHandler: WebResourceHandler,
-): void => {
-	// on purpose does not await for this promise to resolve
-	try {
-		void deleteFiles(keysToDelete, webResourceHandler);
-	} catch (err) {
-		getLogger(request.vocabulary).error(`Failed to delete pending files`, err);
-	}
 };
 
 export const getDefaultHandler = (): WebResourceHandler => {
 	return new NoopHandler();
 };
 
-export const setupUploadHooks = (
-	handler: WebResourceHandler,
-	apiRoot: string,
-	resourceName: string,
-) => {
+export const setupUploadHooks = (apiRoot: string, resourceName: string) => {
 	sbvrUtils.addPureHook(
 		'DELETE',
 		apiRoot,
 		resourceName,
-		getRemoveWebResourceHooks(handler),
+		getRemoveWebResourceHooks(),
 	);
 
 	sbvrUtils.addPureHook(
@@ -516,13 +480,13 @@ export const setupUploadHooks = (
 		apiRoot,
 		resourceName,
 		// PATCH also needs to remove the old resource in case a webresource was modified
-		getRemoveWebResourceHooks(handler),
+		getRemoveWebResourceHooks(),
 	);
 
 	sbvrUtils.addPureHook(
 		'POST',
 		apiRoot,
 		resourceName,
-		getCreateWebResourceHooks(handler),
+		getCreateWebResourceHooks(),
 	);
 };
