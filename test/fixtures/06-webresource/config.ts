@@ -2,6 +2,7 @@ import type { ConfigLoader } from '@balena/pinejs';
 import { S3Handler } from '@balena/pinejs-webresource-s3';
 import { v1AbstractSqlModel, v1Translations } from './translations/v1/index.js';
 import { requiredVar, intVar } from '@balena/env-parsing';
+import { fileURLToPath } from 'node:url';
 
 const apiRoot = 'example';
 const modelName = 'example';
@@ -18,6 +19,15 @@ const s3Handler = new S3Handler({
 
 export default {
 	models: [
+		{
+			modelName: 'webresource',
+			modelFile: fileURLToPath(
+				import.meta.resolve(
+					'@balena/pinejs/out/webresource-handler/webresource.sbvr',
+				),
+			),
+			apiRoot: 'webresource',
+		},
 		{
 			modelName,
 			modelFile,

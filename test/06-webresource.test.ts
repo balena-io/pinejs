@@ -21,6 +21,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { intVar, requiredVar } from '@balena/env-parsing';
 import { assertExists } from './lib/common.js';
+import type { BeginUploadResponse } from '../out/webresource-handler/multipartUpload.js';
 
 const pipeline = util.promisify(pipelineRaw);
 
@@ -1011,6 +1012,366 @@ describe('06 webresources tests', function () {
 			});
 		},
 	);
+
+	describe('multipart upload', () => {
+		let testOrg: { id: number };
+		before(async () => {
+			const { body: org } = await supertest(testLocalServer)
+				.post(`/example/organization`)
+				.field('name', 'mtprt')
+				.expect(201);
+
+			const { body: orgWithoutFile } = await supertest(testLocalServer)
+				.get(`/example/organization(${org.id})`)
+				.expect(200);
+
+			expect(orgWithoutFile.d[0].logo_image).to.be.null;
+			testOrg = org;
+		});
+
+		it('fails to generate upload URLs for multiple fields at time', async () => {
+			const { body: res } = await supertest(testLocalServer)
+				.post(`/example/organization(${testOrg.id})/beginUpload`)
+				.send({
+					logo_image: {
+						filename: 'test.png',
+						content_type: 'image/png',
+						size: 6291456,
+						chunk_size: 6000000,
+					},
+					not_translated_webresource: {
+						filename: 'test.png',
+						content_type: 'image/png',
+						size: 6291456,
+						chunk_size: 6000000,
+					},
+				})
+				.expect(400);
+			expect(res).to.be.eq(
+				'You can only get upload url for one field at a time',
+			);
+		});
+
+		transalations.forEach(
+			({
+				resourcePath: resource,
+				resourceName: model,
+				sbvrTranslatedResource,
+			}) => {
+				it('fails to generate upload URLs for invalid field', async () => {
+					const { body: res } = await supertest(testLocalServer)
+						.post(`/${model}/organization(${testOrg.id})/beginUpload`)
+						.send({
+							idonotexist: {
+								filename: 'test.png',
+								content_type: 'image/png',
+								size: 6291456,
+								chunk_size: 6000000,
+							},
+						})
+						.expect(400);
+					expect(res).to.be.eq(
+						`The provided field 'idonotexist' is not a valid webresource`,
+					);
+				});
+
+				it('failed to generate upload URLs if invalid payload', async () => {
+					const { body: res } = await supertest(testLocalServer)
+						.post(`/${model}/organization(${testOrg.id})/beginUpload`)
+						.send({ [resource]: null })
+						.expect(400);
+					expect(res).to.be.eq('Invalid file metadata');
+
+					const { body: res2 } = await supertest(testLocalServer)
+						.post(`/${model}/organization(${testOrg.id})/beginUpload`)
+						.send({ [resource]: {} })
+						.expect(400);
+					expect(res2).to.be.eq('Invalid file metadata');
+				});
+
+				it('fails to generate upload URLs with chunk size too small', async () => {
+					const { body: res } = await supertest(testLocalServer)
+						.post(`/${model}/organization(${testOrg.id})/beginUpload`)
+						.send({
+							[resource]: {
+								filename: 'test.png',
+								content_type: 'image/png',
+								size: 6291456,
+								chunk_size: 10,
+							},
+						})
+						.expect(400);
+					expect(res).to.be.eq('Invalid file metadata');
+				});
+
+				it('fails to generate upload URLs if invalid DB constraint', async () => {
+					const { body: res } = await supertest(testLocalServer)
+						.post(`/${model}/organization(${testOrg.id})/beginUpload`)
+						.send({
+							[resource]: {
+								filename: 'test.png',
+								content_type: 'text/csv',
+								size: 6291456,
+								chunk_size: 6000000,
+							},
+						})
+						.expect(400);
+					expect(res).to.be.eq(
+						`It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.`,
+					);
+				});
+
+				it('fails to generate upload URLs if cannot access resource', async () => {
+					await supertest(testLocalServer)
+						.post(`/${model}/organization(4242)/beginUpload`)
+						.send({
+							[resource]: {
+								filename: 'test.png',
+								content_type: 'text/csv',
+								size: 6291456,
+								chunk_size: 6000000,
+							},
+						})
+						.expect(401);
+				});
+
+				it('uploads a file via S3 presigned URL', async () => {
+					const { body: org } = await supertest(testLocalServer)
+						.post(`/${model}/organization`)
+						.field('name', 'John')
+						.expect(201);
+
+					const { body: orgWithoutFile } = await supertest(testLocalServer)
+						.get(`/${model}/organization(${org.id})`)
+						.expect(200);
+
+					expect(orgWithoutFile.d[0][resource]).to.be.null;
+
+					const uploadResponse = await beginBlobUpload(org.id, model, resource);
+
+					const uuid = uploadResponse.uuid;
+					const chunks = [
+						new Blob([Buffer.alloc(6000000)]),
+						new Blob([Buffer.alloc(291456)]),
+					];
+
+					const res = await Promise.all([
+						fetch(uploadResponse.uploadParts[0].url, {
+							method: 'PUT',
+							body: chunks[0],
+						}),
+						fetch(uploadResponse.uploadParts[1].url, {
+							method: 'PUT',
+							body: chunks[1],
+						}),
+					]);
+
+					expect(res[0].status).to.be.eq(200);
+					expect(res[0].headers.get('Etag')).to.be.a('string');
+
+					expect(res[1].status).to.be.eq(200);
+					expect(res[1].headers.get('Etag')).to.be.a('string');
+
+					const { body: commitResponse } = await supertest(testLocalServer)
+						.post(`/${model}/organization(${org.id})/commitUpload`)
+						.send({
+							uuid,
+							providerCommitData: {
+								Parts: [
+									{
+										PartNumber: 1,
+										ETag: res[0].headers.get('Etag'),
+									},
+									{
+										PartNumber: 2,
+										ETag: res[1].headers.get('Etag'),
+									},
+								],
+							},
+						})
+						.expect(200);
+
+					await expectToExist(commitResponse.filename);
+					const { body: orgWithFile } = await supertest(testLocalServer)
+						.get(`/${model}/organization(${org.id})`)
+						.expect(200);
+
+					expect(orgWithFile.d[0][resource].href).to.be.a('string');
+					expect(orgWithFile.d[0][resource].size).to.be.eq(6291456);
+				});
+
+				it('failed to do a begin upload in one resource and then commit on another', async () => {
+					const { body: org1 } = await supertest(testLocalServer)
+						.post(`/${model}/organization`)
+						.field('name', 'John')
+						.expect(201);
+
+					const { body: org2 } = await supertest(testLocalServer)
+						.post(`/${model}/organization`)
+						.field('name', 'John')
+						.expect(201);
+
+					const uploadResponse = await beginBlobUpload(
+						org1.id,
+						model,
+						resource,
+					);
+
+					const uuid = uploadResponse.uuid;
+					const chunks = [
+						new Blob([Buffer.alloc(6000000)]),
+						new Blob([Buffer.alloc(291456)]),
+					];
+
+					const res = await Promise.all([
+						fetch(uploadResponse.uploadParts[0].url, {
+							method: 'PUT',
+							body: chunks[0],
+						}),
+						fetch(uploadResponse.uploadParts[1].url, {
+							method: 'PUT',
+							body: chunks[1],
+						}),
+					]);
+
+					expect(res[0].status).to.be.eq(200);
+					expect(res[0].headers.get('Etag')).to.be.a('string');
+
+					expect(res[1].status).to.be.eq(200);
+					expect(res[1].headers.get('Etag')).to.be.a('string');
+
+					await supertest(testLocalServer)
+						.post(`/${model}/organization(${org2.id})/commitUpload`)
+						.send({
+							uuid,
+							providerCommitData: {
+								Parts: [
+									{
+										PartNumber: 1,
+										ETag: res[0].headers.get('Etag'),
+									},
+									{
+										PartNumber: 2,
+										ETag: res[1].headers.get('Etag'),
+									},
+								],
+							},
+						})
+						.expect(401);
+				});
+
+				it('cannot upload part after canceling upload', async () => {
+					const { body: org } = await supertest(testLocalServer)
+						.post(`/${model}/organization`)
+						.field('name', 'John')
+						.expect(201);
+
+					const { body: orgWithoutFile } = await supertest(testLocalServer)
+						.get(`/${model}/organization(${org.id})`)
+						.expect(200);
+
+					expect(orgWithoutFile.d[0][resource]).to.be.null;
+
+					const uploadResponse = await beginBlobUpload(org.id, model, resource);
+
+					const chunks = [
+						new Blob([Buffer.alloc(6000000)]),
+						new Blob([Buffer.alloc(291456)]),
+					];
+
+					const res0 = await fetch(uploadResponse.uploadParts[0].url, {
+						method: 'PUT',
+						body: chunks[0],
+					});
+
+					expect(res0.status).to.be.eq(200);
+					expect(res0.headers.get('Etag')).to.be.a('string');
+
+					// Cancel upload
+					await supertest(testLocalServer)
+						.post(`/${model}/organization(${org.id})/cancelUpload`)
+						.send({
+							uuid: uploadResponse.uuid,
+						})
+						.expect(204);
+
+					const res1 = await fetch(uploadResponse.uploadParts[1].url, {
+						method: 'PUT',
+						body: chunks[1],
+					});
+
+					expect(res1.status).to.be.eq(404);
+				});
+
+				it('cannot commit after canceling upload', async () => {
+					const { body: org } = await supertest(testLocalServer)
+						.post(`/${model}/organization`)
+						.field('name', 'John')
+						.expect(201);
+
+					const { body: orgWithoutFile } = await supertest(testLocalServer)
+						.get(`/${model}/organization(${org.id})`)
+						.expect(200);
+
+					expect(orgWithoutFile.d[0][resource]).to.be.null;
+
+					const uploadResponse = await beginBlobUpload(org.id, model, resource);
+
+					const chunks = [
+						new Blob([Buffer.alloc(6000000)]),
+						new Blob([Buffer.alloc(291456)]),
+					];
+
+					const res = await Promise.all([
+						fetch(uploadResponse.uploadParts[0].url, {
+							method: 'PUT',
+							body: chunks[0],
+						}),
+						fetch(uploadResponse.uploadParts[1].url, {
+							method: 'PUT',
+							body: chunks[1],
+						}),
+					]);
+
+					expect(res[0].status).to.be.eq(200);
+					expect(res[0].headers.get('Etag')).to.be.a('string');
+
+					expect(res[1].status).to.be.eq(200);
+					expect(res[1].headers.get('Etag')).to.be.a('string');
+
+					await supertest(testLocalServer)
+						.post(`/${model}/organization(${org.id})/cancelUpload`)
+						.send({
+							uuid: uploadResponse.uuid,
+						})
+						.expect(204);
+
+					const { body: commitResponse } = await supertest(testLocalServer)
+						.post(`/${model}/organization(${org.id})/commitUpload`)
+						.send({
+							uuid: uploadResponse.uuid,
+							providerCommitData: {
+								Parts: [
+									{
+										PartNumber: 1,
+										ETag: res[0].headers.get('Etag'),
+									},
+									{
+										PartNumber: 2,
+										ETag: res[1].headers.get('Etag'),
+									},
+								],
+							},
+						})
+						.expect(400);
+
+					expect(commitResponse).to.be.eq(
+						`Invalid upload for uuid ${uploadResponse.uuid}`,
+					);
+				});
+			},
+		);
+	});
 });
 
 const removesSigning = (href: string): string => {
@@ -1164,4 +1525,44 @@ const getS3Client = (bucket: string) => {
 		},
 		endpoint,
 	});
+};
+
+const beginBlobUpload = async (
+	orgId: number,
+	modelVersion: string,
+	resourceName: string,
+) => {
+	const uniqueFilename = `${randomUUID()}_test.png`;
+	const { body } = await supertest(testLocalServer)
+		.post(`/${modelVersion}/organization(${orgId})/beginUpload`)
+		.send({
+			[resourceName]: {
+				filename: uniqueFilename,
+				content_type: 'image/png',
+				size: 6291456,
+				chunk_size: 6000000,
+			},
+		})
+		.expect(200);
+
+	// There is one current known issue for the beginUpload endpoint
+	// which is the response payload key is the final translated field name
+	// Considering V1 only allows one field to be uploaded at a time
+	// we can safely assume the first key is the one we are looking for
+	const uploadResponse = Object.values(body)[0] as BeginUploadResponse[string];
+	assertExists(uploadResponse);
+
+	const { body: after } = await supertest(testLocalServer)
+		.get(`/${modelVersion}/organization(${orgId})`)
+		.expect(200);
+
+	expect(after.d[0][resourceName]).to.be.null;
+	expect(uploadResponse.uuid).to.be.a('string');
+	expect(uploadResponse.uploadParts).to.be.an('array').that.has.length(2);
+	expect(uploadResponse.uploadParts[0].chunkSize).to.be.eq(6000000);
+	expect(uploadResponse.uploadParts[0].partNumber).to.be.eq(1);
+	expect(uploadResponse.uploadParts[1].chunkSize).to.be.eq(291456);
+	expect(uploadResponse.uploadParts[1].partNumber).to.be.eq(2);
+
+	return uploadResponse;
 };

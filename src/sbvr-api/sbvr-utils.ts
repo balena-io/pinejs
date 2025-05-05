@@ -1140,7 +1140,7 @@ const getFinalAbstractSqlModel = (
 	return (request.finalAbstractSqlModel ??= models[finalModel].abstractSql);
 };
 
-const getIdField = (
+export const getIdField = (
 	request: Pick<
 		uriParser.ODataRequest,
 		| 'translateVersions'

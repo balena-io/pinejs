@@ -11,12 +11,20 @@ import {
 	odataNameToSqlName,
 	sqlNameToODataName,
 } from '@balena/odata-to-abstract-sql';
+import type { ConfigLoader } from '../server-glue/module.js';
 import { errors, permissions } from '../server-glue/module.js';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 import { TypedError } from 'typed-error';
 import type { Resolvable } from '../sbvr-api/common-types.js';
+import type WebresourceModel from './webresource.js';
+import { importSBVR } from '../server-glue/sbvr-loader.js';
+import {
+	isMultipartUploadAvailable,
+	multipartUploadHooks,
+} from './multipartUpload.js';
 
 export * from './handlers/index.js';
+export type { BeginUploadResponse } from './multipartUpload.js';
 
 export interface IncomingFile {
 	fieldname: string;
@@ -329,6 +337,10 @@ const throwIfWebresourceNotInMultipart = (
 	{ req, request }: HookArgs,
 ) => {
 	if (
+		request.custom.isAction !== 'beginUpload' &&
+		request.custom.isAction !== 'commitUpload' &&
+		request.custom.isAction !== 'cancelUpload' &&
+		req.user !== permissions.root.user &&
 		!req.is?.('multipart') &&
 		webResourceFields.some((field) => request.values[field] != null)
 	) {
@@ -525,4 +537,37 @@ export const setupUploadHooks = (
 		resourceName,
 		getCreateWebResourceHooks(handler),
 	);
+
+	if (isMultipartUploadAvailable(handler)) {
+		sbvrUtils.addPureHook(
+			'POST',
+			apiRoot,
+			resourceName,
+			multipartUploadHooks(handler),
+		);
+	}
+};
+
+const initSql = `
+CREATE INDEX IF NOT EXISTS idx_multipart_upload_uuid ON "multipart upload" (uuid);
+CREATE INDEX IF NOT EXISTS idx_multipart_upload_status ON "multipart upload" (status);
+`;
+
+const modelText = await importSBVR('./webresource.sbvr', import.meta);
+
+declare module '../sbvr-api/sbvr-utils.js' {
+	export interface API {
+		webresource: PinejsClient<WebresourceModel>;
+	}
+}
+
+export const config: ConfigLoader.Config = {
+	models: [
+		{
+			modelName: 'webresource',
+			apiRoot: 'webresource',
+			modelText,
+			initSql,
+		},
+	],
 };
