@@ -328,7 +328,7 @@ const namespaceRelationships = (
 	}
 };
 
-type PermissionLookup = Dictionary<true | string[]>;
+export type PermissionLookup = Dictionary<true | string[]>;
 
 const getPermissionsLookup = env.createCache(
 	'permissionsLookup',
@@ -1707,7 +1707,7 @@ const getGuestPermissions = memoize(
 	{ promise: true },
 );
 
-const getReqPermissions = async (
+export const getReqPermissions = async (
 	req: PermissionReq,
 	odataBinds: ODataBinds = [] as any as ODataBinds,
 ) => {
