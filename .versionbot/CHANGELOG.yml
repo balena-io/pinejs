@@ -1,4 +1,29 @@
 - commits:
+    - subject: Improve webresource tests to be independent of filename
+      hash: 1bd9e7250748b86aaccc54347add4b50ea3b335a
+      body: >
+        Previous version of tests were relying on the fact that the href
+        (generated) property used the given filename to be generated and would
+        search over the bucket for that filename.
+
+
+        This is highly undesirable as it makes the tests unreliable to possible
+        underlying (non breaking) changes, as it relies on a side effect
+
+
+        The current PR changes it by ensuring the specific keys exist on the
+        bucket without any relation for the given filename.
+      footer:
+        See: https://balena.fibery.io/search/tyKzx#Work/Improvement/Make-webresources-file-deletion-more-reliable-2819
+        see: https://balena.fibery.io/search/tyKzx#Work/Improvement/Make-webresources-file-deletion-more-reliable-2819
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 21.3.2
+  title: ""
+  date: 2025-05-05T17:14:40.111Z
+- commits:
     - subject: Fix webresource tests for deleted files with signed hrefs
       hash: 36265762455f7a2182d8bfcc02b3e9787dfe4abe
       body: ""
@@ -2418,6 +2443,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2440,6 +2466,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2495,6 +2522,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2631,6 +2659,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2659,6 +2688,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2724,6 +2754,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2758,6 +2789,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2921,6 +2953,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6075,6 +6108,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6097,6 +6131,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6180,6 +6215,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6372,6 +6408,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6400,6 +6437,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6521,6 +6559,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6555,6 +6594,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6746,6 +6786,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
