@@ -15,6 +15,7 @@ import { errors, permissions } from '../server-glue/module.js';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 import { TypedError } from 'typed-error';
 import type { Resolvable } from '../sbvr-api/common-types.js';
+import { canExecuteTasks } from '../tasks/index.js';
 
 export * from './handlers/index.js';
 
@@ -316,11 +317,33 @@ export const getWebResourceFields = (
 		.map((f) => sqlNameToODataName(f.fieldName));
 };
 
+const scheduleToDelete = (fileKey: string) => {
+	return sbvrUtils.api.tasks.post({
+		resource: 'task',
+		passthrough: {
+			req: permissions.root,
+		},
+		body: {
+			key: crypto.randomUUID(),
+			is_executed_by__handler: 'delete_webresource_file',
+			is_executed_with__parameter_set: {
+				fileKey: fileKey,
+			},
+			// limit pg integer - repeat as many time as possible
+			attempt_limit: 2 ** 31 - 1,
+		},
+	});
+};
+
 const deleteFiles = async (
 	keysToDelete: string[],
 	webResourceHandler: WebResourceHandler,
 ) => {
-	const promises = keysToDelete.map((r) => webResourceHandler.removeFile(r));
+	const promises = keysToDelete.map((fileKey) => {
+		return canExecuteTasks()
+			? scheduleToDelete(fileKey)
+			: webResourceHandler.removeFile(fileKey);
+	});
 	await Promise.all(promises);
 };
 

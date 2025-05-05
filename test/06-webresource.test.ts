@@ -21,9 +21,11 @@ import {
 } from '@aws-sdk/client-s3';
 import { intVar, requiredVar } from '@balena/env-parsing';
 import { assertExists } from './lib/common.js';
+import { PineTest } from 'pinejs-client-supertest';
 
 const pipeline = util.promisify(pipelineRaw);
 
+let pineTask: PineTest;
 describe('06 webresources tests', function () {
 	let pineServer: Awaited<ReturnType<typeof testInit>>;
 
@@ -45,6 +47,15 @@ describe('06 webresources tests', function () {
 		fileSize = fileInfo.size;
 		const newFileInfo = await fs.stat(newFilePath);
 		newFileSize = newFileInfo.size;
+
+		pineTask = new PineTest(
+			{
+				apiPrefix: 'tasks/',
+			},
+			{
+				app: testLocalServer,
+			},
+		);
 	});
 
 	after(async () => {
@@ -1132,6 +1143,8 @@ const getLargeFileStream = async (size: number, filePathToRepeat: string) => {
 const listAllFilesInBucket = async (
 	bucket = 'balena-pine-web-resources',
 ): Promise<string[]> => {
+	await awaitForDeletionTasks();
+
 	const s3client = getS3Client(bucket);
 	const command = new ListObjectsV2Command({ Bucket: bucket });
 	let isTruncated = true;
@@ -1164,4 +1177,34 @@ const getS3Client = (bucket: string) => {
 		},
 		endpoint,
 	});
+};
+
+const awaitForDeletionTasks = async (
+	attempts = 10,
+	retryDelay = 500,
+	initialDelay = 500,
+) => {
+	// Even the creation of deletion tasks happens in second plan
+	// so we give it a initial delay for the tasks to be created
+	await delay(initialDelay);
+	for (let i = 0; i < attempts; i++) {
+		const { body: pendingDeletions } = await pineTask.get({
+			resource: 'task',
+			options: {
+				$count: {
+					$filter: {
+						status: 'queued',
+						is_executed_by__handler: 'delete_webresource_file',
+					},
+				},
+			},
+		});
+		if (pendingDeletions === 0) {
+			return;
+		}
+
+		await delay(retryDelay);
+	}
+
+	throw new Error('Failed to await for webresource deletions');
 };
