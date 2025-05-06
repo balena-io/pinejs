@@ -5,6 +5,7 @@ import * as pine from '@balena/pinejs';
 export type PineTestOptions = {
 	configPath: string;
 	hooksPath?: string;
+	actionsPath?: string;
 	taskHandlersPath?: string;
 	routesPath?: string;
 	withLoginRoute?: boolean;

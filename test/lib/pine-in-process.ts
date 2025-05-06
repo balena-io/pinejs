@@ -77,6 +77,11 @@ async function runApp(processArgs: PineTestOptions) {
 			await import(processArgs.hooksPath);
 		}
 
+		// load actions
+		if (processArgs.actionsPath) {
+			await import(processArgs.actionsPath);
+		}
+
 		// load task handlers
 		if (processArgs.taskHandlersPath) {
 			const { initTaskHandlers } = await import(processArgs.taskHandlersPath);

@@ -1,0 +1,25 @@
+Vocabulary: actionsUniversity
+
+Term: name
+	Concept Type: Short Text (Type)
+
+Term: current semester
+	Concept Type: Integer (Type)
+
+Term: previous year grade
+	Concept Type: Short Text (Type)
+
+Term: student
+
+Fact Type: student has name
+	Necessity: each student has exactly one name
+	Necessity: each name is of exactly one student
+
+Fact Type: student has current semester
+	Necessity: each student has exactly one current semester
+	Necessity: each student has a current semester that is greater than 0 and is less than 12
+
+Fact Type: student is repeating
+Fact type: student has previous year grade
+	Necessity: each student has at most one previous year grade
+

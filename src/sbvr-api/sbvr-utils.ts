@@ -111,6 +111,7 @@ import {
 	type MigrationExecutionResult,
 	setExecutedMigrations,
 } from '../migrator/utils.js';
+import { isActionRequest, runAction } from './actions.js';
 
 const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
 const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVersion}`;
@@ -1386,8 +1387,16 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 
 				let request: uriParser.ODataRequest | uriParser.ODataRequest[];
 				if (Array.isArray(parsedRequest)) {
+					if (parsedRequest.some(isActionRequest)) {
+						throw new BadRequestError(
+							'Action request are not supported in $batch requests',
+						);
+					}
 					request = await controlFlow.mapSeries(parsedRequest, prepareRequest);
 				} else {
+					if (isActionRequest(parsedRequest)) {
+						return await runAction(parsedRequest, req);
+					}
 					request = await prepareRequest(parsedRequest);
 				}
 				// Run the request in its own transaction

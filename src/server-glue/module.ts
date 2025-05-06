@@ -7,6 +7,7 @@ import * as configLoader from '../config-loader/config-loader.js';
 import * as migrator from '../migrator/sync.js';
 import type * as migratorUtils from '../migrator/utils.js';
 import * as tasks from '../tasks/index.js';
+export * as actions from '../sbvr-api/actions.js';
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
 import { PINEJS_ADVISORY_LOCK } from '../config-loader/env.js';
