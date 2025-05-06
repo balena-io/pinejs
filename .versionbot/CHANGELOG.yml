@@ -1,4 +1,18 @@
 - commits:
+    - subject: Add support for defining odata actions
+      hash: ddce5e07ff6a03826338740127eff4b423e2dd9c
+      body: ""
+      footer:
+        See: https://balena.fibery.io/search/9OI72#Work/Improvement/Add-odata-actions-foundation-for-pinejs-2818
+        see: https://balena.fibery.io/search/9OI72#Work/Improvement/Add-odata-actions-foundation-for-pinejs-2818
+        Change-type: minor
+        change-type: minor
+      author: Otavio Jacobi
+      nested: []
+  version: 21.4.0
+  title: ""
+  date: 2025-05-06T16:18:39.604Z
+- commits:
     - subject: Improve webresource tests to be independent of filename
       hash: 1bd9e7250748b86aaccc54347add4b50ea3b335a
       body: >
@@ -2444,6 +2458,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2466,6 +2481,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2522,6 +2538,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2660,6 +2677,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2688,6 +2706,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2755,6 +2774,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2789,6 +2809,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2953,6 +2974,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6109,6 +6131,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6131,6 +6154,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6215,6 +6239,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6409,6 +6434,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6437,6 +6463,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6560,6 +6587,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6594,6 +6622,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6786,6 +6815,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
