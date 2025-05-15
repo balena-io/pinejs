@@ -11,11 +11,17 @@ import {
 	odataNameToSqlName,
 	sqlNameToODataName,
 } from '@balena/odata-to-abstract-sql';
+import type { ConfigLoader } from '../server-glue/module.js';
 import { errors, permissions } from '../server-glue/module.js';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 import { TypedError } from 'typed-error';
 import type { Resolvable } from '../sbvr-api/common-types.js';
 import { canExecuteTasks } from '../tasks/index.js';
+import { importSBVR } from '../server-glue/sbvr-loader.js';
+import type WebresourceModel from './webresource.js';
+import { isMultipartUploadAvailable } from './multipartUpload.js';
+import { addAction } from '../sbvr-api/actions.js';
+import { beginUpload, commitUpload, cancelUpload } from './actions/index.js';
 
 export * from './handlers/index.js';
 
@@ -352,6 +358,13 @@ const throwIfWebresourceNotInMultipart = (
 	{ req, request }: HookArgs,
 ) => {
 	if (
+		// root needs to be able to bypass the multipart check as
+		// it needs to pass the direct payload on multipart uploads (on storage provider)
+		req.user !== permissions.root.user &&
+		// This is checking for HTTP multipart form submission/request (e.g. send the actual file via the API)
+		// Not to confuse with multipart uploads
+		// See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/POST#multipart_form_submission
+		// See: https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html
 		!req.is?.('multipart') &&
 		webResourceFields.some((field) => request.values[field] != null)
 	) {
@@ -548,4 +561,31 @@ export const setupUploadHooks = (
 		resourceName,
 		getCreateWebResourceHooks(handler),
 	);
+};
+
+export const setupUploadActions = (vocab: string, resourceName: string) => {
+	const resource = sqlNameToODataName(resourceName);
+	if (isMultipartUploadAvailable(configuredWebResourceHandler)) {
+		addAction(vocab, resource, 'beginUpload', beginUpload);
+		addAction(vocab, resource, 'commitUpload', commitUpload);
+		addAction(vocab, resource, 'cancelUpload', cancelUpload);
+	}
+};
+
+const modelText = await importSBVR('./webresource.sbvr', import.meta);
+
+declare module '../sbvr-api/sbvr-utils.js' {
+	export interface API {
+		webresource: PinejsClient<WebresourceModel>;
+	}
+}
+
+export const config: ConfigLoader.Config = {
+	models: [
+		{
+			modelName: 'webresource',
+			apiRoot: 'webresource',
+			modelText,
+		},
+	],
 };
