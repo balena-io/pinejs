@@ -1,13 +1,10 @@
 import _ from 'lodash';
 import type {
 	AbstractSqlModel,
-	Relationship,
 	ReferencedFieldNode,
 	SelectNode,
 	AliasNode,
 	Definition,
-	RelationshipInternalNode,
-	RelationshipLeafNode,
 	SelectQueryNode,
 	NumberTypeNodes,
 	BooleanTypeNodes,
@@ -15,6 +12,7 @@ import type {
 	NullNode,
 } from '@balena/abstract-sql-compiler';
 import type { Dictionary } from './common-types.js';
+import { namespaceRelationships as $namespaceRelationships } from './abstract-sql.js';
 
 export type AliasValidNodeType =
 	| ReferencedFieldNode
@@ -95,29 +93,13 @@ const aliasResource = (
 };
 
 const namespaceRelationships = (
-	relationships: Relationship,
-	alias: string,
+	relationships: Parameters<typeof $namespaceRelationships>[0],
+	alias: Parameters<typeof $namespaceRelationships>[1],
 ): void => {
-	for (const [key, relationship] of Object.entries(
-		relationships as RelationshipInternalNode,
-	)) {
-		if (key === '$') {
-			continue;
-		}
-
-		let mapping = (relationship as RelationshipLeafNode).$;
-		if (mapping != null && mapping.length === 2) {
-			if (!key.includes('$')) {
-				mapping = _.cloneDeep(mapping);
-				mapping[1]![0] = `${mapping[1]![0]}$${alias}`;
-				(relationships as RelationshipInternalNode)[`${key}$${alias}`] = {
-					$: mapping,
-				};
-				delete (relationships as RelationshipInternalNode)[key];
-			}
-		}
-		namespaceRelationships(relationship, alias);
-	}
+	$namespaceRelationships(relationships, alias, {
+		keyFilter: (key) => !key.includes('$'),
+		deleteOriginal: true,
+	});
 };
 
 export const translateAbstractSqlModel = (
