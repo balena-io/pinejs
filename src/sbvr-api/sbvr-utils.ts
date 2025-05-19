@@ -39,7 +39,7 @@ import {
 import $sbvrTypes from '@balena/sbvr-types';
 const { default: sbvrTypes } = $sbvrTypes;
 import deepFreeze from 'deep-freeze';
-import type { ODataOptions, Params } from 'pinejs-client-core';
+import type { ActionParams, ODataOptions, Params } from 'pinejs-client-core';
 import { PinejsClientCore, type PromiseResultTypes } from 'pinejs-client-core';
 
 import { ExtendedSBVRParser } from '../extended-sbvr-parser/extended-sbvr-parser.js';
@@ -1002,6 +1002,16 @@ export class PinejsClient<
 			options: Params<M[TResource]>['options'] & { returnResource: boolean };
 		} & Params<M[TResource]>,
 	): Promise<Pick<M[TResource]['Read'], 'id'>>; // TODO: This should use the primary key rather than hardcoding `id`
+	public post<
+		TResource extends keyof M & string,
+		ResponseBody = unknown,
+		RequestBody = unknown,
+	>(
+		params: {
+			resource: TResource;
+			action: string;
+		} & ActionParams<M[TResource], RequestBody>,
+	): Promise<ResponseBody>;
 	public post(params: Params): Promise<AnyObject> {
 		return super.post(params as Parameters<PinejsClient<M>['post']>[0]);
 	}

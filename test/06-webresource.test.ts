@@ -22,7 +22,8 @@ import {
 import { intVar, requiredVar } from '@balena/env-parsing';
 import { assertExists } from './lib/common.js';
 import { PineTest } from 'pinejs-client-supertest';
-import type { UploadPart } from '../out/webresource-handler/index.js';
+import type { webResourceHandler } from '@balena/pinejs';
+import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 
 const pipeline = util.promisify(pipelineRaw);
 
@@ -1026,58 +1027,95 @@ describe('06 webresources tests', function () {
 
 	describe('multipart upload', () => {
 		let testOrg: { id: number };
+		let api: { [key: string]: PineTest };
 		before(async () => {
 			await clearBucket();
-			const { body: org } = await supertest(testLocalServer)
-				.post(`/example/organization`)
-				.field('name', 'mtprt')
-				.expect(201);
+			api = {
+				example: new PineTest(
+					{
+						apiPrefix: 'example/',
+					},
+					{
+						app: testLocalServer,
+					},
+				),
+				v1: new PineTest(
+					{
+						apiPrefix: 'v1/',
+					},
+					{
+						app: testLocalServer,
+					},
+				),
+			};
 
-			const { body: orgWithoutFile } = await supertest(testLocalServer)
-				.get(`/example/organization(${org.id})`)
+			const { body: org } = await api.example
+				.post({
+					resource: 'organization',
+					body: { name: 'mtprt' },
+				})
+				.expect(201);
+			assertExists(org);
+
+			const { body: orgWithoutFile } = await api.example
+				.get({
+					resource: 'organization',
+					id: org.id,
+				})
 				.expect(200);
 
-			expect(orgWithoutFile.d[0].logo_image).to.be.null;
-			testOrg = org;
+			assertExists(orgWithoutFile);
+			expect(orgWithoutFile.logo_image).to.be.null;
+			testOrg = org as { id: number };
 		});
 
 		it('fails to generate upload URLs for multiple fields at time', async () => {
-			const { body: res } = await supertest(testLocalServer)
-				.post(`/example/organization(${testOrg.id})/beginUpload`)
-				.send({
-					logo_image: {
-						filename: 'test.png',
-						content_type: 'image/png',
-						size: 6291456,
-						chunk_size: 6000000,
-					},
-					not_translated_webresource: {
-						filename: 'test.png',
-						content_type: 'image/png',
-						size: 6291456,
-						chunk_size: 6000000,
+			const { body } = await api.example
+				.runAction({
+					resource: 'organization',
+					action: 'beginUpload',
+					id: testOrg.id,
+					body: {
+						logo_image: {
+							filename: 'test.png',
+							content_type: 'image/png',
+							size: 6291456,
+							chunk_size: 6000000,
+						},
+						not_translated_webresource: {
+							filename: 'test.png',
+							content_type: 'image/png',
+							size: 6291456,
+							chunk_size: 6000000,
+						},
 					},
 				})
 				.expect(400);
-			expect(res).to.equal('Invalid begin upload payload');
 
+			expect(body).to.equal('Invalid begin upload payload');
 			expect(await isBucketEventuallyEmpty()).to.be.true;
 		});
 
 		it('can start upload for a very large file (big int)', async () => {
-			const { body: org } = await supertest(testLocalServer)
-				.post(`/example/organization`)
-				.field('name', 'John')
+			const { body: org } = await api.example
+				.post({
+					resource: 'organization',
+					body: { name: 'John' },
+				})
 				.expect(201);
 
-			await supertest(testLocalServer)
-				.post(`/example/organization(${org.id})/beginUpload`)
-				.send({
-					unrestricted_artifact: {
-						filename,
-						content_type: 'image/png',
-						size: 3972005888,
-						chunk_size: 6000000,
+			await api.example
+				.runAction({
+					resource: 'organization',
+					action: 'beginUpload',
+					id: org.id,
+					body: {
+						unrestricted_artifact: {
+							filename,
+							content_type: 'image/png',
+							size: 3972005888,
+							chunk_size: 6000000,
+						},
 					},
 				})
 				.expect(200);
@@ -1093,83 +1131,103 @@ describe('06 webresources tests', function () {
 			}) => {
 				it('fails to generate upload URLs for invalid field', async () => {
 					await clearBucket();
-					const { body: res } = await supertest(testLocalServer)
-						.post(`/${model}/organization(${testOrg.id})/beginUpload`)
-						.send({
-							idonotexist: {
-								filename: 'test.png',
-								content_type: 'image/png',
-								size: 6291456,
-								chunk_size: 6000000,
+					await api[model]
+						.runAction({
+							resource: 'organization',
+							id: testOrg.id,
+							action: 'beginUpload',
+							body: {
+								idonotexist: {
+									filename: 'test.png',
+									content_type: 'image/png',
+									size: 6291456,
+									chunk_size: 6000000,
+								},
 							},
 						})
-						.expect(400);
-					expect(res).to.equal(
-						`The provided field 'idonotexist' is not a valid webresource`,
-					);
-
+						.expect(
+							400,
+							`"The provided field 'idonotexist' is not a valid webresource"`,
+						);
 					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it('failed to generate upload URLs if invalid payload', async () => {
-					const { body: res } = await supertest(testLocalServer)
-						.post(`/${model}/organization(${testOrg.id})/beginUpload`)
-						.send({ [resource]: null })
-						.expect(400);
-					expect(res).to.equal('Invalid begin upload payload');
+					await api[model]
+						.runAction({
+							resource: 'organization',
+							id: testOrg.id,
+							action: 'beginUpload',
+							body: { [resource]: null },
+						})
+						.expect(400, '"Invalid begin upload payload"');
 
-					const { body: res2 } = await supertest(testLocalServer)
-						.post(`/${model}/organization(${testOrg.id})/beginUpload`)
-						.send({ [resource]: {} })
-						.expect(400);
-					expect(res2).to.equal('Invalid begin upload payload');
-
+					await api[model]
+						.runAction({
+							resource: 'organization',
+							id: testOrg.id,
+							action: 'beginUpload',
+							body: { [resource]: {} },
+						})
+						.expect(400, '"Invalid begin upload payload"');
 					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it('fails to generate upload URLs with chunk size too small', async () => {
-					const { body: res } = await supertest(testLocalServer)
-						.post(`/${model}/organization(${testOrg.id})/beginUpload`)
-						.send({
-							[resource]: {
-								filename: 'test.png',
-								content_type: 'image/png',
-								size: 6291456,
-								chunk_size: 10,
+					await api[model]
+						.runAction({
+							resource: 'organization',
+							id: testOrg.id,
+							action: 'beginUpload',
+							body: {
+								[resource]: {
+									filename: 'test.png',
+									content_type: 'image/png',
+									size: 6291456,
+									chunk_size: 10,
+								},
 							},
 						})
-						.expect(400);
-					expect(res).to.equal('Chunk size is too small');
+						.expect(400, '"Chunk size is too small"');
 					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it('fails to generate upload URLs if invalid DB constraint', async () => {
-					const { body: res } = await supertest(testLocalServer)
-						.post(`/${model}/organization(${testOrg.id})/beginUpload`)
-						.send({
-							[resource]: {
-								filename: 'test.png',
-								content_type: 'text/csv',
-								size: 6291456,
-								chunk_size: 6000000,
+					await api[model]
+						.runAction({
+							resource: 'organization',
+							id: testOrg.id,
+							action: 'beginUpload',
+							body: {
+								[resource]: {
+									filename: 'test.png',
+									content_type: 'text/csv',
+									size: 6291456,
+									chunk_size: 6000000,
+								},
 							},
 						})
-						.expect(400);
-					expect(res).to.equal(
-						`It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.`,
-					);
+						.expect(
+							400,
+							`"It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to \\"image/png\\" or \\"image/jpg\\" or \\"image/jpeg\\" and has a Size (Type) that is less than 540000000."`,
+						);
+
 					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it('fails to generate upload URLs if cannot access resource', async () => {
-					await supertest(testLocalServer)
-						.post(`/${model}/organization(4242)/beginUpload`)
-						.send({
-							[resource]: {
-								filename: 'test.png',
-								content_type: 'text/csv',
-								size: 6291456,
-								chunk_size: 6000000,
+					await api[model]
+						.runAction({
+							resource: 'organization',
+							id: '4242',
+							action: 'beginUpload',
+							body: {
+								[resource]: {
+									filename: 'test.png',
+									content_type: 'text/csv',
+									size: 6291456,
+									chunk_size: 6000000,
+								},
 							},
 						})
 						.expect(401);
@@ -1177,37 +1235,55 @@ describe('06 webresources tests', function () {
 				});
 
 				it('uploads a file via S3 presigned URL', async () => {
-					const { body: org } = await supertest(testLocalServer)
-						.post(`/${model}/organization`)
-						.field('name', 'John')
+					const { body: org } = await api[model]
+						.post({
+							resource: 'organization',
+							body: { name: 'John' },
+						})
 						.expect(201);
 
-					const { body: orgWithoutFile } = await supertest(testLocalServer)
-						.get(`/${model}/organization(${org.id})`)
+					const { body: orgWithoutFile } = await api[model]
+						.get({
+							resource: 'organization',
+							id: org.id,
+						})
 						.expect(200);
 
-					expect(orgWithoutFile.d[0][resource]).to.be.null;
+					assertExists(orgWithoutFile);
+					expect(orgWithoutFile[resource]).to.be.null;
 
-					const uploadResponse = await beginBlobUpload(org.id, model, resource);
+					const uploadResponse = await beginBlobUpload(
+						org.id,
+						api[model],
+						resource,
+					);
 					const providerCommitData = await uploadParts(
 						uploadResponse.uploadParts,
 					);
 
-					const { body: commitResponse } = await supertest(testLocalServer)
-						.post(`/${model}/organization(${org.id})/commitUpload`)
-						.send({
-							uuid: uploadResponse.uuid,
-							providerCommitData: providerCommitData,
+					const { body: commitResponse } = await api[model]
+						.runAction<'organization', WebResource>({
+							resource: 'organization',
+							id: org.id,
+							action: 'commitUpload',
+							body: {
+								uuid: uploadResponse.uuid,
+								providerCommitData,
+							},
 						})
 						.expect(200);
 
 					await expectToExist(commitResponse.href);
-					const { body: orgWithFile } = await supertest(testLocalServer)
-						.get(`/${model}/organization(${org.id})`)
+					const { body: orgWithFile } = await api[model]
+						.get({
+							resource: 'organization',
+							id: org.id,
+						})
 						.expect(200);
+					assertExists(orgWithFile);
 
-					expect(orgWithFile.d[0][resource].href).to.be.a('string');
-					expect(orgWithFile.d[0][resource].size).to.equal(6291456);
+					expect(orgWithFile[resource].href).to.be.a('string');
+					expect(orgWithFile[resource].size).to.equal(6291456);
 
 					expect(await listAllFilesInBucket()).to.be.deep.equal([
 						getKeyFromHref(commitResponse.href),
@@ -1215,7 +1291,7 @@ describe('06 webresources tests', function () {
 				});
 
 				it('deletes previous existing resource on commit upload', async () => {
-					const { body: org, headers } = await supertest(testLocalServer)
+					const { body: org } = await supertest(testLocalServer)
 						.post(`/${model}/organization`)
 						.field('name', 'John')
 						.attach(resource, filePath, { filename, contentType })
@@ -1226,17 +1302,11 @@ describe('06 webresources tests', function () {
 					expect(org[resource].content_type).to.equals(contentType);
 					const prevHref = org[resource].href;
 
-					const getRes = await supertest(testLocalServer)
-						.get(headers.location)
-						.expect(200);
-
-					expect(getRes.body.d[0]).to.deep.equal(org);
-
 					await expectToExist(org[resource].href);
 
 					const uploadResponse = await beginBlobUpload(
 						org.id,
-						model,
+						api[model],
 						resource,
 						false,
 					);
@@ -1244,11 +1314,15 @@ describe('06 webresources tests', function () {
 						uploadResponse.uploadParts,
 					);
 
-					const { body: commitResponse } = await supertest(testLocalServer)
-						.post(`/${model}/organization(${org.id})/commitUpload`)
-						.send({
-							uuid: uploadResponse.uuid,
-							providerCommitData: providerCommitData,
+					const { body: commitResponse } = await api[model]
+						.runAction<'organization', WebResource>({
+							resource: 'organization',
+							id: org.id,
+							action: 'commitUpload',
+							body: {
+								uuid: uploadResponse.uuid,
+								providerCommitData,
+							},
 						})
 						.expect(200);
 
@@ -1258,30 +1332,38 @@ describe('06 webresources tests', function () {
 				});
 
 				it('fails to do a begin upload in one resource and then commit on another', async () => {
-					const { body: org1 } = await supertest(testLocalServer)
-						.post(`/${model}/organization`)
-						.field('name', 'John')
+					const { body: org1 } = await api[model]
+						.post({
+							resource: 'organization',
+							body: { name: 'John' },
+						})
 						.expect(201);
 
-					const { body: org2 } = await supertest(testLocalServer)
-						.post(`/${model}/organization`)
-						.field('name', 'John')
+					const { body: org2 } = await api[model]
+						.post({
+							resource: 'organization',
+							body: { name: 'John' },
+						})
 						.expect(201);
 
 					const uploadResponse = await beginBlobUpload(
 						org1.id,
-						model,
+						api[model],
 						resource,
 					);
 					const providerCommitData = await uploadParts(
 						uploadResponse.uploadParts,
 					);
 
-					await supertest(testLocalServer)
-						.post(`/${model}/organization(${org2.id})/commitUpload`)
-						.send({
-							uuid: uploadResponse.uuid,
-							providerCommitData,
+					await api[model]
+						.runAction({
+							resource: 'organization',
+							id: org2.id,
+							action: 'commitUpload',
+							body: {
+								uuid: uploadResponse.uuid,
+								providerCommitData,
+							},
 						})
 						.expect(401);
 
@@ -1289,44 +1371,63 @@ describe('06 webresources tests', function () {
 				});
 
 				it('fails to do a begin upload in one resource and then cancel on another', async () => {
-					const { body: org1 } = await supertest(testLocalServer)
-						.post(`/${model}/organization`)
-						.field('name', 'John')
+					const { body: org1 } = await api[model]
+						.post({
+							resource: 'organization',
+							body: { name: 'John' },
+						})
 						.expect(201);
 
-					const { body: org2 } = await supertest(testLocalServer)
-						.post(`/${model}/organization`)
-						.field('name', 'John')
+					const { body: org2 } = await api[model]
+						.post({
+							resource: 'organization',
+							body: { name: 'John' },
+						})
 						.expect(201);
 
 					const uploadResponse = await beginBlobUpload(
 						org1.id,
-						model,
+						api[model],
 						resource,
 					);
 
-					await supertest(testLocalServer)
-						.post(`/${model}/organization(${org2.id})/cancelUpload`)
-						.send({
-							uuid: uploadResponse.uuid,
+					await api[model]
+						.runAction({
+							resource: 'organization',
+							action: 'cancelUpload',
+							id: org2.id,
+							body: {
+								uuid: uploadResponse.uuid,
+							},
 						})
 						.expect(401);
 					expect((await listAllFilesInBucket()).length).to.equal(2);
 				});
 
 				it('cannot upload part after canceling upload', async () => {
-					const { body: org } = await supertest(testLocalServer)
-						.post(`/${model}/organization`)
-						.field('name', 'John')
+					const { body: org } = await api[model]
+						.post({
+							resource: 'organization',
+							body: { name: 'John' },
+						})
 						.expect(201);
 
-					const { body: orgWithoutFile } = await supertest(testLocalServer)
-						.get(`/${model}/organization(${org.id})`)
+					const { body: orgWithoutFile } = await api[model]
+						.get({
+							resource: 'organization',
+							id: org.id,
+						})
 						.expect(200);
 
-					expect(orgWithoutFile.d[0][resource]).to.be.null;
+					assertExists(orgWithoutFile);
 
-					const uploadResponse = await beginBlobUpload(org.id, model, resource);
+					expect(orgWithoutFile[resource]).to.be.null;
+
+					const uploadResponse = await beginBlobUpload(
+						org.id,
+						api[model],
+						resource,
+					);
 
 					const chunks = [
 						new Blob([Buffer.alloc(6000000)]),
@@ -1341,11 +1442,14 @@ describe('06 webresources tests', function () {
 					expect(res0.status).to.equal(200);
 					expect(res0.headers.get('Etag')).to.be.a('string');
 
-					// Cancel upload
-					await supertest(testLocalServer)
-						.post(`/${model}/organization(${org.id})/cancelUpload`)
-						.send({
-							uuid: uploadResponse.uuid,
+					await api[model]
+						.runAction({
+							resource: 'organization',
+							id: org.id,
+							action: 'cancelUpload',
+							body: {
+								uuid: uploadResponse.uuid,
+							},
 						})
 						.expect(204);
 
@@ -1359,36 +1463,55 @@ describe('06 webresources tests', function () {
 				});
 
 				it('cannot commit after canceling upload', async () => {
-					const { body: org } = await supertest(testLocalServer)
-						.post(`/${model}/organization`)
-						.field('name', 'John')
+					const { body: org } = await api[model]
+						.post({
+							resource: 'organization',
+							body: { name: 'John' },
+						})
 						.expect(201);
 
-					const { body: orgWithoutFile } = await supertest(testLocalServer)
-						.get(`/${model}/organization(${org.id})`)
+					const { body: orgWithoutFile } = await api[model]
+						.get({
+							resource: 'organization',
+							id: org.id,
+						})
 						.expect(200);
 
-					expect(orgWithoutFile.d[0][resource]).to.be.null;
+					assertExists(orgWithoutFile);
+					expect(orgWithoutFile[resource]).to.be.null;
 
-					const uploadResponse = await beginBlobUpload(org.id, model, resource);
+					const uploadResponse = await beginBlobUpload(
+						org.id,
+						api[model],
+						resource,
+					);
 					const providerCommitData = await uploadParts(
 						uploadResponse.uploadParts,
 					);
 
-					await supertest(testLocalServer)
-						.post(`/${model}/organization(${org.id})/cancelUpload`)
-						.send({
-							uuid: uploadResponse.uuid,
+					await api[model]
+						.runAction({
+							resource: 'organization',
+							id: org.id,
+							action: 'cancelUpload',
+							body: {
+								uuid: uploadResponse.uuid,
+							},
 						})
 						.expect(204);
 
-					await supertest(testLocalServer)
-						.post(`/${model}/organization(${org.id})/commitUpload`)
-						.send({
-							uuid: uploadResponse.uuid,
-							providerCommitData,
+					await api[model]
+						.runAction({
+							resource: 'organization',
+							id: org.id,
+							action: 'commitUpload',
+							body: {
+								uuid: uploadResponse.uuid,
+								providerCommitData,
+							},
 						})
 						.expect(401);
+
 					expect((await listAllFilesInBucket()).length).to.equal(2);
 				});
 			},
@@ -1583,20 +1706,30 @@ const awaitForDeletionTasks = async (
 
 const beginBlobUpload = async (
 	orgId: number,
-	modelVersion: string,
+	api: PineTest,
 	resourceName: string,
 	assertResourceIsNull = true,
 	size = 6291456,
 	chunk_size = 6000000,
 ) => {
-	const { body } = await supertest(testLocalServer)
-		.post(`/${modelVersion}/organization(${orgId})/beginUpload`)
-		.send({
-			[resourceName]: {
-				filename: 'filename.png',
-				content_type: 'image/png',
-				size,
-				chunk_size,
+	const { body } = await api
+		.runAction<
+			'organization',
+			webResourceHandler.BeginMultipartUploadResponse,
+			{
+				[key: string]: webResourceHandler.BeginMultipartUploadPayload;
+			}
+		>({
+			resource: 'organization',
+			action: 'beginUpload',
+			id: orgId,
+			body: {
+				[resourceName]: {
+					filename: 'filename.png',
+					content_type: 'image/png',
+					size,
+					chunk_size,
+				},
 			},
 		})
 		.expect(200);
@@ -1605,18 +1738,19 @@ const beginBlobUpload = async (
 	// which is the response payload key is the final translated field name
 	// Considering V1 only allows one field to be uploaded at a time
 	// we can safely assume the first key is the one we are looking for
-	const uploadResponse = Object.values(body)[0] as {
-		uuid: string;
-		uploadParts: UploadPart[];
-	};
+	const uploadResponse = Object.values(body)[0];
 	assertExists(uploadResponse);
 
-	const { body: after } = await supertest(testLocalServer)
-		.get(`/${modelVersion}/organization(${orgId})`)
+	const { body: after } = await api
+		.get({
+			resource: 'organization',
+			id: orgId,
+		})
 		.expect(200);
 
+	assertExists(after);
 	if (assertResourceIsNull) {
-		expect(after.d[0][resourceName]).to.be.null;
+		expect(after.resourceName).to.be.undefined;
 	}
 	expect(uploadResponse.uuid).to.be.a('string');
 	expect(uploadResponse.uploadParts).to.be.an('array').that.has.length(2);
@@ -1628,7 +1762,7 @@ const beginBlobUpload = async (
 	return uploadResponse;
 };
 
-const uploadParts = async (parts: UploadPart[]) => {
+const uploadParts = async (parts: webResourceHandler.UploadPart[]) => {
 	const allRes = await Promise.all(
 		parts.map(async (uploadPart) => {
 			return await fetch(uploadPart.url, {
