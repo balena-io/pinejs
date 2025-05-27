@@ -1,6 +1,11 @@
 import _ from 'lodash';
 
-import type { Engines } from '@balena/abstract-sql-compiler';
+import type {
+	Engines,
+	Relationship,
+	RelationshipInternalNode,
+	RelationshipLeafNode,
+} from '@balena/abstract-sql-compiler';
 import AbstractSQLCompiler from '@balena/abstract-sql-compiler';
 import type { BindKey } from '@balena/odata-parser';
 import {
@@ -231,4 +236,38 @@ export const isRuleAffected = (
 		);
 	}
 	return checkModifiedFields(rule.ruleReferencedFields, modifiedFields);
+};
+
+export const namespaceRelationships = (
+	relationships: Relationship,
+	alias: string,
+	opts: {
+		keyFilter?: (key: string) => boolean;
+		deleteOriginal: boolean;
+	},
+): void => {
+	for (const [key, relationship] of Object.entries(
+		relationships as RelationshipInternalNode,
+	)) {
+		if (key === '$') {
+			continue;
+		}
+
+		let mapping = (relationship as RelationshipLeafNode).$;
+		if (mapping != null && mapping.length === 2) {
+			if (opts?.keyFilter?.(key) !== false) {
+				mapping = _.cloneDeep(mapping);
+				// we do check the length above, but typescript thinks the second
+				// element could be undefined
+				mapping[1]![0] = `${mapping[1]![0]}$${alias}`;
+				(relationships as RelationshipInternalNode)[`${key}$${alias}`] = {
+					$: mapping,
+				};
+				if (opts?.deleteOriginal) {
+					delete (relationships as RelationshipInternalNode)[key];
+				}
+			}
+		}
+		namespaceRelationships(relationship, alias, opts);
+	}
 };
