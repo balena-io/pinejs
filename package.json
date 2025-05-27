@@ -68,9 +68,13 @@
     "typed-error": "^3.2.2"
   },
   "devDependencies": {
+    "@aws-crypto/crc32": "^5.2.0",
+    "@aws-crypto/crc32c": "^5.2.0",
+    "@aws-sdk/crc64-nvme-crt": "^3.816.0",
+    "@aws-sdk/types": "^3.804.0",
     "@balena/lint": "^9.1.6",
     "@balena/pinejs": "file:./",
-    "@balena/pinejs-webresource-s3": "^2.1.1",
+    "@balena/pinejs-webresource-s3": "2.2.0-build-experiment-with-integrity-checks-baf4fcd6a4847aa7e8ed4123a8ac3f1c74216398-1",
     "@faker-js/faker": "^9.6.0",
     "@types/busboy": "^1.5.4",
     "@types/chai": "^5.2.1",
