@@ -11,12 +11,14 @@ import {
 import type { Response } from '../../sbvr-api/sbvr-utils.js';
 import { api } from '../../sbvr-api/sbvr-utils.js';
 import { permissions } from '../../server-glue/module.js';
+import { getChecksumParams } from '../index.js';
 import { getMultipartUploadHandler } from '../multipartUpload.js';
 
 const commitUploadAction = async ({
 	request,
 	tx,
 	id,
+	req,
 	api: applicationApi,
 }: ODataActionArgs): Promise<Response> => {
 	if (typeof id !== 'number') {
@@ -28,11 +30,14 @@ const commitUploadAction = async ({
 	const multipartUpload = await getOngoingUpload(request, id, tx);
 	const handler = getMultipartUploadHandler();
 
+	// @ts-expect-error - req.headers is there, we just need to tell them
+	const checksumPayload = getChecksumParams(req.headers);
 	const webresource = await handler.multipartUpload.commit({
 		fileKey: multipartUpload.fileKey,
 		uploadId: multipartUpload.uploadId,
 		filename: multipartUpload.filename,
 		providerCommitData: multipartUpload.providerCommitData,
+		...checksumPayload,
 	});
 
 	await Promise.all([
