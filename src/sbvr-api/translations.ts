@@ -97,7 +97,8 @@ const aliasResource = (
 const namespaceRelationships = (
 	relationships: Relationship,
 	alias: string,
-): void => {
+): undefined | Relationship => {
+	let ret = relationships;
 	for (const [key, relationship] of Object.entries(
 		relationships as RelationshipInternalNode,
 	)) {
@@ -105,18 +106,29 @@ const namespaceRelationships = (
 			continue;
 		}
 
+		const changedEntry = namespaceRelationships(relationship, alias);
+		if (changedEntry) {
+			ret = { ...ret };
+			(ret as RelationshipInternalNode)[key] = changedEntry;
+		}
+
 		let mapping = (relationship as RelationshipLeafNode).$;
 		if (mapping != null && mapping.length === 2) {
 			if (!key.includes('$')) {
 				mapping = _.cloneDeep(mapping);
 				mapping[1]![0] = `${mapping[1]![0]}$${alias}`;
-				(relationships as RelationshipInternalNode)[`${key}$${alias}`] = {
+
+				ret = { ...ret };
+				(ret as RelationshipInternalNode)[`${key}$${alias}`] = {
 					$: mapping,
 				};
-				delete (relationships as RelationshipInternalNode)[key];
+				delete (ret as RelationshipInternalNode)[key];
 			}
 		}
 		namespaceRelationships(relationship, alias);
+	}
+	if (ret !== relationships) {
+		return ret;
 	}
 };
 
@@ -162,8 +174,10 @@ export const translateAbstractSqlModel = (
 				`${canonicalForm}${toVersionSuffix}`;
 		}
 	}
-	const relationships = _.cloneDeep(toAbstractSqlModel.relationships);
-	namespaceRelationships(relationships, toVersion);
+	const relationships = namespaceRelationships(
+		toAbstractSqlModel.relationships,
+		toVersion,
+	) ?? { ...toAbstractSqlModel.relationships };
 	for (let [key, relationship] of Object.entries(relationships)) {
 		// Don't double alias
 		if (!key.includes('$')) {
@@ -175,10 +189,10 @@ export const translateAbstractSqlModel = (
 	// TODO: We also need to keep the original relationship refs to non $version resources
 
 	// Also alias for ourselves to allow explicit referencing
-	const aliasedFromRelationships = _.cloneDeep(
+	const aliasedFromRelationships = namespaceRelationships(
 		fromAbstractSqlModel.relationships,
-	);
-	namespaceRelationships(aliasedFromRelationships, fromVersion);
+		fromVersion,
+	) ?? { ...fromAbstractSqlModel.relationships };
 	for (let [key, relationship] of Object.entries(aliasedFromRelationships)) {
 		// Don't double alias
 		if (!key.includes('$')) {
