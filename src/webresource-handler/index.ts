@@ -22,16 +22,40 @@ import type WebresourceModel from './webresource.js';
 import { isMultipartUploadAvailable } from './multipartUpload.js';
 import { addAction } from '../sbvr-api/actions.js';
 import { beginUpload, commitUpload, cancelUpload } from './actions/index.js';
+import type { IncomingHttpHeaders } from 'node:http';
 
 export * from './handlers/index.js';
 
-export interface IncomingFile {
+// S3 only supports full checksums (on multipart uploads) for these algorithms
+// See: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html#ChecksumTypes
+export const supportedChecksumAlgorithms = [
+	'CRC64NVME',
+	'CRC32',
+	'CRC32C',
+] as const;
+export type SupportedChecksumAlgorithm =
+	(typeof supportedChecksumAlgorithms)[number];
+
+type ChecksumPayload =
+	| {
+			checksum?: undefined;
+			checksumAlgorithm?: undefined;
+	  }
+	| {
+			checksum: string;
+			checksumAlgorithm: SupportedChecksumAlgorithm;
+	  };
+
+export type IncomingFile = {
 	fieldname: string;
 	originalname: string;
 	encoding: string;
 	mimetype: string;
 	stream: stream.Readable;
-}
+} & ChecksumPayload;
+
+export const checksumHeaderName = 'x-pinejs-checksum';
+export const checksumAlgorithmHeaderName = 'x-pinejs-checksum-algorithm';
 
 export interface UploadResponse {
 	size: number;
@@ -57,12 +81,12 @@ export interface BeginMultipartUploadHandlerResponse {
 	uploadId: string;
 }
 
-export interface CommitMultipartUploadPayload {
+export type CommitMultipartUploadPayload = {
 	fileKey: string;
 	uploadId: string;
 	filename: string;
 	providerCommitData?: Record<string, any>;
-}
+} & ChecksumPayload;
 
 export interface CancelMultipartUploadPayload {
 	fileKey: string;
@@ -159,6 +183,31 @@ const getRequestUploadValidator = async (
 	};
 };
 
+export const getChecksumParams = (headers: IncomingHttpHeaders) => {
+	const checksum = headers[checksumHeaderName];
+	const checksumAlgorithm = headers[checksumAlgorithmHeaderName] as
+		| SupportedChecksumAlgorithm
+		| undefined;
+
+	if (checksum == null || checksumAlgorithm == null) {
+		return { checksum: undefined, checksumAlgorithm: undefined };
+	}
+
+	if (typeof checksum !== 'string' || typeof checksumAlgorithm !== 'string') {
+		throw new errors.BadRequestError(
+			`Invalid ${checksumHeaderName} or ${checksumAlgorithmHeaderName} header`,
+		);
+	}
+
+	if (!supportedChecksumAlgorithms.includes(checksumAlgorithm)) {
+		throw new errors.BadRequestError(
+			`Invalid ${checksumAlgorithmHeaderName} header value: ${checksumAlgorithm}`,
+		);
+	}
+
+	return { checksum, checksumAlgorithm };
+};
+
 export const getUploaderMiddlware = (
 	handler: WebResourceHandler,
 ): Express.RequestHandler => {
@@ -218,14 +267,17 @@ export const getUploaderMiddlware = (
 							filestream.resume();
 							return;
 						}
+						const checksumPayload = getChecksumParams(req.headers);
 						const file: IncomingFile = {
 							originalname: info.filename,
 							encoding: info.encoding,
 							mimetype: info.mimeType,
 							stream: filestream,
 							fieldname,
+							...checksumPayload,
 						};
 						const result = await handler.handleFile(file);
+
 						req.body[fieldname] = {
 							filename: info.filename,
 							content_type: info.mimeType,
