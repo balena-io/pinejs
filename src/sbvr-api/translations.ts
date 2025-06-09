@@ -48,24 +48,30 @@ const aliasFields = (
 			);
 		}
 	};
-	return fromFieldNames.map(
-		(fieldName): AliasNode<AliasValidNodeType> | ReferencedFieldNode => {
-			const alias = aliases[fieldName];
-			if (alias) {
-				if (typeof alias === 'string') {
-					checkToFieldExists(fieldName, alias);
-					return [
-						'Alias',
-						['ReferencedField', fromResourceName, alias],
-						fieldName,
-					];
+	return [
+		['Field', '*'],
+		...fromFieldNames.flatMap(
+			(fieldName): [AliasNode<AliasValidNodeType>] | [] => {
+				const alias = aliases[fieldName];
+				if (alias) {
+					if (typeof alias === 'string') {
+						checkToFieldExists(fieldName, alias);
+						return [
+							[
+								'Alias',
+								['ReferencedField', fromResourceName, alias],
+								fieldName,
+							],
+						];
+					}
+					return [['Alias', alias, fieldName]];
 				}
-				return ['Alias', alias, fieldName];
-			}
-			checkToFieldExists(fieldName, fieldName);
-			return ['ReferencedField', fromResourceName, fieldName];
-		},
-	);
+				checkToFieldExists(fieldName, fieldName);
+				// If it's a direct 1-1 translation then just rely on the `*` bringing it through
+				return [];
+			},
+		),
+	];
 };
 
 const aliasResource = (
