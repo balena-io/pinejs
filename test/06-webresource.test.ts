@@ -22,7 +22,16 @@ import {
 import { intVar, requiredVar } from '@balena/env-parsing';
 import { assertExists } from './lib/common.js';
 import { PineTest } from 'pinejs-client-supertest';
-import type { UploadPart } from '../out/webresource-handler/index.js';
+import {
+	type SupportedChecksumAlgorithm,
+	supportedChecksumAlgorithms,
+	type UploadPart,
+} from '../out/webresource-handler/index.js';
+import { CrtCrc64Nvme } from '@aws-sdk/crc64-nvme-crt';
+import { AwsCrc32 } from '@aws-crypto/crc32';
+import { AwsCrc32c } from '@aws-crypto/crc32c';
+import type { Checksum } from '@aws-sdk/types';
+import { setTimeout } from 'timers/promises';
 
 const pipeline = util.promisify(pipelineRaw);
 
@@ -120,6 +129,41 @@ describe('06 webresources tests', function () {
 						filePath,
 						fileSize,
 					);
+				});
+
+				supportedChecksumAlgorithms.forEach((checksumAlgorithm) => {
+					it(`accepts a checksum ${checksumAlgorithm} header ${resourcePath}`, async () => {
+						const { body: organization } = await supertest(testLocalServer)
+							.post(`/${resourceName}/organization`)
+							.set('x-pinejs-checksum-algorithm', checksumAlgorithm)
+							.set(
+								'x-pinejs-checksum',
+								await getChecksum(checksumAlgorithm, filePath),
+							)
+							.field('name', 'John')
+							.attach(resourcePath, filePath, { filename, contentType })
+							.expect(201);
+
+						expect(organization[resourcePath].size).to.equals(fileSize);
+						expect(organization[resourcePath].filename).to.equals(filename);
+						expect(organization[resourcePath].content_type).to.equals(
+							contentType,
+						);
+					});
+				});
+
+				supportedChecksumAlgorithms.forEach((checksumAlgorithm) => {
+					it(`fails if checksum ${checksumAlgorithm} is wrong`, async () => {
+						await supertest(testLocalServer)
+							.post(`/${resourceName}/organization`)
+							.set('x-pinejs-checksum-algorithm', checksumAlgorithm)
+							.set('x-pinejs-checksum', 'abc')
+							.field('name', 'John')
+							.attach(resourcePath, filePath, { filename, contentType })
+							.expect(400);
+
+						expect(await isBucketEventuallyEmpty()).to.be.true;
+					});
 				});
 
 				it(`does not store ${resourcePath} if is bigger than PINEJS_WEBRESOURCE_MAXFILESIZE`, async () => {
@@ -1405,14 +1449,12 @@ const getKeyFromHref = (href: string): string => {
 	return splittedHref[splittedHref.length - 1];
 };
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 const isBucketEventuallyEmpty = async (attempts = 5, retryDelay = 1000) => {
 	for (let attempt = 0; attempt < attempts; attempt++) {
 		if ((await listAllFilesInBucket()).length === 0) {
 			return true;
 		}
-		await delay(retryDelay);
+		await setTimeout(retryDelay);
 	}
 
 	return false;
@@ -1430,7 +1472,7 @@ const isEventuallyDeleted = async (
 		if (!fileExists) {
 			return true;
 		}
-		await delay(retryDelay);
+		await setTimeout(retryDelay);
 	}
 
 	return false;
@@ -1557,8 +1599,8 @@ const awaitForDeletionTasks = async (
 	initialDelay = 500,
 ) => {
 	// Even the creation of deletion tasks happens in second plan
-	// so we give it a initial delay for the tasks to be created
-	await delay(initialDelay);
+	// so we give it a initial setTimeout for the tasks to be created
+	await setTimeout(initialDelay);
 	for (let i = 0; i < attempts; i++) {
 		const { body: pendingDeletions } = await pineTask.get({
 			resource: 'task',
@@ -1575,7 +1617,7 @@ const awaitForDeletionTasks = async (
 			return;
 		}
 
-		await delay(retryDelay);
+		await setTimeout(retryDelay);
 	}
 
 	throw new Error('Failed to await for webresource deletions');
@@ -1649,4 +1691,24 @@ const uploadParts = async (parts: UploadPart[]) => {
 			ETag: res.headers.get('Etag'),
 		})),
 	};
+};
+
+const getChecksum = async (
+	algorithm: SupportedChecksumAlgorithm,
+	filePath: string,
+): Promise<string> => {
+	const fileBuffer = await fs.readFile(filePath);
+	let calculate: Checksum;
+	if (algorithm === 'CRC32') {
+		calculate = new AwsCrc32();
+	} else if (algorithm === 'CRC32C') {
+		calculate = new AwsCrc32c();
+	} else if (algorithm === 'CRC64NVME') {
+		calculate = new CrtCrc64Nvme();
+	} else {
+		throw new Error(`Unsupported algorithm: ${algorithm}`);
+	}
+
+	calculate.update(fileBuffer);
+	return Buffer.from(await calculate.digest()).toString('base64');
 };
