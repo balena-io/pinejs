@@ -1,4 +1,18 @@
 - commits:
+    - subject: "Translations: avoid fully referenced fields when not necessary"
+      hash: 1eac90d96e73db3744f868603df9ea498c51cca0
+      body: |
+        This should reduce the size of the generated SQL and hence the memory
+        usage by cache and network usage to transmit the queries
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 21.6.4
+  title: ""
+  date: 2025-06-10T13:58:27.675Z
+- commits:
     - subject: Update dependency lint-staged to v16
       hash: 75beac7b22b63eaa059a487da902023354619f88
       body: |
@@ -2563,6 +2577,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2585,6 +2600,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2648,6 +2664,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2800,6 +2817,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2828,6 +2846,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2909,6 +2928,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2943,6 +2963,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3114,6 +3135,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6284,6 +6306,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6306,6 +6329,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6397,6 +6421,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6605,6 +6630,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6633,6 +6659,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6770,6 +6797,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6804,6 +6832,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7003,6 +7032,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
