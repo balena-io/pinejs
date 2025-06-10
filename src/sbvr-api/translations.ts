@@ -238,6 +238,11 @@ export const translateAbstractSqlModel = (
 			table.modifyName = toTable.modifyName ?? toTable.name;
 			if (isDefinition(definition)) {
 				table.definition = definition;
+			} else if (Object.keys(definition).length === 0) {
+				// If there are no translation definitions, we can just target the `$toResource`
+				table.definition = {
+					abstractSql: ['Resource', aliasedToResource],
+				};
 			} else {
 				table.definition = aliasResource(
 					// fromAbstractSqlModel is the translation model as it contains
