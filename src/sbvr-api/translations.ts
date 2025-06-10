@@ -2,7 +2,6 @@ import _ from 'lodash';
 import type {
 	AbstractSqlModel,
 	Relationship,
-	ReferencedFieldNode,
 	SelectNode,
 	AliasNode,
 	Definition,
@@ -13,11 +12,11 @@ import type {
 	BooleanTypeNodes,
 	UnknownTypeNodes,
 	NullNode,
+	FieldNode,
 } from '@balena/abstract-sql-compiler';
 import type { Dictionary } from './common-types.js';
 
 export type AliasValidNodeType =
-	| ReferencedFieldNode
 	| SelectQueryNode
 	| NumberTypeNodes
 	| BooleanTypeNodes
@@ -49,21 +48,17 @@ const aliasFields = (
 		}
 	};
 	return fromFieldNames.map(
-		(fieldName): AliasNode<AliasValidNodeType> | ReferencedFieldNode => {
+		(fieldName): AliasNode<AliasValidNodeType> | FieldNode => {
 			const alias = aliases[fieldName];
 			if (alias) {
 				if (typeof alias === 'string') {
 					checkToFieldExists(fieldName, alias);
-					return [
-						'Alias',
-						['ReferencedField', fromResourceName, alias],
-						fieldName,
-					];
+					return ['Alias', ['Field', alias], fieldName];
 				}
 				return ['Alias', alias, fieldName];
 			}
 			checkToFieldExists(fieldName, fieldName);
-			return ['ReferencedField', fromResourceName, fieldName];
+			return ['Field', fieldName];
 		},
 	);
 };
