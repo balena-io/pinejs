@@ -26,14 +26,14 @@
     "generate-types": "node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/user.sbvr ./src/sbvr-api/user.ts && node ./bin/sbvr-compiler.js generate-types ./src/migrator/migrations.sbvr ./src/migrator/migrations.ts && node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/dev.sbvr ./src/sbvr-api/dev.ts && node ./bin/sbvr-compiler.js generate-types ./src/tasks/tasks.sbvr ./src/tasks/tasks.ts && node ./bin/sbvr-compiler.js generate-types ./src/webresource-handler/webresource.sbvr ./src/webresource-handler/webresource.ts && balena-lint -t tsconfig.dev.json --fix ./src/sbvr-api/user.ts ./src/migrator/migrations.ts ./src/sbvr-api/dev.ts"
   },
   "dependencies": {
-    "@balena/abstract-sql-compiler": "^10.2.3",
+    "@balena/abstract-sql-compiler": "10.3.0-build-joshbwlng-date-trunc-7a7067959b540d053f302961c0ec4da9f21e9254-1",
     "@balena/abstract-sql-to-typescript": "^5.1.1",
     "@balena/env-parsing": "^1.2.4",
     "@balena/lf-to-abstract-sql": "^5.0.3",
     "@balena/odata-parser": "^4.2.2",
-    "@balena/odata-to-abstract-sql": "^7.2.0",
+    "@balena/odata-to-abstract-sql": "8.0.0-build-joshbwlng-date-trunc-72dfed3b4558aa7d07201cf5d29469504a086950-1",
     "@balena/sbvr-parser": "^1.4.9",
-    "@balena/sbvr-types": "^9.2.2",
+    "@balena/sbvr-types": "10.0.0-build-joshbwlng-timezone-ba3d26f5b20fc5e3b405d86a46193f120ae716d8-1",
     "@sindresorhus/fnv1a": "^3.1.0",
     "@types/body-parser": "^1.19.5",
     "@types/compression": "^1.7.5",
@@ -70,7 +70,7 @@
   "devDependencies": {
     "@balena/lint": "^9.1.6",
     "@balena/pinejs": "file:./",
-    "@balena/pinejs-webresource-s3": "^2.1.1",
+    "@balena/pinejs-webresource-s3": "2.1.4-build-joshbwlng-pinejs-version-e932bee954e5d4c5f7213c8427cdd32fbd32c66f-1",
     "@faker-js/faker": "^9.6.0",
     "@types/busboy": "^1.5.4",
     "@types/chai": "^5.2.1",
