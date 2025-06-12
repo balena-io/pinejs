@@ -1,4 +1,508 @@
 - commits:
+    - subject: Update dependencies
+      hash: a45fe4a9d75c60e930f3dffb6862cf1511606d20
+      body: |
+        Update @balena/abstract-sql-compiler from 10.2.3 to 10.3.2
+        Update @balena/lf-to-abstract-sql from 5.0.3 to 5.0.5
+        Update @balena/odata-parser from 4.2.2 to 4.2.6
+        Update @balena/odata-to-abstract-sql from 7.2.0 to 7.2.4
+        Update @balena/pinejs-webresource-s3 from 2.1.1 to 2.1.3
+        Update @balena/sbvr-types from 9.2.2 to 9.2.6
+        Update pinejs-client-core from 8.1.4 to 8.2.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Extend `IsNotDistinctFrom` paren omission to more atomic node types
+              hash: d88c42902f0de4a26dfc1739b05c321f707e47c7
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.3.2
+          title: ""
+          date: 2025-06-12T13:09:06.989Z
+        - commits:
+            - subject: Omit parens for `IsNotDistinctFrom` when the value is a field node
+              hash: 57126032875eca0b0b050ff09fa461f471b77936
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.3.1
+          title: ""
+          date: 2025-06-12T09:52:48.898Z
+        - commits:
+            - subject: Treat `CaseNode` as an unknown type node as expected
+              hash: 3e07fe58ed65e73e9104a84ccff02f4fbc155e1e
+              body: >
+                This matches the fact that the result type is unknown/can be
+                anything
+
+                and also matches the existing typing
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.3.0
+          title: ""
+          date: 2025-06-12T09:17:31.179Z
+        - commits:
+            - subject: Update dependency lint-staged to v16
+              hash: 65f51a7d4c10810989efb02c96ae2bf754f6b365
+              body: |
+                Update lint-staged from 15.5.2 to 16.1.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-10.2.12
+          title: ""
+          date: 2025-06-05T06:26:44.888Z
+        - commits:
+            - subject: Add missing ; in trigger creation $$ section
+              hash: b8742b7b1f2f8727b70df5088d2b0aaacb0b9e94
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-10.2.11
+          title: ""
+          date: 2025-06-04T12:41:18.924Z
+        - commits:
+            - subject: Update @balena/lint to 9.x
+              hash: b5768bbd59e7a402ddd93f031b8d74483f96fdb4
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.2.10
+          title: ""
+          date: 2025-04-08T16:22:33.105Z
+        - commits:
+            - subject: Avoid lodash chaining / move lodash to a dev dependency
+              hash: 14d0033542647d08a183e911c2f56185563bf80b
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Use native version of `uniq`
+              hash: 091d220b2f1d305b223a1c3ac56be7592ccfbe02
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Use native version of `mapValues`
+              hash: c54e44a96112b753212b143e7817fa833e522a70
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Use native version of `isEqual`
+              hash: 35f8c302e97c2bbaa1a38b5b0c70a2f3398ca28d
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Use native version of `flatMap`
+              hash: 6c47e516d93cbdd109b08b5f4ec22f5bda0a09f7
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Use native version of `find`
+              hash: 650919951b46df475dd2d14acc74f27adf78e62e
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Avoid using lodash `identity` method
+              hash: a4110882ef60db6df45ad376624d2732a9243317
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: Avoid using lodash for duration node validation
+              hash: 1892c9bde28d5cc98e4869e18b0c561a2f56ed19
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.2.9
+          title: ""
+          date: 2025-04-07T16:16:44.644Z
+        - commits:
+            - subject: Improve typings for the `In`/`NotIn` optimization helpers
+              hash: fc2f84b46e1559beae90e99d8e1b9abbd28d195d
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.2.8
+          title: ""
+          date: 2025-04-07T14:47:06.493Z
+        - commits:
+            - subject: Switch to a more standard `isFieldTypeNode` helper
+              hash: 62657e2886cbcc8174b36bd2cd9589712a3845d2
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.2.7
+          title: ""
+          date: 2025-04-07T12:30:18.840Z
+        - commits:
+            - subject: "Tests: convert test/sbvr/reference-type to typescript"
+              hash: c41377f6f468c2c4006399e19117153837b503e6
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: "Tests: convert test/sbvr/pilots to typescript"
+              hash: a275ef78d116e2768f95c402b1bcbcf79b1e0079
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: "Tests: convert test/sbvr/test to typescript"
+              hash: 18ec8de28eb80b2d1d3ec46cc7550dbbe8b4b9e6
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: "Tests: convert test/odata/expand to typescript"
+              hash: 031750d479e9c67293c489ccd93436d33aa668f9
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: "Tests: convert test/odata/filterby to typescript"
+              hash: 206aaf4363007e81f5d54d4bf957835b184fcf94
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: "Tests: convert test/odata/orderby to typescript"
+              hash: 1bd82f39836a28017436090307fb6d2646396d69
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: "Tests: convert test/odata/paging to typescript"
+              hash: fec1912620feecf5c6ab596680cec2909bfdcb1b
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: "Tests: convert test/odata/resource_parsing to typescript"
+              hash: 601c5256a8ac7acd00ae3f978365eab44782448e
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: "Tests: convert test/odata/select to typescript"
+              hash: 75492ad8a054b7178cb2579c61cfa98a191d49b8
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: "Tests: convert test/odata/stress to typescript"
+              hash: 35caa5820914c0ca082f7784ff4c54c5245cefcc
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.2.6
+          title: ""
+          date: 2025-04-07T12:00:15.272Z
+        - commits:
+            - subject: "Tests: convert test/odata/test to typescript"
+              hash: c00e9270589111b882d4894fc437dd8b0343ecce
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.2.5
+          title: ""
+          date: 2025-04-06T22:40:57.152Z
+        - commits:
+            - subject: Update dev dependencies
+              hash: 703263fa73aff2253d1a931a5946a027d20c9ff6
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.2.4
+          title: ""
+          date: 2025-04-04T14:00:21.240Z
+        - commits:
+            - subject: Update dependency @balena/sbvr-types to v8
+              hash: 8ec669075e8fa450e1fa11f11224ed0b449289bf
+              body: |
+                Update @balena/sbvr-types from 7.1.3 to 8.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested:
+                - commits:
+                    - subject: Improve BigInteger and BigSerial support
+                      hash: b9b1fc31b91220e66dcb23f43b92036d6e758045
+                      body: ""
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Josh Bowling
+                  version: sbvr-types-8.0.0
+                  title: ""
+                  date: 2024-06-12T22:37:59.778Z
+          version: lf-to-abstract-sql-5.0.5
+          title: ""
+          date: 2025-04-10T14:01:08.915Z
+        - commits:
+            - subject: Update dependency mocha to v11
+              hash: 8e4d2bb26584004c5bccf9c32244e59023082372
+              body: |
+                Update mocha from 10.8.2 to 11.1.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.4
+          title: ""
+          date: 2025-04-02T15:10:22.415Z
+        - commits:
+            - subject: Update @balena/lint to 9.x
+              hash: c1809b591bae1b5f1872d5a30eab2eb90337d3cd
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-4.2.6
+          title: ""
+          date: 2025-04-10T03:22:06.692Z
+        - commits:
+            - subject: "Tests: convert to typescript"
+              hash: 0f71c04f5812b10f4a9e09bdf280217c64caa0ee
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+            - subject: Improve typings
+              hash: 3a782a7b87c1f83bb279c509b62dfb6f796e5fe7
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-4.2.5
+          title: ""
+          date: 2025-04-09T12:12:31.048Z
+        - commits:
+            - subject: 'Build: switch tsconfig to use module "Node16" with type "commonjs"'
+              hash: 2a6499f3c5d259680f9a0f84379c8aed57636a62
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-4.2.4
+          title: ""
+          date: 2025-04-09T09:30:46.885Z
+        - commits:
+            - subject: Avoid setting $count `options` for $orderby when not provided
+              hash: 4e1f9750aed95dba4731d1fe9e7a46a000ea4ab6
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+          version: odata-parser-4.2.3
+          title: ""
+          date: 2025-04-01T08:42:18.322Z
+        - commits:
+            - subject: Update dependency lint-staged to v16
+              hash: 539a3b023ec33d7d43ab33c2c4d98fe80136cd4a
+              body: |
+                Update lint-staged from 15.5.2 to 16.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: odata-to-abstract-sql-7.2.4
+          title: ""
+          date: 2025-06-06T06:23:08.242Z
+        - commits:
+            - subject: Fix lintstaged config
+              hash: 6ab3c8c750775093b1fbf0f2fb04b319da05f32b
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-7.2.3
+          title: ""
+          date: 2025-04-16T12:17:46.173Z
+        - commits:
+            - subject: Update @balena/lint to 9.x
+              hash: f7554beac797a0876ea84cd01dd911afd982f98d
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-7.2.2
+          title: ""
+          date: 2025-04-08T16:21:35.351Z
+        - commits:
+            - subject: Ensure resource is always translated to table on computed terms
+              hash: e76969c928bacd80d237b5f084c9f5e481b0dc9d
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Otavio Jacobi
+              nested: []
+          version: odata-to-abstract-sql-7.2.1
+          title: ""
+          date: 2025-04-07T11:45:17.745Z
+        - commits:
+            - subject: Expose ResourceID typings
+              hash: bfbecf13bbcf330c7da20f339be39f0e4cdf74e3
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Otavio Jacobi
+              nested: []
+          version: pinejs-client-js-8.2.0
+          title: ""
+          date: 2025-06-10T07:20:27.502Z
+        - commits:
+            - subject: Fix linting
+              hash: 29627add4a7c5701c9e4f032ea1f15a0523e2877
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Otavio Jacobi
+              nested: []
+          version: pinejs-client-js-8.1.5
+          title: ""
+          date: 2025-05-23T11:24:08.969Z
+        - commits:
+            - subject: Update dependency lint-staged to v16
+              hash: 3a504c7aa334b2351439571caf17b59b49e6a53e
+              body: |
+                Update lint-staged from 15.5.2 to 16.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-9.2.6
+          title: ""
+          date: 2025-06-07T23:33:59.105Z
+        - commits:
+            - subject: Update dependency bcryptjs to v3
+              hash: de6eb8f3cac0c9dcc2209df880333be31d550ad5
+              body: |
+                Update bcryptjs from 2.4.3 to 3.0.2
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-9.2.5
+          title: ""
+          date: 2025-04-11T10:48:47.730Z
+        - commits:
+            - subject: Update @balena/lint to 9.x
+              hash: 21e9201b585945ab7bdc6650f067b73359f0e07e
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-9.2.4
+          title: ""
+          date: 2025-04-10T12:49:03.449Z
+        - commits:
+            - subject: Update dependency mocha to v11
+              hash: 3e0daf18580fc79877d008a9635be4e7153ca876
+              body: |
+                Update mocha from 10.8.2 to 11.1.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-9.2.3
+          title: ""
+          date: 2025-04-09T10:58:39.494Z
+  version: 21.6.6
+  title: ""
+  date: 2025-06-12T13:39:41.306Z
+- commits:
     - subject: "Translations: simplify the generated definition when only
         `$toResource` is provided"
       hash: f441ff7589559ded26a3a0ee1464508fb666780d
@@ -2595,6 +3099,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -2617,6 +3122,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2682,6 +3188,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2838,6 +3345,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -2866,6 +3374,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -2951,6 +3460,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -2985,6 +3495,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3158,6 +3669,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6332,6 +6844,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6354,6 +6867,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6447,6 +6961,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6659,6 +7174,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6687,6 +7203,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6828,6 +7345,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6862,6 +7380,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7063,6 +7582,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
