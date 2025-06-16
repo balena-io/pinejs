@@ -31,7 +31,7 @@
     "@balena/env-parsing": "^1.2.5",
     "@balena/lf-to-abstract-sql": "^5.0.5",
     "@balena/odata-parser": "^4.2.6",
-    "@balena/odata-to-abstract-sql": "^7.2.4",
+    "@balena/odata-to-abstract-sql": "^7.2.5",
     "@balena/sbvr-parser": "^1.4.9",
     "@balena/sbvr-types": "^9.2.6",
     "@sindresorhus/fnv1a": "^3.1.0",
