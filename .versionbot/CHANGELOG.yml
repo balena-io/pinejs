@@ -1,4 +1,36 @@
 - commits:
+    - subject: Fix optimization for constrained abstract sql when having full access
+      hash: e31af5c072d7a2c5318465360c9941c1f786adcd
+      body: |
+        Update @balena/odata-to-abstract-sql from 7.2.4 to 7.2.5
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Remove the "already computed fields" optimization
+              hash: d0f448d7040fcfa984a5e4ff9ed3412dfa1a8c22
+              body: >
+                It can have broken behavior when combined with pinejs
+                translations and
+
+                so removing it until it can either be reimplemented in a safe
+                way or
+
+                replaced by an equivalent optimization
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-7.2.5
+          title: ""
+          date: 2025-06-17T15:49:14.203Z
+  version: 21.6.7
+  title: ""
+  date: 2025-06-17T16:12:22.302Z
+- commits:
     - subject: Update dependencies
       hash: a45fe4a9d75c60e930f3dffb6862cf1511606d20
       body: |
@@ -3100,6 +3132,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3122,6 +3155,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3188,6 +3222,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3346,6 +3381,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3374,6 +3410,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3461,6 +3498,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3495,6 +3533,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3669,6 +3708,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6845,6 +6885,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6867,6 +6908,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6961,6 +7003,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7175,6 +7218,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -7203,6 +7247,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7346,6 +7391,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -7380,6 +7426,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7582,6 +7629,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
