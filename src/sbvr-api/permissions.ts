@@ -533,7 +533,7 @@ const generateConstrainedAbstractSql = (
 		odata,
 	);
 
-	if (collapsePermissionFilters == null) {
+	if (collapsedPermissionFilters == null) {
 		// If we have full access then there's no need to provide a constrained
 		// definition, just use the table directly.
 		return;
