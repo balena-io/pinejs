@@ -1002,6 +1002,14 @@ export class PinejsClient<
 			options: Params<M[TResource]>['options'] & { returnResource: boolean };
 		} & Params<M[TResource]>,
 	): Promise<Pick<M[TResource]['Read'], 'id'>>; // TODO: This should use the primary key rather than hardcoding `id`
+
+	public post<TResource extends keyof M & string>(
+		params: {
+			resource: TResource;
+			action: NonNullable<Params<M[TResource]>['action']>;
+		} & Omit<Params<M[TResource]>, 'action'>,
+	): Promise<AnyObject>;
+
 	public post(params: Params): Promise<AnyObject> {
 		return super.post(params as Parameters<PinejsClient<M>['post']>[0]);
 	}
