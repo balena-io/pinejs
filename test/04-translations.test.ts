@@ -73,6 +73,20 @@ describe('04 native translation tests', function () {
 			delete v1StudentCreated.computed_field;
 			delete v2StudentCreated.computed_field;
 			expect(v2StudentCreated).to.deep.equal(v1StudentCreated);
+
+			const { body: v3StudentCreated } = await pineTest.get({
+				apiPrefix: 'v3/',
+				resource: 'student',
+				id: { matrix_number: v1StudentCreated.matrix_number },
+				options: {
+					$filter: {
+						computed_field: 'v3_computed_field',
+					},
+				},
+			});
+			// We should also have been able to $filter by the computed field for the correct model
+			assertExists(v3StudentCreated);
+			expect(v3StudentCreated.computed_field).to.equal('v3_computed_field');
 		});
 
 		it('should not create a /v1 student with campus name that is not existing as entity', async () => {
