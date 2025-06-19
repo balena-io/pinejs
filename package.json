@@ -31,7 +31,7 @@
     "@balena/env-parsing": "^1.2.5",
     "@balena/lf-to-abstract-sql": "^5.0.5",
     "@balena/odata-parser": "^4.2.6",
-    "@balena/odata-to-abstract-sql": "^7.2.5",
+    "@balena/odata-to-abstract-sql": "7.2.6-build-avoid-recomputing-computed-fields-45af6260ab10a2cec7fb72beefdff3fe5b954e27-1",
     "@balena/sbvr-parser": "^1.4.9",
     "@balena/sbvr-types": "^9.2.6",
     "@sindresorhus/fnv1a": "^3.1.0",
@@ -66,6 +66,9 @@
     "pinejs-client-core": "^8.2.0",
     "randomstring": "^1.3.1",
     "typed-error": "^3.2.2"
+  },
+  "overrides": {
+    "@balena/odata-to-abstract-sql": "7.2.6-build-avoid-recomputing-computed-fields-45af6260ab10a2cec7fb72beefdff3fe5b954e27-1"
   },
   "devDependencies": {
     "@balena/lint": "^9.3.1",
