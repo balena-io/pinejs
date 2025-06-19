@@ -13,6 +13,7 @@ import type {
 	UnknownTypeNodes,
 	NullNode,
 	FieldNode,
+	ResourceNode,
 } from '@balena/abstract-sql-compiler';
 import type { Dictionary } from './common-types.js';
 
@@ -28,9 +29,9 @@ const aliasFields = (
 	toResource: string,
 	aliases: Dictionary<string | AliasValidNodeType>,
 ): SelectNode[1] => {
-	const fromFieldNames = translationAbstractSqlModel.tables[
-		fromResourceName
-	].fields.map(({ fieldName }) => fieldName);
+	const fromFields =
+		translationAbstractSqlModel.tables[fromResourceName].fields;
+	const fromFieldNames = fromFields.map(({ fieldName }) => fieldName);
 	const nonexistentFields = _.difference(Object.keys(aliases), fromFieldNames);
 	if (nonexistentFields.length > 0) {
 		throw new Error(
@@ -47,10 +48,15 @@ const aliasFields = (
 			);
 		}
 	};
-	return fromFieldNames.map(
-		(fieldName): AliasNode<AliasValidNodeType> | FieldNode => {
+	return fromFields.map(
+		({ fieldName, computed }): AliasNode<AliasValidNodeType> | FieldNode => {
 			const alias = aliases[fieldName];
 			if (alias) {
+				if (computed != null) {
+					throw new Error(
+						`Cannot use a translation definition with a computed field for '${fromResourceName}'/'${fieldName}'. Please choose one or the other.`,
+					);
+				}
 				if (typeof alias === 'string') {
 					checkToFieldExists(fieldName, alias);
 					return ['Alias', ['Field', alias], fieldName];
@@ -58,6 +64,10 @@ const aliasFields = (
 				return ['Alias', alias, fieldName];
 			}
 			checkToFieldExists(fieldName, fieldName);
+			if (computed != null) {
+				// TODO: The computed field typing should be better so we don't need to cast
+				return ['Alias', computed as AliasValidNodeType, fieldName];
+			}
 			return ['Field', fieldName];
 		},
 	);
@@ -209,8 +219,15 @@ export const translateAbstractSqlModel = (
 			// Skip translated resources, eg `resource$v2`
 			continue;
 		}
-		const translationDefinition = translationDefinitions[key];
+		let translationDefinition = translationDefinitions[key];
 		const table = fromAbstractSqlModel.tables[key];
+		const hasComputedFields = table.fields.some(
+			(field) => field.computed != null,
+		);
+		if (hasComputedFields) {
+			// If there are computed fields then make sure we generate a definition even if there is no explicit translation definition
+			translationDefinition ??= {};
+		}
 		if (translationDefinition) {
 			const { $toResource, ...definition } = translationDefinition;
 			const hasToResource = typeof $toResource === 'string';
@@ -237,11 +254,30 @@ export const translateAbstractSqlModel = (
 			table.modifyFields = _.cloneDeep(toTable.modifyFields ?? toTable.fields);
 			table.modifyName = toTable.modifyName ?? toTable.name;
 			if (isDefinition(definition)) {
+				if (hasComputedFields) {
+					throw new Error(
+						`Cannot use a manual definition with computed fields for '${key}'. Please include the computed fields in the definition if they are needed.`,
+					);
+				}
 				table.definition = definition;
 			} else if (Object.keys(definition).length === 0) {
-				// If there are no translation definitions, we can just target the `$toResource`
+				// If there are no translation definitions, we can just target the `$toResource`, including computed fields if necessary
+				let abstractSql: ResourceNode | SelectQueryNode = [
+					'Resource',
+					aliasedToResource,
+				];
+				if (hasComputedFields) {
+					abstractSql = [
+						'SelectQuery',
+						[
+							'Select',
+							aliasFields(fromAbstractSqlModel, key, aliasedToResource, {}),
+						],
+						['From', ['Alias', abstractSql, aliasedToResource]],
+					];
+				}
 				table.definition = {
-					abstractSql: ['Resource', aliasedToResource],
+					abstractSql,
 				};
 			} else {
 				table.definition = aliasResource(
