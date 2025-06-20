@@ -37,6 +37,7 @@ import ODataParser from '@balena/odata-parser';
 import _ from 'lodash';
 import memoize from 'memoizee';
 import randomstring from 'randomstring';
+import deepFreeze, { type DeepReadonly } from 'deep-freeze';
 import * as env from '../config-loader/env.js';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
 import { type HookReq, addPureHook, addHook } from './hooks.js';
@@ -70,20 +71,20 @@ export interface PermissionReq {
 	user?: User;
 	apiKey?: ApiKey;
 }
-export const root: PermissionReq = {
+export const root: DeepReadonly<PermissionReq> = deepFreeze({
 	user: {
 		id: 0,
 		actor: 0,
 		permissions: ['resource.all'],
 	},
-};
-export const rootRead: PermissionReq = {
+});
+export const rootRead: DeepReadonly<PermissionReq> = deepFreeze({
 	user: {
 		id: 0,
 		actor: 0,
 		permissions: ['resource.read'],
 	},
-};
+});
 
 interface NestedCheckOr<T> {
 	or: NestedCheckArray<T>;
