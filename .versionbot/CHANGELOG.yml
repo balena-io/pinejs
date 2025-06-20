@@ -1,4 +1,129 @@
 - commits:
+    - subject: Update @balena/lf-to-abstract-sql from 5.0.5 to 5.0.7
+      hash: b2cd76db8f7fd15d967c0eb4f91d8fc514baaefc
+      body: |
+        Update @balena/lf-to-abstract-sql from 5.0.5 to 5.0.7
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Support multiple attributes of the same name/type
+              hash: e4fab5433ca617bc72d89cc87a271025ec8549d4
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: lf-to-abstract-sql-5.0.7
+          title: ""
+          date: 2025-06-20T12:05:42.012Z
+        - commits:
+            - subject: Update dependency @balena/sbvr-types to v9
+              hash: ffe67f4ce0c2d3c6b240206da5c4ed2fea2c353a
+              body: |
+                Update @balena/sbvr-types from 8.0.0 to 9.2.2
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested:
+                - commits:
+                    - subject: Update dependency @balena/abstract-sql-compiler to v10
+                      hash: 4298ea50286d12237996b1fc50a028450647a16b
+                      body: >
+                        Update @balena/abstract-sql-compiler from 9.2.0 to 10.2.3
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: balena-renovate[bot]
+                  version: sbvr-types-9.2.2
+                  title: ""
+                  date: 2025-03-24T02:59:46.151Z
+                - commits:
+                    - subject: Update dependency @types/chai-datetime to v1
+                      hash: 3072ff0292859b64f981f5c6809a63ff13fc823f
+                      body: |
+                        Update @types/chai-datetime from 0.0.39 to 1.0.0
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: balena-renovate[bot]
+                  version: sbvr-types-9.2.1
+                  title: ""
+                  date: 2025-03-24T01:35:33.820Z
+                - commits:
+                    - subject: Use big integer for webresource casting type
+                      hash: 49acafb188c3cbf3cd16bbcc9b701d4cac8ca341
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Otavio Jacobi
+                  version: sbvr-types-9.2.0
+                  title: ""
+                  date: 2025-02-24T14:20:04.519Z
+                - commits:
+                    - subject: Add `is case insensitively equal to` for Text types
+                      hash: c6414b8b53cb6935e2a496a31d29c7e90efefe38
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Otavio Jacobi
+                  version: sbvr-types-9.1.0
+                  title: ""
+                  date: 2024-10-24T15:56:32.550Z
+                - commits:
+                    - subject: Change the exported Types to an interface so that they can be augmented
+                      hash: 29de4665e63bd4b5f1cfe75d3018ec29e10c1889
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Thodoris Greasidis
+                  version: sbvr-types-9.0.2
+                  title: ""
+                  date: 2024-09-17T12:44:29.082Z
+                - commits:
+                    - subject: Update @balena/lint to v8.2.7
+                      hash: 630ca7d6cbe4fed2d41827205215a2f28a971aea
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Josh Bowling
+                  version: sbvr-types-9.0.1
+                  title: ""
+                  date: 2024-08-05T08:18:14.129Z
+                - commits:
+                    - subject: Update BigInteger and BigSerial TsTypes
+                      hash: 45d3cd6262f094a0c43ffe308dccab4968c074be
+                      body: >
+                        Return big integer values as strings instead of bigint
+                        as we need to
+
+                        parse them back into strings anyway when returning data
+                        from pine. The
+
+                        new logic and types closely follow the same pattern we
+                        have for dates.
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Josh Bowling
+                  version: sbvr-types-9.0.0
+                  title: ""
+                  date: 2024-08-02T00:05:31.143Z
+          version: lf-to-abstract-sql-5.0.6
+          title: ""
+          date: 2025-04-11T10:51:20.820Z
+  version: 21.6.9
+  title: ""
+  date: 2025-06-20T12:59:44.853Z
+- commits:
     - subject: Handle computed fields in translated models where possible and throw
         where not
       hash: dfc34c70e4646fc95b64402a6db08aa7c2ff4daf
@@ -3150,6 +3275,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3172,6 +3298,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3240,6 +3367,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3402,6 +3530,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3430,6 +3559,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3521,6 +3651,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3555,6 +3686,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3731,6 +3863,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6911,6 +7044,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6933,6 +7067,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7029,6 +7164,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7247,6 +7383,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -7275,6 +7412,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7422,6 +7560,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -7456,6 +7595,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7660,6 +7800,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
