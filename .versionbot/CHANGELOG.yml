@@ -1,4 +1,29 @@
 - commits:
+    - subject: Bump @balena/abstract-sql-to-typescript to v5.1.2
+      hash: 0f724993cc836232702ad28a7d271ecef645f065
+      body: |
+        Update @balena/abstract-sql-to-typescript from 5.1.1 to 5.1.2
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested:
+        - commits:
+            - subject: Allow sbvr-types v10 as peer dependency
+              hash: 769015a6e199bbc4c497a6d29d6b79f3761fe884
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Otavio Jacobi
+              nested: []
+          version: abstract-sql-to-typescript-5.1.2
+          title: ""
+          date: 2025-06-19T19:45:38.533Z
+  version: 21.6.10
+  title: ""
+  date: 2025-06-20T14:58:24.529Z
+- commits:
     - subject: Update @balena/lf-to-abstract-sql from 5.0.5 to 5.0.7
       hash: b2cd76db8f7fd15d967c0eb4f91d8fc514baaefc
       body: |
@@ -3276,6 +3301,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3298,6 +3324,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3367,6 +3394,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3531,6 +3559,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3559,6 +3588,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3652,6 +3682,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3686,6 +3717,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3863,6 +3895,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7045,6 +7078,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -7067,6 +7101,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7164,6 +7199,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7384,6 +7420,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -7412,6 +7449,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7561,6 +7599,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -7595,6 +7634,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7800,6 +7840,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
