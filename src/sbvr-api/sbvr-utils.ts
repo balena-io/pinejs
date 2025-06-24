@@ -532,9 +532,13 @@ export const generateAbstractSqlModel = (
 ): AbstractSQLCompiler.AbstractSqlModel =>
 	cachedCompile(
 		'abstractSqlModel',
-		LF2AbstractSQLTranslatorVersion,
+		LF2AbstractSQLTranslatorVersion + '+' + AbstractSQLCompilerVersion,
 		lfModel,
-		() => LF2AbstractSQLTranslator(lfModel, 'Process'),
+		() =>
+			AbstractSQLCompiler.optimizeSchema(
+				LF2AbstractSQLTranslator(lfModel, 'Process'),
+				false,
+			),
 	);
 
 export const generateSqlModel = (

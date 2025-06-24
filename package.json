@@ -26,7 +26,7 @@
     "generate-types": "node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/user.sbvr ./src/sbvr-api/user.ts && node ./bin/sbvr-compiler.js generate-types ./src/migrator/migrations.sbvr ./src/migrator/migrations.ts && node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/dev.sbvr ./src/sbvr-api/dev.ts && node ./bin/sbvr-compiler.js generate-types ./src/tasks/tasks.sbvr ./src/tasks/tasks.ts && node ./bin/sbvr-compiler.js generate-types ./src/webresource-handler/webresource.sbvr ./src/webresource-handler/webresource.ts && balena-lint -t tsconfig.dev.json --fix ./src/sbvr-api/user.ts ./src/migrator/migrations.ts ./src/sbvr-api/dev.ts"
   },
   "dependencies": {
-    "@balena/abstract-sql-compiler": "^10.3.2",
+    "@balena/abstract-sql-compiler": "^10.4.0",
     "@balena/abstract-sql-to-typescript": "^5.1.2",
     "@balena/env-parsing": "^1.2.5",
     "@balena/lf-to-abstract-sql": "^5.0.7",
