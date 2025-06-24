@@ -1,4 +1,77 @@
 - commits:
+    - subject: Optimize the abstract-sql schema whilst creating it
+      hash: 6923276da34d847275493b5ecde3c1353c45abc1
+      body: |
+        Update @balena/abstract-sql-compiler from 10.3.3 to 10.4.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Export an `optimizeSchema` variant that is database engine agnostic
+              hash: 9b52888ca68ed9298b469fbda89eb2dbbb861668
+              body: >
+                This can be used to optimize the schema without yet committing
+                to a
+
+                specific database engine, useful for a pass over abstractSql
+                prior to
+
+                generating a db engine specific sql model
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.4.0
+          title: ""
+          date: 2025-06-20T14:45:59.796Z
+        - commits:
+            - subject: Switch to using a duplicate function exception to handle double
+                function creation
+              hash: 4354e067178bf7b462eb01182b078a8885b38031
+              body: >
+                This should have slightly less edge cases than trying to execute
+                the
+
+                function and checking that it does not already exist,
+                particularly if
+
+                we add arguments or similar in future where the `PERFORM`
+                command would
+
+                need to match precisely
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.3.5
+          title: ""
+          date: 2025-06-20T13:28:03.428Z
+        - commits:
+            - subject: Throw an error when trying to combine computed fields with a definition
+              hash: 0092dd499c9b4e8a3418144acbdf37084f73a3bc
+              body: >
+                This is poorly/unsupported and will cause all sorts of edge
+                cases and
+
+                breaking behavior so blocking it early will avoid bugs and allow
+
+                handling computed fields in a better way in future
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-10.3.4
+          title: ""
+          date: 2025-06-20T13:11:18.564Z
+  version: 21.6.11
+  title: ""
+  date: 2025-06-24T04:34:10.559Z
+- commits:
     - subject: Bump @balena/abstract-sql-to-typescript to v5.1.2
       hash: 0f724993cc836232702ad28a7d271ecef645f065
       body: |
@@ -3302,6 +3375,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3324,6 +3398,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3394,6 +3469,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3560,6 +3636,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3588,6 +3665,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3683,6 +3761,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3717,6 +3796,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3895,6 +3975,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7079,6 +7160,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -7101,6 +7183,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7199,6 +7282,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7421,6 +7505,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -7449,6 +7534,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7600,6 +7686,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -7634,6 +7721,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7840,6 +7928,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
