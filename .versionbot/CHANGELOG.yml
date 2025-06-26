@@ -1,4 +1,28 @@
 - commits:
+    - subject: Update @balena/sbvr-parser to 1.4.10
+      hash: bb08f1ff0d318172f88978dfdf75a8451a9a3c65
+      body: |
+        Update @balena/sbvr-parser from 1.4.9 to 1.4.10
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Allow using single value Definitions
+              hash: ed36e9f54a6e99347010a88e27c877f136ddfe4a
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+          version: sbvr-parser-1.4.10
+          title: ""
+          date: 2025-06-26T13:22:09.508Z
+  version: 21.6.12
+  title: ""
+  date: 2025-06-26T14:57:38.195Z
+- commits:
     - subject: Optimize the abstract-sql schema whilst creating it
       hash: 6923276da34d847275493b5ecde3c1353c45abc1
       body: |
@@ -3376,6 +3400,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3398,6 +3423,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3469,6 +3495,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3637,6 +3664,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3665,6 +3693,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3762,6 +3791,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3796,6 +3826,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3975,6 +4006,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7161,6 +7193,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -7183,6 +7216,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7282,6 +7316,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7506,6 +7541,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -7534,6 +7570,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7687,6 +7724,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -7721,6 +7759,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7928,6 +7967,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
