@@ -96,7 +96,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.1.0",
     "load-grunt-tasks": "^5.1.0",
-    "mocha": "11.6.0",
+    "mocha": "11.7.1",
     "on-finished": "^2.4.1",
     "pinejs-client-supertest": "^3.0.1",
     "raw-loader": "^4.0.2",
