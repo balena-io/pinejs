@@ -33,7 +33,7 @@
     "@balena/odata-parser": "^4.2.6",
     "@balena/odata-to-abstract-sql": "^7.2.5",
     "@balena/sbvr-parser": "^1.4.10",
-    "@balena/sbvr-types": "^9.2.6",
+    "@balena/sbvr-types": "^10.0.0",
     "@sindresorhus/fnv1a": "^3.1.0",
     "@types/body-parser": "^1.19.6",
     "@types/compression": "^1.8.1",
