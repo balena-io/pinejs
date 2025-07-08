@@ -1,4 +1,39 @@
 - commits:
+    - subject: Update dependency @balena/sbvr-types to v10
+      hash: 7558c03c081cc7afc0040cc3003c048aea4e9818
+      body: |
+        Update @balena/sbvr-types from 9.2.6 to 10.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested:
+        - commits:
+            - subject: Extend webresource write type with File api
+              hash: f5a0f83beecc65319b149735c6522f857b5b7028
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Otavio Jacobi
+          version: sbvr-types-10.1.0
+          title: ""
+          date: 2025-06-19T16:01:41.144Z
+        - commits:
+            - subject: Drop support for no longer maintained node 16 & 18
+              hash: 151b346d0e8cd3148306f07a7bb8abd48b69c440
+              body: ""
+              footer:
+                Change-type: major
+                change-type: major
+              author: Otavio Jacobi
+          version: sbvr-types-10.0.0
+          title: ""
+          date: 2025-06-19T15:40:49.398Z
+  version: 21.6.15
+  title: ""
+  date: 2025-07-08T03:08:42.815Z
+- commits:
     - subject: Update minio/minio Docker tag to RELEASE.2025-06-13T11-33-47Z
       hash: 319db9c5964b85f0c8ce959ddb4b4be853f88957
       body: >
@@ -3430,6 +3465,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3452,6 +3488,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3526,6 +3563,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3700,6 +3738,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3728,6 +3767,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3831,6 +3871,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3865,6 +3906,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4047,6 +4089,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7239,6 +7282,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -7261,6 +7305,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7363,6 +7408,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7593,6 +7639,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -7621,6 +7668,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7780,6 +7828,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -7814,6 +7863,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8024,6 +8074,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
