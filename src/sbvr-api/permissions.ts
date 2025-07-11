@@ -1000,7 +1000,11 @@ const rewriteRelationships = (
 const getBoundConstrainedMemoizer = memoizeWeak(
 	(abstractSqlModel: AbstractSqlModel) =>
 		memoizeWeak(
-			(permissionsLookup: PermissionLookup, vocabulary: string) => {
+			(
+				permissionsLookup: PermissionLookup,
+				/** This is the final translated vocabulary that permissions get written against as that's what we will have to resolve permissions against */
+				finalVocabulary: string,
+			) => {
 				const constrainedAbstractSqlModel = _.cloneDeep(abstractSqlModel);
 
 				const origSynonyms = Object.entries(
@@ -1131,7 +1135,7 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 								generateConstrainedAbstractSql(
 									permissionsLookup,
 									permissions,
-									vocabulary,
+									finalVocabulary,
 									sqlNameToODataName(
 										permissionsTable.modifyName ?? permissionsTable.name,
 									),
@@ -1150,7 +1154,7 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 					constrainedAbstractSqlModel,
 					constrainedAbstractSqlModel.relationships,
 					permissionsLookup,
-					vocabulary,
+					finalVocabulary,
 				);
 
 				constrainedAbstractSqlModel.relationships = new Proxy(
@@ -1190,10 +1194,8 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 );
 const memoizedGetConstrainedModel = (
 	abstractSqlModel: AbstractSqlModel,
-	permissionsLookup: PermissionLookup,
-	vocabulary: string,
-) =>
-	getBoundConstrainedMemoizer(abstractSqlModel)(permissionsLookup, vocabulary);
+	...args: Parameters<ReturnType<typeof getBoundConstrainedMemoizer>>
+) => getBoundConstrainedMemoizer(abstractSqlModel)(...args);
 
 const getCheckPasswordQuery = _.once(() =>
 	sbvrUtils.api.Auth.prepare(
@@ -1744,7 +1746,7 @@ export const addPermissions = async (
 	request: ODataRequest & { permissionType?: PermissionCheck },
 ): Promise<void> => {
 	const { resourceName, odataQuery, odataBinds } = request;
-	const vocabulary = request.translateVersions.at(-1)!;
+	const finalVocabulary = request.translateVersions.at(-1)!;
 	let abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 
 	let { permissionType } = request;
@@ -1770,7 +1772,7 @@ export const addPermissions = async (
 	request.abstractSqlModel = abstractSqlModel = memoizedGetConstrainedModel(
 		abstractSqlModel,
 		permissionsLookup,
-		vocabulary,
+		finalVocabulary,
 	);
 
 	if (!_.isEqual(permissionType, methodPermissions.GET)) {
