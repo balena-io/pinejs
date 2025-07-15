@@ -1,4 +1,5 @@
 import type AuthModel from './user.js';
+import { abstractSqlContainsNode } from '@balena/abstract-sql-compiler';
 import type {
 	AbstractSqlModel,
 	AbstractSqlQuery,
@@ -1070,18 +1071,44 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 							}
 							// If the permission is not a GET then we need to create a permissions table
 							const permissionResourceName = `${resourceName}$permissions${stringifiedPermission}`;
-							constrainedAbstractSqlModel.tables[permissionResourceName] = {
+							const permissionsTable = (constrainedAbstractSqlModel.tables[
+								permissionResourceName
+							] = {
 								...table,
 								resourceName: permissionResourceName,
-							};
+							});
 							onceGetter(
 								constrainedAbstractSqlModel.tables[permissionResourceName],
 								'definition',
-								() =>
-									createVersionSpecificPermissionDefinition(
+								() => {
+									const effectiveTableName =
+										permissionsTable.modifyName ?? permissionsTable.name;
+									if (
+										abstractSqlContainsNode(
+											tableDefinition.abstractSql,
+											(n) => n[0] === 'Table' && n[1] === effectiveTableName,
+										)
+									) {
+										// TODO: This JSON.parse can probably be avoided by using methodPermissions[$key]
+										const permissions = JSON.parse(stringifiedPermission);
+										const permissionsAbstractSql =
+											generateConstrainedAbstractSql(
+												permissionsLookup,
+												permissions,
+												finalVocabulary,
+												sqlNameToODataName(effectiveTableName),
+											);
+										if (permissionsAbstractSql != null) {
+											// If we're targeting the table directly then we can just return the permissionsAbstractSql as both should be generated using the final model
+											// TODO: in practice we could have a translation that targets the table directly rather than via a `Resource` node, so we should try to handle that
+											return permissionsAbstractSql;
+										}
+									}
+									return createVersionSpecificPermissionDefinition(
 										tableDefinition,
 										stringifiedPermission,
-									),
+									);
+								},
 							);
 						}
 					} else {
