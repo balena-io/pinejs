@@ -2024,6 +2024,17 @@ const devModelConfig = {
 				// No need to migrate for websql
 			}
 		},
+		'22.0.0-timestamps': async ($tx, sbvrUtils) => {
+			switch (sbvrUtils.db.engine) {
+				// No need to migrate anything other than postgres
+				case 'postgres':
+					await $tx.executeSql(`\
+						ALTER TABLE "model"
+						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
+					break;
+			}
+		},
 	},
 } as const satisfies ExecutableModel;
 const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
