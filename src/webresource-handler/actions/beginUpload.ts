@@ -1,7 +1,7 @@
 import { api, type Response } from '../../sbvr-api/sbvr-utils.js';
 import type { MultipartUploadHandler } from '../multipartUpload.js';
 import { getMultipartUploadHandler } from '../multipartUpload.js';
-import type { BeginMultipartUploadPayload } from '../index.js';
+import type { BeginMultipartUploadPayload, UploadPart } from '../index.js';
 import { getWebResourceFields } from '../index.js';
 import { BadRequestError, NotImplementedError } from '../../sbvr-api/errors.js';
 import { permissions, sbvrUtils } from '../../server-glue/module.js';
@@ -40,6 +40,13 @@ const beginUploadPayloadSchema = {
 const validateBeginUpload = ajv.compile<
 	FromSchema<typeof beginUploadPayloadSchema>
 >(beginUploadPayloadSchema);
+
+export type BeginMultipartUploadResponse = {
+	[key: string]: {
+		uuid: string;
+		uploadParts: UploadPart[];
+	};
+};
 
 const beginUploadAction = async ({
 	request,
@@ -84,7 +91,9 @@ const beginUploadAction = async ({
 	});
 
 	return {
-		body: { [fieldName]: { uuid, uploadParts } },
+		body: {
+			[fieldName]: { uuid, uploadParts },
+		} satisfies BeginMultipartUploadResponse,
 		statusCode: 200,
 	};
 };

@@ -25,6 +25,8 @@ import { beginUpload, commitUpload, cancelUpload } from './actions/index.js';
 
 export * from './handlers/index.js';
 
+export type { BeginMultipartUploadResponse } from './actions/beginUpload.js';
+
 export interface IncomingFile {
 	fieldname: string;
 	originalname: string;
