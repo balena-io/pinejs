@@ -1,4 +1,56 @@
 - commits:
+    - subject: Use PineTest for webresource tests
+      hash: 04b4fe374f1c0c4087fdafe728ff96b75d5e0baf
+      body: |
+        Update pinejs-client-supertest from 3.0.1 to 3.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+    - subject: Bump pinejs-client-core to v8.3.0
+      hash: c6d6ae18aa1209a3b2794368eb86d39a4eedbd0f
+      body: |
+        Update pinejs-client-core from 8.2.0 to 8.3.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested:
+        - commits:
+            - subject: Add support to odata-actions
+              hash: 2bbb89d841a0122a069f1b89aac3503b38880ee5
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Otavio Jacobi
+              nested: []
+          version: pinejs-client-js-8.3.0
+          title: ""
+          date: 2025-07-17T14:02:58.283Z
+        - commits:
+            - subject: Safely access 'id' of Params to avoid `unknown` propagation
+              hash: 2ce99460c2385b3cd98935a6b5cbb1a876242e6b
+              body: >
+                When resolving the typings of a query, if the id is not present
+                and we try to access it anyway
+
+                typescript will infer `unknown`, which caused
+                `OptionsToResponse` to satisfy as if ID was present (thus,
+                turning it into a query with `id`)
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Otavio Jacobi
+              nested: []
+          version: pinejs-client-js-8.2.1
+          title: ""
+          date: 2025-07-04T16:23:19.320Z
+  version: 22.0.1
+  title: ""
+  date: 2025-07-21T13:10:52.818Z
+- commits:
     - subject: Migrate to timestamptz
       hash: c76cdb8a75d936c22dfb07ca28a1cdbe4733a71a
       body: ""
@@ -3492,6 +3544,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3514,6 +3567,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3591,6 +3645,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3771,6 +3826,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3799,6 +3855,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3908,6 +3965,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -3942,6 +4000,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4127,6 +4186,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7325,6 +7385,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -7347,6 +7408,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7452,6 +7514,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7688,6 +7751,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -7716,6 +7780,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7881,6 +7946,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -7915,6 +7981,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8128,6 +8195,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
