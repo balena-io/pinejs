@@ -1,4 +1,16 @@
 - commits:
+    - subject: Remove unused @types/multer dependency
+      hash: ed6ba332e87c985ffeb54e5bd2af6b2ac76c0e75
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 22.0.2
+  title: ""
+  date: 2025-07-25T13:11:28.143Z
+- commits:
     - subject: Use PineTest for webresource tests
       hash: 04b4fe374f1c0c4087fdafe728ff96b75d5e0baf
       body: |
@@ -3545,6 +3557,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3567,6 +3580,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3645,6 +3659,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3827,6 +3842,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3855,6 +3871,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3966,6 +3983,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -4000,6 +4018,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4186,6 +4205,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7386,6 +7406,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -7408,6 +7429,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7514,6 +7536,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7752,6 +7775,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -7780,6 +7804,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7947,6 +7972,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -7981,6 +8007,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8195,6 +8222,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
