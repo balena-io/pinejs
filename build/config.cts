@@ -35,7 +35,6 @@ const config: RequiredField<
 		fs: true,
 		lodash: true,
 		'method-override': true,
-		multer: true,
 		mysql: true,
 		passport: true,
 		'passport-local': true,
