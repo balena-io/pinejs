@@ -1,4 +1,18 @@
 - commits:
+    - subject: Update minio/minio Docker tag to RELEASE.2025-07-23T15-54-02Z
+      hash: eccfe7c55aead976a182cd9f37df9b7f5b8cf5aa
+      body: >
+        Update minio/minio from RELEASE.2025-06-13T11-33-47Z to
+        RELEASE.2025-07-23T15-54-02Z
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 22.0.4
+  title: ""
+  date: 2025-07-28T03:13:05.701Z
+- commits:
     - subject: Update minio/mc Docker tag to RELEASE.2025-07-21T05-28-08Z
       hash: 990a2589f6346dc9e151fbf1f9dacb30b94a92ad
       body: >
@@ -3573,6 +3587,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3595,6 +3610,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3675,6 +3691,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3861,6 +3878,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3889,6 +3907,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4004,6 +4023,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -4038,6 +4058,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4226,6 +4247,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7430,6 +7452,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -7452,6 +7475,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7560,6 +7584,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7802,6 +7827,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -7830,6 +7856,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8001,6 +8028,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -8035,6 +8063,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8251,6 +8280,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
