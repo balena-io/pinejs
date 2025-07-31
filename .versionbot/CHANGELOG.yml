@@ -1,4 +1,81 @@
 - commits:
+    - subject: Bump dependencies to add support for 'JSON is represented by Text'
+      hash: 66b6e0cd6e191a27881c1553b29bff4d13cd7f16
+      body: |
+        Update @balena/lf-to-abstract-sql from 5.0.7 to 5.0.10
+        Update @balena/sbvr-types from 11.0.0 to 11.1.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Switch `ProcessAtomicFormulationsRecurse` to use a breadth first search
+              hash: 6b748b23d3f7e9bf994f68beb707e03e9f7627f1
+              body: >
+                This creates the bindings in the correct order and means that
+                they are
+
+                available for later levels if they need to be used there. It
+                also
+
+                avoids the need to store a depth attribute in order to use the
+
+                shallowest version, since due to being breadth first now we know
+                that
+
+                the first time we see them will be at the shallowest level they
+                exist
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: lf-to-abstract-sql-5.0.10
+          title: ""
+          date: 2025-07-29T16:24:13.572Z
+        - commits:
+            - subject: Add test for multiple Necessities on the same name/type
+              hash: 6538d3d92b1ab337e4c46f0af8be472cfaac5a1f
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested: []
+          version: lf-to-abstract-sql-5.0.9
+          title: ""
+          date: 2025-06-24T07:05:18.175Z
+        - commits:
+            - subject: Update dependency chai to v5
+              hash: da263a226f63e04911dbd9d7f352fa25625e3aeb
+              body: |
+                Update chai from 4.5.0 to 5.2.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.8
+          title: ""
+          date: 2025-06-20T13:09:15.384Z
+        - commits:
+            - subject: Add the 'is represented by Text' property to the JSON type
+              hash: 4de0b318d04d63ef8c0ba5fa75e8a6282e9a09ec
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+                See: https://balena.fibery.io/Work/Project/API-Limit-size-of-large-fields-975
+                see: https://balena.fibery.io/Work/Project/API-Limit-size-of-large-fields-975
+              author: Thodoris Greasidis
+          version: sbvr-types-11.1.0
+          title: ""
+          date: 2025-07-31T15:05:45.750Z
+  version: 22.1.0
+  title: ""
+  date: 2025-07-31T15:30:33.397Z
+- commits:
     - subject: Update dependency commander to v14
       hash: 2cedd7c00a7f3191a9ddd2ad1b7622439dc6df8c
       body: |
@@ -3602,6 +3679,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3624,6 +3702,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3706,6 +3785,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3896,6 +3976,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -3924,6 +4005,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4043,6 +4125,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -4077,6 +4160,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4267,6 +4351,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7475,6 +7560,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -7497,6 +7583,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7607,6 +7694,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7853,6 +7941,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -7881,6 +7970,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8056,6 +8146,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -8090,6 +8181,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8308,6 +8400,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
