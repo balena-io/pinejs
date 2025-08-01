@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"module": "NodeNext",
+		"module": "Node18",
 		"strict": true,
 		"strictFunctionTypes": false,
 		"noImplicitThis": false,
