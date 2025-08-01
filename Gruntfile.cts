@@ -1,8 +1,8 @@
 import type * as Grunt from 'grunt';
 import type { WebpackPluginInstance } from 'webpack';
 
-import _ from 'lodash';
-import TerserPlugin from 'terser-webpack-plugin';
+import * as _ from 'lodash';
+import * as TerserPlugin from 'terser-webpack-plugin';
 import browserConfig from './build/browser.cts';
 import moduleConfig from './build/module.cts';
 import serverConfig from './build/server.cts';
