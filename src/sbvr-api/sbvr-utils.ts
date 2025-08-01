@@ -24,7 +24,7 @@ import type { TypedError } from 'typed-error';
 import { cachedCompile } from './cached-compile.js';
 
 type LFModel = any[];
-import AbstractSQLCompiler from '@balena/abstract-sql-compiler';
+import * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
 import AbstractSqlCompilerPackage from '@balena/abstract-sql-compiler/package.json' with { type: 'json' };
 const { version: AbstractSQLCompilerVersion } = AbstractSqlCompilerPackage;
 
@@ -537,7 +537,7 @@ export const generateAbstractSqlModel = (
 		() =>
 			AbstractSQLCompiler.optimizeSchema(
 				LF2AbstractSQLTranslator(lfModel, 'Process'),
-				false,
+				{ createCheckConstraints: false },
 			),
 	);
 
