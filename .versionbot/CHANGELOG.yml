@@ -1,4 +1,18 @@
 - commits:
+    - subject: Switch to lazily creating the write permissions for translated tables
+      hash: c8d8b439ad38dbe49c0a93d3d5dc43f78ae6983d
+      body: |
+        Creating them lazily reduces the startup time and the memory usage to
+        only permissions that actually get used in practice
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 22.1.2
+  title: ""
+  date: 2025-08-04T15:52:34.125Z
+- commits:
     - subject: Add node 24 to the engines list
       hash: bd4b2103be646b3131a1a820267d868f2a02d08c
       body: ""
@@ -3693,6 +3707,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -3715,6 +3730,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3799,6 +3815,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -3993,6 +4010,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -4021,6 +4039,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4144,6 +4163,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -4178,6 +4198,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4370,6 +4391,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7582,6 +7604,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -7604,6 +7627,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7716,6 +7740,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7966,6 +7991,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -7994,6 +8020,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8173,6 +8200,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -8207,6 +8235,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8427,6 +8456,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
