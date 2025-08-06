@@ -100,7 +100,10 @@ const app = (function () {
 					data = _.cloneDeep(data);
 					this.end(data);
 				},
-				end(/** @type any */ data) {
+				/**
+				 * @param {any=}  data
+				 */
+				end(data) {
 					if (this.statusCode >= 400) {
 						// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
 						reject([this.statusCode, data, null]);
@@ -134,7 +137,10 @@ const app = (function () {
 			let i = -1;
 			let j = -1;
 
-			const next = function (/** @type {undefined | 'route'} */ route) {
+			/**
+			 * @param {'route'=}  route
+			 */
+			const next = function (route) {
 				j++;
 				if (route === 'route' || j >= methodHandlers[i].middleware.length) {
 					checkMethodHandlers();
@@ -175,6 +181,7 @@ const app = (function () {
 		get(/** @type string */ name) {
 			const callback = arguments[arguments.length - 1];
 			if (typeof callback === 'function') {
+				// @ts-expect-error - Typescript 5.9 doesn't like the spread params in js anymore
 				addHandler('GET', ...arguments);
 			} else {
 				return appVars[name];
@@ -187,15 +194,22 @@ const app = (function () {
 		merge: _.partial(addHandler, 'MERGE'),
 		options: _.partial(addHandler, 'OPTIONS'),
 		all(/** @type any[] */ ...args) {
+			// @ts-expect-error - Typescript 5.9 doesn't like the spread params in js anymore
 			this.post(...args);
+			// @ts-expect-error - Typescript 5.9 doesn't like the spread params in js anymore
 			this.get(...args);
+			// @ts-expect-error - Typescript 5.9 doesn't like the spread params in js anymore
 			this.put(...args);
+			// @ts-expect-error - Typescript 5.9 doesn't like the spread params in js anymore
 			this.delete(...args);
 		},
 		process(/** @type any[] */ ...args) {
 			// The promise will run the real process function asynchronously once the app is enabled,
 			// which matches somewhat more closely to an AJAX call than doing it synchronously.
-			return enabled.then(() => process(...args));
+			return enabled.then(() =>
+				// @ts-expect-error - Typescript 5.9 doesn't like the spread params in js anymore
+				process(...args),
+			);
 		},
 		listen() {
 			const callback = arguments[arguments.length - 1];
