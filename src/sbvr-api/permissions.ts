@@ -2,6 +2,7 @@ import type AuthModel from './user.js';
 import type {
 	AbstractSqlModel,
 	AbstractSqlQuery,
+	AbstractSqlTable,
 	AliasNode,
 	AnyTypeNodes,
 	Definition,
@@ -1033,34 +1034,50 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 					constrainedAbstractSqlModel.relationships,
 				);
 
-				_.forEach(constrainedAbstractSqlModel.tables, (table, resourceName) => {
+				const alreadyConstrainedTables = new Map<
+					AbstractSqlTable,
+					AbstractSqlTable
+				>();
+				for (const resourceName of Object.keys(
+					constrainedAbstractSqlModel.tables,
+				)) {
+					const constrainedTable =
+						constrainedAbstractSqlModel.tables[resourceName];
 					const bypassResourceName = `${resourceName}$bypass`;
-					constrainedAbstractSqlModel.tables[bypassResourceName] = {
-						...table,
-					};
-					constrainedAbstractSqlModel.tables[bypassResourceName].resourceName =
-						bypassResourceName;
-					if (table.definition) {
-						// If the table is definition based then just make the bypass version match but pointing to the equivalent bypassed resources
-						constrainedAbstractSqlModel.tables[bypassResourceName].definition =
-							createBypassDefinition(table.definition);
+					const previouslyCreatedBypassTable =
+						alreadyConstrainedTables.get(constrainedTable);
+					if (previouslyCreatedBypassTable != null) {
+						// If we've already processed a copy of this table then we only need to copy the bypassTable across correctly
+						// This is the case when we have two aliases to a single table, eg `student` and `student$v3` for the `v3` model
+						constrainedAbstractSqlModel.tables[bypassResourceName] =
+							previouslyCreatedBypassTable;
 					} else {
-						// Otherwise constrain the non-bypass table
-						// When the table doesn't have a definition, then it's the last translation layer,
-						// in which case we define it as the virtual `resource$vDB$permissions"read"` resource,
+						const bypassTable = (constrainedAbstractSqlModel.tables[
+							bypassResourceName
+						] = {
+							...constrainedTable,
+							resourceName: bypassResourceName,
+						});
+						if (constrainedTable.definition != null) {
+							// If the table is definition based then just make the bypass version match but pointing to the equivalent bypassed resources
+							bypassTable.definition = createBypassDefinition(
+								constrainedTable.definition,
+							);
+						}
+						alreadyConstrainedTables.set(constrainedTable, bypassTable);
+
+						// And we also constrain the non-bypass table by defining it as a reference to the virtual `${resourceName}$permissions"read"` resource,
 						// which invokes the generateConstrainedAbstractSql() that's in the `onceGetter(permissionsTable, 'definition'` below
 						onceGetter(
-							table,
+							constrainedTable,
 							'definition',
 							() =>
-								// For $filter on eg a DELETE you need read permissions on the sub-resources,
-								// you only need delete permissions on the resource being deleted
 								constrainedAbstractSqlModel.tables[
 									`${resourceName}$permissions${stringifiedGetPermissions}`
 								].definition,
 						);
 					}
-				});
+				}
 				constrainedAbstractSqlModel.tables = new Proxy(
 					constrainedAbstractSqlModel.tables,
 					{
