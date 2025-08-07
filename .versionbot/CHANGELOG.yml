@@ -1,4 +1,20 @@
 - commits:
+    - subject: Always add the constrained definition to constrained tables
+      hash: 7b0bc3ea9beb204861cc25b8896c8babc1c803bd
+      body: |
+        This just avoids any potential edge cases and simplifies things, it
+        also means we need to test for the case where two entries in the
+        constrained model are aliases of each other and only constrain a given
+        table once, rather than once per alias
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 22.1.4
+  title: ""
+  date: 2025-08-07T18:04:32.542Z
+- commits:
     - subject: Update dependencies
       hash: 484a0ac08086e881026323429a4c0d0d677b1bdd
       body: |
@@ -4001,6 +4017,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -4023,6 +4040,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4109,6 +4127,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4307,6 +4326,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -4335,6 +4355,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4462,6 +4483,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -4496,6 +4518,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4690,6 +4713,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7906,6 +7930,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -7928,6 +7953,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8042,6 +8068,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8296,6 +8323,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -8324,6 +8352,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8507,6 +8536,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -8541,6 +8571,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8763,6 +8794,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
