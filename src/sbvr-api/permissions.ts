@@ -628,7 +628,7 @@ const generateConstrainedAbstractSql = (
 
 		if (collapsedParentPermissionFilters == null) {
 			// full access
-			return ['Equals', ['Boolean', true], ['Boolean', true]];
+			return ['Boolean', true];
 		}
 
 		rewriteSubPermissionBindings(
