@@ -1,4 +1,5 @@
 import type AuthModel from './user.js';
+import { abstractSqlContainsNode } from '@balena/abstract-sql-compiler';
 import type {
 	AbstractSqlModel,
 	AbstractSqlQuery,
@@ -1119,12 +1120,33 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 								// * When the resolution reaches the last model in the chain (`<resource>$vDB$permissions"<permJson>"`) and tries to resolve it,
 								//   the `generateConstrainedAbstractSql()` that's in the `onceGetter(permissionsTable, 'definition'` below get called, which reads
 								//   the `$permissions"<permJson>"` suffix of the resource name and add a filter with the respective permissions to that last/deepest model in the chain.
-								onceGetter(permissionsTable, 'definition', () =>
-									createVersionSpecificPermissionDefinition(
+								onceGetter(permissionsTable, 'definition', () => {
+									const effectiveTableName =
+										permissionsTable.modifyName ?? permissionsTable.name;
+									if (
+										abstractSqlContainsNode(
+											tableDefinition.abstractSql,
+											(n) => n[0] === 'Table' && n[1] === effectiveTableName,
+										)
+									) {
+										const permissionsAbstractSql =
+											generateConstrainedAbstractSql(
+												permissionsLookup,
+												JSON.parse(permissionsJSON),
+												finalVocabulary,
+												sqlNameToODataName(effectiveTableName),
+											);
+										if (permissionsAbstractSql != null) {
+											// If we're targeting the table directly then we can just return the permissionsAbstractSql as both should be generated using the final model
+											// TODO: in practice we could have a translation that targets the table directly rather than via a `Resource` node, so we should try to handle that
+											return permissionsAbstractSql;
+										}
+									}
+									return createVersionSpecificPermissionDefinition(
 										tableDefinition,
 										permissionsJSON,
-									),
-								);
+									);
+								});
 							} else {
 								onceGetter(permissionsTable, 'definition', () =>
 									// For $filter on eg a DELETE you need read permissions on the sub-resources,

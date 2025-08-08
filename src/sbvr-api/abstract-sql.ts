@@ -1,7 +1,7 @@
 import _ from 'lodash';
 
 import type { Engines } from '@balena/abstract-sql-compiler';
-import AbstractSQLCompiler from '@balena/abstract-sql-compiler';
+import * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
 import type { BindKey } from '@balena/odata-parser';
 import {
 	type ODataBinds,
