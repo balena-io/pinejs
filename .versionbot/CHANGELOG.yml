@@ -1,4 +1,16 @@
 - commits:
+    - subject: Simplify abstract sql to use `TRUE` rather than `TRUE = TRUE`
+      hash: d250c28079aef4fcd34ac1b6d2f3066e90cc5d8b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 23.0.1
+  title: ""
+  date: 2025-08-08T17:13:14.684Z
+- commits:
     - subject: Update @balena/abstract-sql-compiler to 11.x,
         @balena/odata-to-abstract-sql to 9.x
       hash: bf7937fb577912576ebc7d2c81852e136a95da68
@@ -4559,6 +4571,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -4581,6 +4594,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4669,6 +4683,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4871,6 +4886,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -4899,6 +4915,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5030,6 +5047,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -5064,6 +5082,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5260,6 +5279,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8480,6 +8500,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -8502,6 +8523,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8618,6 +8640,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8876,6 +8899,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -8904,6 +8928,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9091,6 +9116,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -9125,6 +9151,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9349,6 +9376,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
