@@ -1,4 +1,85 @@
 - commits:
+    - subject: Add the ability to have computed fields generate/call functions
+      hash: b7a4c06f031ec11bb2f1a02645a555288a570c77
+      body: |
+        Update @balena/abstract-sql-compiler from 11.0.0 to 11.1.1
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Create computed functions after table definitions
+              hash: f5b3ec1e7f4a23c8958e16ecfc016abb4b83ec15
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-11.1.1
+          title: ""
+          date: 2025-08-12T15:07:21.133Z
+        - commits:
+            - subject: Add the ability to have computed fields generate/call functions
+              hash: 2a0d1a357a7baa36eaaef71c5b15c206b44a1a0f
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-11.1.0
+          title: ""
+          date: 2025-08-12T00:17:28.281Z
+        - commits:
+            - subject: Optimize away unnecessary aliasing
+              hash: bc19f720415adc56684978d56a70d1c5407c3ab7
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-11.0.3
+          title: ""
+          date: 2025-08-08T15:34:13.225Z
+        - commits:
+            - subject: "Tests: update dev dependencies"
+              hash: d3b7d59ef4413015b28b78a5943753304bfdfb01
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-11.0.2
+          title: ""
+          date: 2025-08-08T14:17:18.123Z
+        - commits:
+            - subject: Update tsconfig module to `Node18`
+              hash: 7b551369ed6974b4b537c80085bfad74b8a692a0
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+            - subject: "Tests: switch from ts-node to @swc-node/register"
+              hash: 0645665e87ad356aa91a97f9e730a855feb8bd67
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-11.0.1
+          title: ""
+          date: 2025-08-01T13:37:39.968Z
+  version: 23.1.0
+  title: ""
+  date: 2025-08-12T15:35:03.658Z
+- commits:
     - subject: Simplify abstract sql to use `TRUE` rather than `TRUE = TRUE`
       hash: d250c28079aef4fcd34ac1b6d2f3066e90cc5d8b
       body: ""
@@ -4572,6 +4653,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -4594,6 +4676,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4683,6 +4766,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -4887,6 +4971,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -4915,6 +5000,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5048,6 +5134,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -5082,6 +5169,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5279,6 +5367,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8501,6 +8590,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -8523,6 +8613,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8640,6 +8731,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8900,6 +8992,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -8928,6 +9021,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9117,6 +9211,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -9151,6 +9246,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9376,6 +9472,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
