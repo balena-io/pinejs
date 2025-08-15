@@ -26,12 +26,12 @@
     "generate-types": "node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/user.sbvr ./src/sbvr-api/user.ts && node ./bin/sbvr-compiler.js generate-types ./src/migrator/migrations.sbvr ./src/migrator/migrations.ts && node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/dev.sbvr ./src/sbvr-api/dev.ts && node ./bin/sbvr-compiler.js generate-types ./src/tasks/tasks.sbvr ./src/tasks/tasks.ts && node ./bin/sbvr-compiler.js generate-types ./src/webresource-handler/webresource.sbvr ./src/webresource-handler/webresource.ts && balena-lint -t tsconfig.dev.json --fix ./src/sbvr-api/user.ts ./src/migrator/migrations.ts ./src/sbvr-api/dev.ts"
   },
   "dependencies": {
-    "@balena/abstract-sql-compiler": "^11.1.1",
+    "@balena/abstract-sql-compiler": "^11.2.0",
     "@balena/abstract-sql-to-typescript": "^6.1.0",
     "@balena/env-parsing": "^1.2.5",
     "@balena/lf-to-abstract-sql": "^5.0.10",
     "@balena/odata-parser": "^4.2.6",
-    "@balena/odata-to-abstract-sql": "^9.0.1",
+    "@balena/odata-to-abstract-sql": "^10.0.0",
     "@balena/sbvr-parser": "^1.4.12",
     "@balena/sbvr-types": "^11.1.3",
     "@sindresorhus/fnv1a": "^3.1.0",
