@@ -2,13 +2,8 @@ import type AuthModel from './user.js';
 import { abstractSqlContainsNode } from '@balena/abstract-sql-compiler';
 import type {
 	AbstractSqlModel,
-	AbstractSqlQuery,
 	AbstractSqlTable,
-	AliasNode,
-	AnyTypeNodes,
 	Definition,
-	FieldNode,
-	ReferencedFieldNode,
 	Relationship,
 	RelationshipInternalNode,
 	RelationshipLeafNode,
@@ -30,7 +25,6 @@ import type { AnyObject, Dictionary } from './common-types.js';
 import {
 	isBindReference,
 	type OData2AbstractSQL,
-	odataNameToSqlName,
 	type ResourceFunction,
 	sqlNameToODataName,
 } from '@balena/odata-to-abstract-sql';
@@ -666,26 +660,7 @@ const generateConstrainedAbstractSql = (
 	const select = abstractSqlQuery.find(
 		(v): v is SelectNode => v[0] === 'Select',
 	)!;
-	select[1] = select[1].map((selectField): AnyTypeNodes => {
-		if (selectField[0] === 'Alias') {
-			const sqlName = odataNameToSqlName((selectField as AliasNode<any>)[2]);
-			const maybeField = (
-				selectField as AliasNode<
-					ReferencedFieldNode | FieldNode | AbstractSqlQuery
-				>
-			)[1];
-			if (
-				(maybeField[0] === 'ReferencedField' && maybeField[2] === sqlName) ||
-				(maybeField[0] === 'Field' && maybeField[1] === sqlName)
-			) {
-				// If the field name matches the sql name version of the alias then use it directly
-				return maybeField;
-			}
-			// Otherwise update the alias to use the sql name
-			return ['Alias', maybeField, sqlName];
-		}
-		return selectField;
-	});
+	select[1] = [['Field', '*']];
 
 	return { binds: odataBinds, abstractSql: abstractSqlQuery };
 };
