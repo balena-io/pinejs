@@ -225,18 +225,18 @@ export class Worker {
 						`SELECT ${selectColumns}
 						FROM task AS t
 						WHERE
-							t."is executed by-handler" IN (${handlerNames.map((_, index) => `$${index + 1}`).join(', ')}) AND
+							t."is executed by-handler" = ANY($1) AND
 							t."status" = 'queued' AND
 							t."attempt count" <= t."attempt limit" AND
 							(
 								t."is scheduled to execute on-time" IS NULL OR
-								t."is scheduled to execute on-time" <= CURRENT_TIMESTAMP + $${handlerNames.length + 1} * INTERVAL '1 SECOND'
+								t."is scheduled to execute on-time" <= CURRENT_TIMESTAMP + $2 * INTERVAL '1 SECOND'
 							)
 						ORDER BY
 							t."is scheduled to execute on-time" ASC,
 							t."id" ASC
 						LIMIT 1 FOR UPDATE SKIP LOCKED`,
-						[...handlerNames, Math.ceil(this.interval / 1000)],
+						[handlerNames, Math.ceil(this.interval / 1000)],
 					);
 
 					// Execute task if one was found
