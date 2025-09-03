@@ -977,8 +977,13 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 				permissionsLookup: PermissionLookup,
 				/** This is the final translated vocabulary that permissions get written against as that's what we will have to resolve permissions against */
 				finalVocabulary: string,
-			) => {
-				const constrainedAbstractSqlModel = _.cloneDeep(abstractSqlModel);
+			): AbstractSqlModel => {
+				const constrainedAbstractSqlModel: AbstractSqlModel = {
+					...abstractSqlModel,
+					synonyms: _.cloneDeep(abstractSqlModel.synonyms),
+					relationships: _.cloneDeep(abstractSqlModel.relationships),
+					tables: _.cloneDeep(abstractSqlModel.tables),
+				};
 				const baseTables = abstractSqlModel.tables;
 
 				const origSynonyms = Object.entries(
