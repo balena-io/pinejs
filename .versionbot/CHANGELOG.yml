@@ -1,4 +1,82 @@
 - commits:
+    - subject: Update dependencies
+      hash: 3b50eb7d6f94571b434f2efe0013ebed81a3d83f
+      body: |
+        Update @balena/abstract-sql-compiler from 11.2.0 to 11.2.1
+        Update @balena/abstract-sql-to-typescript from 6.1.1 to 6.1.2
+        Update @balena/odata-to-abstract-sql from 10.0.2 to 10.0.3
+        Update @balena/sbvr-parser from 1.4.12 to 1.4.13
+        Update pinejs-client-core from 8.3.1 to 8.3.2
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Update dev dependencies
+              hash: 2b3e90b922b1394d991bd4898bb2c63dc9637fb1
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-11.2.1
+          title: ""
+          date: 2025-08-19T12:03:05.758Z
+        - commits:
+            - subject: Update dependency chai to v6
+              hash: 5e98dd16dcc924b88afc15992b5cec7bdf1b4d3b
+              body: |
+                Update chai from 5.3.3 to 6.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.2
+          title: ""
+          date: 2025-09-03T01:57:27.167Z
+        - commits:
+            - subject: Add jsdoc documentation for `minimizeAliases` option
+              hash: 00b3b9bab41520a06870c64ba2e5b3a494790f33
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: odata-to-abstract-sql-10.0.3
+          title: ""
+          date: 2025-08-19T15:40:11.393Z
+        - commits:
+            - subject: "Improve typing of the `$: 'prop_name'` case"
+              hash: adf6dbc6225ee22a72512e2416470556594fb566
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-8.3.2
+          title: ""
+          date: 2025-09-03T14:40:29.282Z
+        - commits:
+            - subject: Update dependency chai to v6
+              hash: c08d34f52cf3263af00d9713d5a18ab6eb42e354
+              body: |
+                Update chai from 5.3.3 to 6.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-parser-1.4.13
+          title: ""
+          date: 2025-09-03T01:57:57.152Z
+  version: 23.1.6
+  title: ""
+  date: 2025-09-08T16:10:50.985Z
+- commits:
     - subject: Reduce the amount of data cloned to create a constrained abstract sql
         model
       hash: 7c5da86a94fa4fa0a9da5dd8c6d61ba79ab3acf3
@@ -5185,6 +5263,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5207,6 +5286,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5302,6 +5382,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5518,6 +5599,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -5546,6 +5628,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5691,6 +5774,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -5725,6 +5809,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5928,6 +6013,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9162,6 +9248,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9184,6 +9271,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9307,6 +9395,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9579,6 +9668,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -9607,6 +9697,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9808,6 +9899,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -9842,6 +9934,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10073,6 +10166,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
