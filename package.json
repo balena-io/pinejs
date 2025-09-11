@@ -70,7 +70,7 @@
     "@balena/lint": "^9.3.3",
     "@balena/pinejs": "file:./",
     "@balena/pinejs-webresource-s3": "^2.1.7",
-    "@faker-js/faker": "^9.9.0",
+    "@faker-js/faker": "^10.0.0",
     "@types/busboy": "^1.5.4",
     "@types/chai": "^5.2.2",
     "@types/grunt": "^0.4.32",
