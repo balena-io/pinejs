@@ -1,6 +1,6 @@
 {
   "name": "@balena/pinejs",
-  "version": "23.1.7",
+  "version": "23.1.8",
   "main": "out/server-glue/module.js",
   "type": "module",
   "repository": "git@github.com:balena-io/pinejs.git",
@@ -148,6 +148,6 @@
     "recursive": true
   },
   "versionist": {
-    "publishedAt": "2025-09-08T17:19:13.217Z"
+    "publishedAt": "2025-09-11T05:47:28.979Z"
   }
 }
