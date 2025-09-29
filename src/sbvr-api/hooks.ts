@@ -3,6 +3,7 @@ import type { Result, Tx } from '../database-layer/db.js';
 import type { ODataRequest, ParsedODataRequest } from './uri-parser.js';
 import type { AnyObject } from 'pinejs-client-core';
 import type { SupportedMethod } from '@balena/odata-to-abstract-sql';
+import type { Request as ExpressRequest } from 'express';
 
 import _ from 'lodash';
 import { settleMapSeries } from './control-flow.js';
@@ -16,7 +17,7 @@ import {
 	type Response,
 } from './sbvr-utils.js';
 
-export interface HookReq {
+export interface HookReq extends ExpressRequest {
 	user?: User;
 	apiKey?: ApiKey;
 	method: string;
@@ -27,7 +28,6 @@ export interface HookReq {
 	custom?: AnyObject;
 	tx?: Tx;
 	hooks?: InstantiatedHooks;
-	is?: (type: string | string[]) => string | false | null;
 }
 export interface HookArgs<Vocab extends string = string> {
 	req: HookReq;
