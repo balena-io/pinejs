@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency mocha to v11.7.3
+      hash: c7830ab505006f0ab54b00cf1b009aa08d78a2c0
+      body: |
+        Update mocha from 11.7.2 to 11.7.3
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 23.1.10
+  title: ""
+  date: 2025-10-03T13:22:34.042Z
+- commits:
     - subject: Update dependency @faker-js/faker to v10
       hash: 1e8d3f6cc6c0646cac09a1059121e15a74ef9581
       body: |
@@ -5307,6 +5320,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5329,6 +5343,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5428,6 +5443,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5652,6 +5668,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -5680,6 +5697,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5833,6 +5851,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -5867,6 +5886,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6074,6 +6094,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9316,6 +9337,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9338,6 +9360,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9465,6 +9488,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9745,6 +9769,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -9773,6 +9798,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9982,6 +10008,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -10016,6 +10043,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10251,6 +10279,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
