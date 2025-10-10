@@ -1,0 +1,22 @@
+Vocabulary: test
+
+Term: name
+	Concept Type: Short Text (Type)
+
+Term: hook name
+	Concept Type: Short Text (Type)
+
+Term: test resource id
+	Concept Type: Integer (Type)
+
+Term: test resource
+
+Fact Type: test resource has name
+	Necessity: each test resource has exactly one name.
+
+Term: hook log
+
+Fact Type: hook log has hook name
+	Necessity: each hook log has exactly one hook name.
+Fact Type: hook log has test resource id
+	Necessity: each hook log has exactly one test resource id.
