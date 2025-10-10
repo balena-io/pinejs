@@ -405,6 +405,14 @@ export abstract class Tx {
 		}
 	}
 	public async end(): Promise<void> {
+		// Run all pre-commit hooks in parallel
+		// If any throws, Promise.all will reject and the transaction will roll back
+		await Promise.all(
+			this.listeners.preCommit.map(async (hook) => {
+				await hook();
+			}),
+		);
+
 		const promise = this._commit();
 		this.closeTransaction('Transaction has been ended.');
 
@@ -421,17 +429,23 @@ export abstract class Tx {
 	private listeners: {
 		end: Array<() => void>;
 		rollback: Array<() => void>;
+		preCommit: Array<() => void | Promise<void>>;
 	} = {
 		end: [],
 		rollback: [],
+		preCommit: [],
 	};
-	public on(name: keyof Tx['listeners'], fn: () => void): void {
+	public on(name: 'end', fn: () => void): void;
+	public on(name: 'rollback', fn: () => void): void;
+	public on(name: 'preCommit', fn: () => void | Promise<void>): void;
+	public on(name: keyof Tx['listeners'], fn: () => void | Promise<void>): void {
 		this.listeners[name].push(fn);
 	}
 
 	private clearListeners() {
 		this.listeners.end.length = 0;
 		this.listeners.rollback.length = 0;
+		this.listeners.preCommit.length = 0;
 	}
 
 	protected abstract _executeSql(
