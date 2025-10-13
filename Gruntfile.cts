@@ -1,8 +1,11 @@
 import type * as Grunt from 'grunt';
 import type { WebpackPluginInstance } from 'webpack';
 
-import _ from 'lodash';
-import TerserPlugin from 'terser-webpack-plugin';
+import * as _ from 'lodash';
+import * as $TerserPlugin from 'terser-webpack-plugin';
+import type TerserPluginType from 'terser-webpack-plugin';
+// @ts-expect-error we need to cat the terser plugin type due to having to use `* as` for runtime to work but default import for the type
+const TerserPlugin = $TerserPlugin as typeof TerserPluginType;
 import browserConfig from './build/browser.cts';
 import moduleConfig from './build/module.cts';
 import serverConfig from './build/server.cts';
