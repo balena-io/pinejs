@@ -1,4 +1,336 @@
 - commits:
+    - subject: Update dependencies
+      hash: 4a6e17f14e1455c6c17d995bb68399328bdd6d30
+      body: |
+        Update @balena/abstract-sql-compiler from 11.2.1 to 11.2.3
+        Update @balena/lf-to-abstract-sql from 5.0.10 to 5.0.12
+        Update @balena/odata-parser from 4.2.6 to 4.2.8
+        Update @balena/odata-to-abstract-sql from 10.0.3 to 10.0.4
+        Update @balena/pinejs-webresource-s3 from 2.1.7 to 2.1.10
+        Update @balena/sbvr-types from 11.1.3 to 11.1.4
+        Update pinejs-client-core from 8.3.2 to 8.4.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add a test for getting the Length of JSON fields
+              hash: 2e9547ed7542ef22a3f9d42e34ec10b6116f339d
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested: []
+            - subject: Fix Cast to Text in MySQL
+              hash: 1c6c61b6e1b460647d9e67da56ab335e6583eb4c
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-11.2.3
+          title: ""
+          date: 2025-09-12T12:47:39.916Z
+        - commits:
+            - subject: Update dependency chai to v6
+              hash: 104f044041ae45dfb04dd513dbe570fe935f6e15
+              body: |
+                Update chai from 5.3.3 to 6.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.2.2
+          title: ""
+          date: 2025-09-11T11:46:59.593Z
+        - commits:
+            - subject: Update dependency chai to v6
+              hash: 92f7046617444bfa6086f43857697a52da377037
+              body: |
+                Update chai from 5.3.3 to 6.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.12
+          title: ""
+          date: 2025-09-11T11:46:47.642Z
+        - commits:
+            - subject: Add tests for JSON fields
+              hash: 3102d8cd62eb48006123a394417621ab12194e31
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested: []
+            - subject: Update @balena/sbvr-types to 11.1.0
+              hash: 236400d41d2d9083d33f534cde074092cb17bef7
+              body: |
+                Update @balena/sbvr-types from 9.0.0 to 11.1.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested:
+                - commits:
+                    - subject: Add the 'is represented by Text' property to the JSON type
+                      hash: 4de0b318d04d63ef8c0ba5fa75e8a6282e9a09ec
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                        See: https://balena.fibery.io/Work/Project/API-Limit-size-of-large-fields-975
+                        see: https://balena.fibery.io/Work/Project/API-Limit-size-of-large-fields-975
+                      author: Thodoris Greasidis
+                  version: sbvr-types-11.1.0
+                  title: ""
+                  date: 2025-07-31T15:05:45.750Z
+                - commits:
+                    - subject: Update DateTime to include time zone information
+                      hash: 4888db5251dd7a510cfd72f1fae1376410a0e3e2
+                      body: ""
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Josh Bowling
+                  version: sbvr-types-11.0.0
+                  title: ""
+                  date: 2025-07-15T03:50:13.516Z
+                - commits:
+                    - subject: Extend webresource write type with File api
+                      hash: f5a0f83beecc65319b149735c6522f857b5b7028
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Otavio Jacobi
+                  version: sbvr-types-10.1.0
+                  title: ""
+                  date: 2025-06-19T16:01:41.144Z
+                - commits:
+                    - subject: Drop support for no longer maintained node 16 & 18
+                      hash: 151b346d0e8cd3148306f07a7bb8abd48b69c440
+                      body: ""
+                      footer:
+                        Change-type: major
+                        change-type: major
+                      author: Otavio Jacobi
+                  version: sbvr-types-10.0.0
+                  title: ""
+                  date: 2025-06-19T15:40:49.398Z
+                - commits:
+                    - subject: Update dependency lint-staged to v16
+                      hash: 3a504c7aa334b2351439571caf17b59b49e6a53e
+                      body: |
+                        Update lint-staged from 15.5.2 to 16.0.0
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: balena-renovate[bot]
+                  version: sbvr-types-9.2.6
+                  title: ""
+                  date: 2025-06-07T23:33:59.105Z
+                - commits:
+                    - subject: Update dependency bcryptjs to v3
+                      hash: de6eb8f3cac0c9dcc2209df880333be31d550ad5
+                      body: |
+                        Update bcryptjs from 2.4.3 to 3.0.2
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: balena-renovate[bot]
+                  version: sbvr-types-9.2.5
+                  title: ""
+                  date: 2025-04-11T10:48:47.730Z
+                - commits:
+                    - subject: Update @balena/lint to 9.x
+                      hash: 21e9201b585945ab7bdc6650f067b73359f0e07e
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Pagan Gazzard
+                  version: sbvr-types-9.2.4
+                  title: ""
+                  date: 2025-04-10T12:49:03.449Z
+                - commits:
+                    - subject: Update dependency mocha to v11
+                      hash: 3e0daf18580fc79877d008a9635be4e7153ca876
+                      body: |
+                        Update mocha from 10.8.2 to 11.1.0
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: balena-renovate[bot]
+                  version: sbvr-types-9.2.3
+                  title: ""
+                  date: 2025-04-09T10:58:39.494Z
+                - commits:
+                    - subject: Update dependency @balena/abstract-sql-compiler to v10
+                      hash: 4298ea50286d12237996b1fc50a028450647a16b
+                      body: >
+                        Update @balena/abstract-sql-compiler from 9.2.0 to 10.2.3
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: balena-renovate[bot]
+                  version: sbvr-types-9.2.2
+                  title: ""
+                  date: 2025-03-24T02:59:46.151Z
+                - commits:
+                    - subject: Update dependency @types/chai-datetime to v1
+                      hash: 3072ff0292859b64f981f5c6809a63ff13fc823f
+                      body: |
+                        Update @types/chai-datetime from 0.0.39 to 1.0.0
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: balena-renovate[bot]
+                  version: sbvr-types-9.2.1
+                  title: ""
+                  date: 2025-03-24T01:35:33.820Z
+                - commits:
+                    - subject: Use big integer for webresource casting type
+                      hash: 49acafb188c3cbf3cd16bbcc9b701d4cac8ca341
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Otavio Jacobi
+                  version: sbvr-types-9.2.0
+                  title: ""
+                  date: 2025-02-24T14:20:04.519Z
+                - commits:
+                    - subject: Add `is case insensitively equal to` for Text types
+                      hash: c6414b8b53cb6935e2a496a31d29c7e90efefe38
+                      body: ""
+                      footer:
+                        Change-type: minor
+                        change-type: minor
+                      author: Otavio Jacobi
+                  version: sbvr-types-9.1.0
+                  title: ""
+                  date: 2024-10-24T15:56:32.550Z
+                - commits:
+                    - subject: Change the exported Types to an interface so that they can be augmented
+                      hash: 29de4665e63bd4b5f1cfe75d3018ec29e10c1889
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Thodoris Greasidis
+                  version: sbvr-types-9.0.2
+                  title: ""
+                  date: 2024-09-17T12:44:29.082Z
+                - commits:
+                    - subject: Update @balena/lint to v8.2.7
+                      hash: 630ca7d6cbe4fed2d41827205215a2f28a971aea
+                      body: ""
+                      footer:
+                        Change-type: patch
+                        change-type: patch
+                      author: Josh Bowling
+                  version: sbvr-types-9.0.1
+                  title: ""
+                  date: 2024-08-05T08:18:14.129Z
+            - subject: Add vscode profiler launch.json
+              hash: d54c66a38c4238dbb89c24147d5dcdad12362554
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested: []
+          version: lf-to-abstract-sql-5.0.11
+          title: ""
+          date: 2025-08-01T14:27:47.409Z
+        - commits:
+            - subject: Update dependency lint-staged to v16
+              hash: 1ad6c3e66d76d9fba07440f75e719f210505f9d9
+              body: |
+                Update lint-staged from 15.5.2 to 16.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.8
+          title: ""
+          date: 2025-09-11T12:20:28.065Z
+        - commits:
+            - subject: Update dependency peggy to v5
+              hash: a3bd65a4f4a63999b58a5076563e0eaa51a755d3
+              body: |
+                Update peggy from 4.2.0 to 5.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.7
+          title: ""
+          date: 2025-09-11T12:15:50.679Z
+        - commits:
+            - subject: Update dependency chai to v6
+              hash: dda1a7188b430a9b9fbb6ad26c14d8f04784c967
+              body: |
+                Update chai from 5.3.3 to 6.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: odata-to-abstract-sql-10.0.4
+          title: ""
+          date: 2025-09-11T11:47:33.834Z
+        - commits:
+            - subject: Add a `StatusError` class that downstream is expected to use for errors
+              hash: 5c589f1ddb12ffac87c13d3daed2bda09d386378
+              body: >
+                This isn't enforced currently but it will help to standardize
+                errors
+
+                across implementations and make it easier to switch between them
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-8.4.0
+          title: ""
+          date: 2025-10-10T16:59:39.572Z
+        - commits:
+            - subject: "Types: make use of inference for some simplification"
+              hash: 9622554854b58352a581300d7a6cf97b156d2a9a
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: pinejs-client-js-8.3.3
+          title: ""
+          date: 2025-10-10T13:05:32.557Z
+        - commits:
+            - subject: Update dependency chai to v6
+              hash: f274704db15b15d148a8ea66903c2ebf185f2b54
+              body: |
+                Update chai from 4.5.0 to 6.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.4
+          title: ""
+          date: 2025-09-11T02:02:03.461Z
+  version: 23.1.12
+  title: ""
+  date: 2025-10-13T12:26:21.906Z
+- commits:
     - subject: Update dependency mocha to v11.7.4
       hash: 7182e858031ea26bc36d64b2b4bd890ca7f881e8
       body: |
@@ -5335,6 +5667,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5357,6 +5690,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5458,6 +5792,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5686,6 +6021,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -5714,6 +6050,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5871,6 +6208,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -5905,6 +6243,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6114,6 +6453,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9360,6 +9700,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9382,6 +9723,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9511,6 +9853,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9795,6 +10138,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -9823,6 +10167,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10036,6 +10381,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -10070,6 +10416,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10307,6 +10654,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
