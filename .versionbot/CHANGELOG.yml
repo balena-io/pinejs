@@ -1,4 +1,17 @@
 - commits:
+    - subject: Switch tsconfig module to `Node20`
+      hash: cfe9e1803c73adc55de3f7c34ac4bbc3b2ef3368
+      body: |
+        This avoids using a floating version which may break later
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 23.1.13
+  title: ""
+  date: 2025-10-13T13:15:02.921Z
+- commits:
     - subject: Update dependencies
       hash: 4a6e17f14e1455c6c17d995bb68399328bdd6d30
       body: |
@@ -5668,6 +5681,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5690,6 +5704,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5792,6 +5807,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6022,6 +6038,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6050,6 +6067,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6209,6 +6227,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6243,6 +6262,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6453,6 +6473,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9701,6 +9722,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9723,6 +9745,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9853,6 +9876,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10139,6 +10163,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10167,6 +10192,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10382,6 +10408,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -10416,6 +10443,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10654,6 +10682,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
