@@ -30,12 +30,7 @@ export async function testInit(
 			[JSON.stringify(processArgs)],
 			{
 				detached: false,
-				execArgv: [
-					'--require',
-					'ts-node/register/transpile-only',
-					'--loader',
-					'ts-node/esm/transpile-only',
-				],
+				execArgv: ['--import', '@swc-node/register/esm-register'],
 			},
 		);
 		await new Promise((resolve, reject) => {
