@@ -91,10 +91,7 @@ export const memoizedParseOdata = (() => {
 		const odata = ODataParser.parse(url);
 		// if we parse a canAccess action rewrite the resource to ensure we
 		// do not run the resource hooks
-		if (
-			odata.tree.property != null &&
-			odata.tree.property.resource === 'canAccess'
-		) {
+		if (odata.tree.property?.resource === 'canAccess') {
 			odata.tree.resource =
 				odata.tree.resource + '#' + odata.tree.property.resource;
 		}
