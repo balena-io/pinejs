@@ -405,6 +405,12 @@ export abstract class Tx {
 		}
 	}
 	public async end(): Promise<void> {
+		await Promise.all(
+			this.listeners.preCommit.map(async (hook) => {
+				await hook();
+			}),
+		);
+
 		const promise = this._commit();
 		this.closeTransaction('Transaction has been ended.');
 
@@ -421,17 +427,24 @@ export abstract class Tx {
 	private listeners: {
 		end: Array<() => void>;
 		rollback: Array<() => void>;
+		preCommit: Array<() => void | Promise<void>>;
 	} = {
 		end: [],
 		rollback: [],
+		preCommit: [],
 	};
-	public on(name: keyof Tx['listeners'], fn: () => void): void {
+
+	public on<T extends keyof Tx['listeners']>(
+		name: T,
+		fn: Tx['listeners'][T][number],
+	): void {
 		this.listeners[name].push(fn);
 	}
 
 	private clearListeners() {
 		this.listeners.end.length = 0;
 		this.listeners.rollback.length = 0;
+		this.listeners.preCommit.length = 0;
 	}
 
 	protected abstract _executeSql(

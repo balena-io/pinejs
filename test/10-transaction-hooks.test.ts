@@ -225,5 +225,105 @@ describe('10 transaction hooks tests', function () {
 			const rollbackCount = hookLogs.filter((h) => h === 'rollback').length;
 			expect(rollbackCount).to.equal(1);
 		});
+
+		it('should run the rollback hook when preCommit fails', async () => {
+			const testResourceId = 2;
+			const response = await supertest(testLocalServer)
+				.post('/test-tx-hooks')
+				.send({
+					name: 'test-rollback-hook',
+					testResourceId,
+					shouldFailPreCommit: true,
+				});
+
+			expect(response.status).to.equal(400);
+			expect(response.body).to.have.property(
+				'error',
+				'PreCommit hook intentionally failed',
+			);
+
+			// The hooks are completed async, so we need to wait a bit for them to run
+			await setTimeout(100);
+
+			const hookLogs = await getHookLogs(pineTest, testResourceId);
+			expect(hookLogs).to.include('rollback');
+			expect(hookLogs).to.include('preCommit');
+			expect(hookLogs).to.not.include('end');
+
+			const { body: resources } = await pineTest
+				.get({
+					apiPrefix: 'test/',
+					resource: 'test_resource',
+					options: {
+						$filter: { name: 'test-rollback-hook' },
+					},
+				})
+				.expect(200);
+			expect(resources).to.have.lengthOf(0);
+		});
+	});
+
+	describe('on("preCommit") hook', function () {
+		it('should run preCommit hook before commit and allow transaction to succeed', async () => {
+			const testResourceId = 3;
+			const response = await supertest(testLocalServer)
+				.post('/test-tx-hooks')
+				.send({
+					name: 'test-precommit-success',
+					testResourceId,
+					shouldFailPreCommit: false,
+				});
+
+			expect(response.status).to.equal(201);
+			expect(response.body).to.have.property('id');
+
+			// The hooks are completed async, so we need to wait a bit for them to run
+			await setTimeout(100);
+
+			const hookLogs = await getHookLogs(pineTest, testResourceId);
+			expect(hookLogs).to.deep.equal(['preCommit', 'end']);
+
+			const { body: resources } = await pineTest
+				.get({
+					apiPrefix: 'test/',
+					resource: 'test_resource',
+					options: {
+						$filter: { name: 'test-precommit-success' },
+					},
+				})
+				.expect(200);
+			expect(resources).to.have.lengthOf(1);
+		});
+
+		it('should rollback the entire transaction when preCommit hook fails', async () => {
+			const testResourceId = 4;
+			const response = await supertest(testLocalServer)
+				.post('/test-tx-hooks')
+				.send({
+					name: 'test-precommit-failure',
+					testResourceId,
+					shouldFailPreCommit: true,
+				});
+
+			expect(response.status).to.equal(400);
+
+			// The hooks are completed async, so we need to wait a bit for them to run
+			await setTimeout(100);
+
+			const hookLogs = await getHookLogs(pineTest, testResourceId);
+			expect(hookLogs).to.deep.equal(['preCommit', 'rollback']);
+
+			// Verify the resource was NOT created due to rollback
+			const { body: resources } = await pineTest
+				.get({
+					apiPrefix: 'test/',
+					resource: 'test_resource',
+					options: {
+						$filter: { name: 'test-precommit-failure' },
+					},
+				})
+				.expect(200);
+			expect(resources).to.have.lengthOf(0);
+		});
 	});
 });

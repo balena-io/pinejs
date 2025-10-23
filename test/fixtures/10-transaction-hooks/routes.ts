@@ -16,6 +16,7 @@ export const initRoutes = (app: express.Express) => {
 		try {
 			const response = await sbvrUtils.db.transaction(async (tx) => {
 				const shouldRollback = req.body.shouldRollback === true;
+				const shouldFailPreCommit = req.body.shouldFailPreCommit === true;
 
 				tx.on('end', () => {
 					void trackHook('end', req.body.testResourceId);
@@ -23,6 +24,13 @@ export const initRoutes = (app: express.Express) => {
 
 				tx.on('rollback', () => {
 					void trackHook('rollback', req.body.testResourceId);
+				});
+
+				tx.on('preCommit', async () => {
+					await trackHook('preCommit', req.body.testResourceId);
+					if (shouldFailPreCommit) {
+						throw new Error('PreCommit hook intentionally failed');
+					}
 				});
 
 				// Execute some SQL to make the transaction meaningful
@@ -41,7 +49,10 @@ export const initRoutes = (app: express.Express) => {
 			res.status(201).json(response);
 		} catch (err) {
 			if (err instanceof Error) {
-				if (err.message === 'Transaction intentionally failed') {
+				if (
+					err.message === 'Transaction intentionally failed' ||
+					err.message === 'PreCommit hook intentionally failed'
+				) {
 					res.status(400).json({ error: err.message });
 					return;
 				}
