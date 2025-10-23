@@ -384,8 +384,7 @@ describe('08 task tests', function () {
 					return (
 						tasks.length === 2 &&
 						completedTask != null &&
-						queuedTask != null &&
-						queuedTask.is_scheduled_to_execute_on__time === nextExecutionDate
+						queuedTask?.is_scheduled_to_execute_on__time === nextExecutionDate
 					);
 				});
 			}

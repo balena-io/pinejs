@@ -307,7 +307,7 @@ const namespaceRelationships = (
 		}
 
 		let mapping = (relationship as RelationshipLeafNode).$;
-		if (mapping != null && mapping.length === 2) {
+		if (mapping?.length === 2) {
 			mapping = _.cloneDeep(mapping);
 			// we do check the length above, but typescript thinks the second
 			// element could be undefined

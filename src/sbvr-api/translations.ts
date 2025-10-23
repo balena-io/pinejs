@@ -118,7 +118,7 @@ const namespaceRelationships = (
 		}
 
 		let mapping = (relationship as RelationshipLeafNode).$;
-		if (mapping != null && mapping.length === 2) {
+		if (mapping?.length === 2) {
 			if (!key.includes('$')) {
 				mapping = _.cloneDeep(mapping);
 				mapping[1]![0] = `${mapping[1]![0]}$${alias}`;

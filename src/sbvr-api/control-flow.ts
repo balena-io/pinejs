@@ -63,7 +63,7 @@ export const getMappingFn = (headers?: {
 	prefer?: string | string[];
 	[key: string]: string | string[] | undefined;
 }): MappingFunction => {
-	if (headers != null && headers.prefer === 'odata.continue-on-error') {
+	if (headers?.prefer === 'odata.continue-on-error') {
 		return settleMapSeries;
 	} else {
 		return mapTill;
