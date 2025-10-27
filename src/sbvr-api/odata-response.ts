@@ -60,14 +60,13 @@ const checkForExpansion = async (
 		fieldName,
 	);
 	if (Array.isArray(field)) {
-		const expandedField = await process(
+		row[fieldName] = await process(
 			vocab,
 			abstractSqlModel,
 			mappingResourceName,
 			field,
 			opts,
 		);
-		row[fieldName] = expandedField;
 	} else {
 		row[fieldName] = {
 			__id: field,
@@ -109,8 +108,7 @@ const getLocalFields = (table: AbstractSqlTable) => {
 		table.localFields = {};
 		for (const { fieldName, dataType } of table.fields) {
 			if (!['ForeignKey', 'ConceptType'].includes(dataType)) {
-				const odataName = sqlNameToODataName(fieldName);
-				table.localFields[odataName] = true;
+				table.localFields[sqlNameToODataName(fieldName)] = true;
 			}
 		}
 	}
@@ -122,8 +120,7 @@ const getWebResourceFields = (table: AbstractSqlTable) => {
 		table.webresourceFields = {};
 		for (const { fieldName, dataType } of table.fields) {
 			if (dataType === 'WebResource') {
-				const odataName = sqlNameToODataName(fieldName);
-				table.webresourceFields[odataName] = true;
+				table.webresourceFields[sqlNameToODataName(fieldName)] = true;
 			}
 		}
 	}
@@ -138,9 +135,8 @@ const getFetchProcessingFields = (table: AbstractSqlTable) => {
 					?.fetchProcessing != null,
 		)
 		.map(({ fieldName, dataType }) => {
-			const odataName = sqlNameToODataName(fieldName);
 			return [
-				odataName,
+				sqlNameToODataName(fieldName),
 				(sbvrTypes[dataType as keyof typeof sbvrTypes] as SbvrType)
 					.fetchProcessing,
 			];
@@ -162,8 +158,7 @@ export const process = async (
 
 	if (rows.length === 1) {
 		if (rows[0].$count != null) {
-			const count = parseInt(rows[0].$count, 10);
-			return count;
+			return parseInt(rows[0].$count, 10);
 		}
 	}
 

@@ -47,8 +47,7 @@ const mapTill: MappingFunction = async <T, U>(
 	const results: Array<U | Error> = [];
 	for (const p of a) {
 		try {
-			const result = await fn(p);
-			results.push(result);
+			results.push(await fn(p));
 		} catch (err: any) {
 			results.push(ensureError(err));
 			break;

@@ -175,13 +175,7 @@ const memoizedResolvedSynonym = memoizeWeak(
 		const sqlName = odataNameToSqlName(resourceName);
 		return _(sqlName)
 			.split('-')
-			.map((namePart) => {
-				const synonym = abstractSqlModel.synonyms[namePart];
-				if (synonym != null) {
-					return synonym;
-				}
-				return namePart;
-			})
+			.map((namePart) => abstractSqlModel.synonyms[namePart] ?? namePart)
 			.join('-');
 	},
 	{ primitive: true },
@@ -193,8 +187,10 @@ export const resolveSynonym = (
 		'abstractSqlModel' | 'resourceName' | 'vocabulary'
 	>,
 ): string => {
-	const abstractSqlModel = getAbstractSqlModel(request);
-	return memoizedResolvedSynonym(abstractSqlModel, request.resourceName);
+	return memoizedResolvedSynonym(
+		getAbstractSqlModel(request),
+		request.resourceName,
+	);
 };
 
 const memoizedResolveNavigationResource = memoizeWeak(
@@ -240,9 +236,8 @@ export const resolveNavigationResource = (
 	>,
 	navigationName: string,
 ): string => {
-	const abstractSqlModel = getAbstractSqlModel(request);
 	return memoizedResolveNavigationResource(
-		abstractSqlModel,
+		getAbstractSqlModel(request),
 		request.resourceName,
 		navigationName,
 	);
@@ -1149,8 +1144,8 @@ const getFinalAbstractSqlModel = (
 		'translateVersions' | 'finalAbstractSqlModel'
 	>,
 ): AbstractSQLCompiler.AbstractSqlModel => {
-	const finalModel = request.translateVersions.at(-1)!;
-	return (request.finalAbstractSqlModel ??= models[finalModel].abstractSql);
+	return (request.finalAbstractSqlModel ??=
+		models[request.translateVersions.at(-1)!].abstractSql);
 };
 
 const getIdField = (
