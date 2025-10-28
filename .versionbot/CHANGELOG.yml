@@ -1,4 +1,24 @@
 - commits:
+    - subject: "tests: Prefer waitFor instead of setTimeout"
+      hash: dd0c40533ddf5c07059a1f042b21b303070e0bd9
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+    - subject: Add Tx preCommit hook
+      hash: 11ac064b8c303034e572eaab443ec2b249c8d8d5
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Otavio Jacobi
+      nested: []
+  version: 23.2.0
+  title: ""
+  date: 2025-10-28T13:09:14.934Z
+- commits:
     - subject: Fix `@typescript-eslint/prefer-optional-chain` rules
       hash: 6d23c3c957d199a0ef0018fb9f6cd00961510ef4
       body: ""
@@ -5708,6 +5728,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5730,6 +5751,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5835,6 +5857,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6071,6 +6094,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6099,6 +6123,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6264,6 +6289,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6298,6 +6324,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6511,6 +6538,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9765,6 +9793,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9787,6 +9816,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9920,6 +9950,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10212,6 +10243,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10240,6 +10272,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10461,6 +10494,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -10495,6 +10529,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10736,6 +10771,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
