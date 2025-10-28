@@ -7,23 +7,10 @@ import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
 import { env } from '@balena/pinejs';
 import type Model from '@balena/pinejs/out/tasks/tasks.js';
 import { CronExpressionParser } from 'cron-parser';
-import { PINE_TEST_SIGNALS } from './lib/common.js';
+import { PINE_TEST_SIGNALS, waitFor } from './lib/common.js';
 
 const actorId = 1;
 const fixturesBasePath = import.meta.dirname + '/fixtures/08-tasks/';
-
-// Wait for a condition to be true, or throw an error if it doesn't happen in time.
-export async function waitFor(checkFn: () => Promise<boolean>): Promise<void> {
-	const maxCount = 10;
-	for (let i = 1; i <= maxCount; i++) {
-		console.log(`Waiting (${i}/${maxCount})...`);
-		await setTimeout(env.tasks.queueIntervalMS);
-		if (await checkFn()) {
-			return;
-		}
-	}
-	throw new Error('waitFor timed out');
-}
 
 // Create a task and return it
 async function createTask(
@@ -147,7 +134,7 @@ describe('08 task tests', function () {
 					sorted[0].name === name1 &&
 					sorted[1].name === name2
 				);
-			});
+			}, env.tasks.queueIntervalMS);
 
 			// Assert the task records were updated as expected
 			for (const id of [task1.id, task2.id]) {
@@ -197,7 +184,7 @@ describe('08 task tests', function () {
 					})
 					.expect(200);
 				return devices.length === 1;
-			});
+			}, env.tasks.queueIntervalMS);
 
 			// Assert the task record was updated as expected
 			task = await expectTask(pineTest, task.id, {
@@ -330,7 +317,7 @@ describe('08 task tests', function () {
 					updatedTask.error_message === 'This task is supposed to fail' &&
 					updatedTask.attempt_count === attemptLimit
 				);
-			});
+			}, env.tasks.queueIntervalMS);
 
 			// Wait a second and make sure another attempt is not made
 			await setTimeout(1000);
@@ -386,7 +373,7 @@ describe('08 task tests', function () {
 						completedTask != null &&
 						queuedTask?.is_scheduled_to_execute_on__time === nextExecutionDate
 					);
-				});
+				}, env.tasks.queueIntervalMS);
 			}
 		});
 
@@ -459,7 +446,7 @@ describe('08 task tests', function () {
 					})
 					.expect(200);
 				return $devices.length === 1;
-			});
+			}, env.tasks.queueIntervalMS);
 
 			await expectTask(pineTest, task.id, {
 				status: 'succeeded',
@@ -498,7 +485,7 @@ describe('08 task tests', function () {
 						})
 						.expect(200);
 					return deviceAfter?.count === j + 1;
-				});
+				}, env.tasks.queueIntervalMS);
 			}
 		});
 
@@ -538,7 +525,7 @@ describe('08 task tests', function () {
 					})
 					.expect(200);
 				return deviceAfter?.count === 30;
-			});
+			}, env.tasks.queueIntervalMS);
 		});
 	});
 });

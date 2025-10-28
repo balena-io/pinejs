@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import { setTimeout } from 'timers/promises';
 const configPath =
 	import.meta.dirname + '/fixtures/10-transaction-hooks/config.js';
 const routesPath =
@@ -7,6 +6,7 @@ const routesPath =
 import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
 import { PineTest } from 'pinejs-client-supertest';
 import supertest from 'supertest';
+import { waitFor } from './lib/common.js';
 
 async function getHookLogs(
 	pineTest: PineTest,
@@ -69,12 +69,11 @@ describe('10 transaction hooks tests', function () {
 			expect(response.status).to.equal(201);
 			expect(response.body).to.have.property('id');
 
-			// The hooks are completed async, so we need to wait a bit for them to run
-			await setTimeout(100);
-
-			const hookLogs = await getHookLogs(pineTest, testResourceId);
-			expect(hookLogs).to.include('end');
-			expect(hookLogs).to.not.include('rollback');
+			// The hooks are completed async, so we need to wait for them to run
+			await waitFor(async () => {
+				const hookLogs = await getHookLogs(pineTest, testResourceId);
+				return hookLogs.includes('end') && !hookLogs.includes('rollback');
+			});
 		});
 
 		it('should not run the end hook when transaction is rolled back', async () => {
@@ -89,12 +88,11 @@ describe('10 transaction hooks tests', function () {
 
 			expect(response.status).to.equal(400);
 
-			// The hooks are completed async, so we need to wait a bit for them to run
-			await setTimeout(100);
-
-			const hookLogs = await getHookLogs(pineTest, testResourceId);
-			expect(hookLogs).to.not.include('end');
-			expect(hookLogs).to.include('rollback');
+			// The hooks are completed async, so we need to wait for them to run
+			await waitFor(async () => {
+				const hookLogs = await getHookLogs(pineTest, testResourceId);
+				return !hookLogs.includes('end') && hookLogs.includes('rollback');
+			});
 		});
 
 		it('should only fire end hook once per successful transaction', async () => {
@@ -109,12 +107,11 @@ describe('10 transaction hooks tests', function () {
 
 			expect(response.status).to.equal(201);
 
-			// The hooks are completed async, so we need to wait a bit for them to run
-			await setTimeout(100);
-
-			const hookLogs = await getHookLogs(pineTest, testResourceId);
-			const endCount = hookLogs.filter((h) => h === 'end').length;
-			expect(endCount).to.equal(1);
+			// The hooks are completed async, so we need to wait for them to run
+			await waitFor(async () => {
+				const hookLogs = await getHookLogs(pineTest, testResourceId);
+				return hookLogs.filter((h) => h === 'end').length === 1;
+			});
 		});
 
 		it('should persist data when end hook runs', async () => {
@@ -129,8 +126,11 @@ describe('10 transaction hooks tests', function () {
 
 			expect(response.status).to.equal(201);
 
-			// The hooks are completed async, so we need to wait a bit for them to run
-			await setTimeout(100);
+			// The hooks are completed async, so we need to wait for them to run
+			await waitFor(async () => {
+				const hookLogs = await getHookLogs(pineTest, testResourceId);
+				return hookLogs.includes('end');
+			});
 
 			// Verify the test resource was created and persisted
 			const { body: resources } = await pineTest
@@ -145,10 +145,6 @@ describe('10 transaction hooks tests', function () {
 
 			expect(resources).to.have.lengthOf(1);
 			expect(resources[0]).to.have.property('name', 'test-end-data-persist');
-
-			// And the end hook should have executed
-			const hookLogs = await getHookLogs(pineTest, testResourceId);
-			expect(hookLogs).to.include('end');
 		});
 	});
 
@@ -167,12 +163,11 @@ describe('10 transaction hooks tests', function () {
 			expect(response.body).to.have.property('error');
 			expect(response.body.error).to.equal('Transaction intentionally failed');
 
-			// The hooks are completed async, so we need to wait a bit for them to run
-			await setTimeout(100);
-
-			const hookLogs = await getHookLogs(pineTest, testResourceId);
-			expect(hookLogs).to.include('rollback');
-			expect(hookLogs).to.not.include('end');
+			// The hooks are completed async, so we need to wait for them to run
+			await waitFor(async () => {
+				const hookLogs = await getHookLogs(pineTest, testResourceId);
+				return hookLogs.includes('rollback') && !hookLogs.includes('end');
+			});
 		});
 
 		it('should not persist data when transaction is rolled back', async () => {
@@ -187,8 +182,11 @@ describe('10 transaction hooks tests', function () {
 
 			expect(response.status).to.equal(400);
 
-			// The hooks are completed async, so we need to wait a bit for them to run
-			await setTimeout(100);
+			// The hooks are completed async, so we need to wait for them to run
+			await waitFor(async () => {
+				const hookLogs = await getHookLogs(pineTest, testResourceId);
+				return hookLogs.includes('rollback');
+			});
 
 			const { body: resources } = await pineTest
 				.get({
@@ -201,9 +199,6 @@ describe('10 transaction hooks tests', function () {
 				.expect(200);
 
 			expect(resources).to.have.lengthOf(0);
-
-			const hookLogs = await getHookLogs(pineTest, testResourceId);
-			expect(hookLogs).to.include('rollback');
 		});
 
 		it('should only fire rollback hook once per rolled back transaction', async () => {
@@ -218,12 +213,11 @@ describe('10 transaction hooks tests', function () {
 
 			expect(response.status).to.equal(400);
 
-			// The hooks are completed async, so we need to wait a bit for them to run
-			await setTimeout(100);
-
-			const hookLogs = await getHookLogs(pineTest, testResourceId);
-			const rollbackCount = hookLogs.filter((h) => h === 'rollback').length;
-			expect(rollbackCount).to.equal(1);
+			// The hooks are completed async, so we need to wait for them to run
+			await waitFor(async () => {
+				const hookLogs = await getHookLogs(pineTest, testResourceId);
+				return hookLogs.filter((h) => h === 'rollback').length === 1;
+			});
 		});
 
 		it('should run the rollback hook when preCommit fails', async () => {
@@ -242,13 +236,15 @@ describe('10 transaction hooks tests', function () {
 				'PreCommit hook intentionally failed',
 			);
 
-			// The hooks are completed async, so we need to wait a bit for them to run
-			await setTimeout(100);
-
-			const hookLogs = await getHookLogs(pineTest, testResourceId);
-			expect(hookLogs).to.include('rollback');
-			expect(hookLogs).to.include('preCommit');
-			expect(hookLogs).to.not.include('end');
+			// The hooks are completed async, so we need to wait for them to run
+			await waitFor(async () => {
+				const hookLogs = await getHookLogs(pineTest, testResourceId);
+				return (
+					hookLogs.includes('rollback') &&
+					hookLogs.includes('preCommit') &&
+					!hookLogs.includes('end')
+				);
+			});
 
 			const { body: resources } = await pineTest
 				.get({
@@ -277,11 +273,15 @@ describe('10 transaction hooks tests', function () {
 			expect(response.status).to.equal(201);
 			expect(response.body).to.have.property('id');
 
-			// The hooks are completed async, so we need to wait a bit for them to run
-			await setTimeout(100);
-
-			const hookLogs = await getHookLogs(pineTest, testResourceId);
-			expect(hookLogs).to.deep.equal(['preCommit', 'end']);
+			// The hooks are completed async, so we need to wait for them to run
+			await waitFor(async () => {
+				const hookLogs = await getHookLogs(pineTest, testResourceId);
+				return (
+					hookLogs.length === 2 &&
+					hookLogs[0] === 'preCommit' &&
+					hookLogs[1] === 'end'
+				);
+			});
 
 			const { body: resources } = await pineTest
 				.get({
@@ -307,11 +307,15 @@ describe('10 transaction hooks tests', function () {
 
 			expect(response.status).to.equal(400);
 
-			// The hooks are completed async, so we need to wait a bit for them to run
-			await setTimeout(100);
-
-			const hookLogs = await getHookLogs(pineTest, testResourceId);
-			expect(hookLogs).to.deep.equal(['preCommit', 'rollback']);
+			// The hooks are completed async, so we need to wait for them to run
+			await waitFor(async () => {
+				const hookLogs = await getHookLogs(pineTest, testResourceId);
+				return (
+					hookLogs.length === 2 &&
+					hookLogs[0] === 'preCommit' &&
+					hookLogs[1] === 'rollback'
+				);
+			});
 
 			// Verify the resource was NOT created due to rollback
 			const { body: resources } = await pineTest
