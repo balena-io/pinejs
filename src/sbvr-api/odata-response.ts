@@ -181,9 +181,10 @@ export const process = async (
 	);
 
 	const webresourceFields = getWebResourceFields(table);
-	const requiredSigningFields = fieldNames.filter((fieldName) =>
-		webresourceFields.has(fieldName),
-	);
+	const requiredSigningFields =
+		webresourceFields.size > 0
+			? fieldNames.filter((fieldName) => webresourceFields.has(fieldName))
+			: [];
 
 	const odataIdField = sqlNameToODataName(table.idField);
 	for (const row of rows) {
