@@ -970,6 +970,13 @@ const rewriteRelationships = (
 	return newRelationships;
 };
 
+/**
+ * Ideally this would be a deep readonly but that causes typescript to complain about excessively deep instantiation so a single level is the compromise,
+ * meaning that it's actually 1st and 3rd+ level writable
+ */
+type ShallowWritableOnly<T> = {
+	[P in keyof T]: Readonly<T[P]>;
+};
 const getBoundConstrainedMemoizer = memoizeWeak(
 	(abstractSqlModel: AbstractSqlModel) =>
 		memoizeWeak(
@@ -978,11 +985,15 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 				/** This is the final translated vocabulary that permissions get written against as that's what we will have to resolve permissions against */
 				finalVocabulary: string,
 			): AbstractSqlModel => {
-				const constrainedAbstractSqlModel: AbstractSqlModel = {
+				const constrainedAbstractSqlModel: Omit<AbstractSqlModel, 'tables'> & {
+					tables: {
+						[resourceName: string]: ShallowWritableOnly<AbstractSqlTable>;
+					};
+				} = {
 					...abstractSqlModel,
 					synonyms: _.cloneDeep(abstractSqlModel.synonyms),
 					relationships: _.cloneDeep(abstractSqlModel.relationships),
-					tables: _.cloneDeep(abstractSqlModel.tables),
+					tables: {},
 				};
 				const baseTables = abstractSqlModel.tables;
 
@@ -1016,12 +1027,13 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 				);
 
 				const alreadyConstrainedTables = new Map<
-					AbstractSqlTable,
-					AbstractSqlTable
+					ShallowWritableOnly<AbstractSqlTable>,
+					ShallowWritableOnly<AbstractSqlTable>
 				>();
-				for (const resourceName of Object.keys(
-					constrainedAbstractSqlModel.tables,
-				)) {
+				for (const resourceName of Object.keys(baseTables)) {
+					constrainedAbstractSqlModel.tables[resourceName] = {
+						...baseTables[resourceName],
+					};
 					const constrainedTable =
 						constrainedAbstractSqlModel.tables[resourceName];
 					const bypassResourceName = `${resourceName}$bypass`;
@@ -1033,12 +1045,11 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 						constrainedAbstractSqlModel.tables[bypassResourceName] =
 							previouslyCreatedBypassTable;
 					} else {
-						const bypassTable = (constrainedAbstractSqlModel.tables[
-							bypassResourceName
-						] = {
-							...constrainedTable,
-							resourceName: bypassResourceName,
-						});
+						const bypassTable: ShallowWritableOnly<AbstractSqlTable> =
+							(constrainedAbstractSqlModel.tables[bypassResourceName] = {
+								...constrainedTable,
+								resourceName: bypassResourceName,
+							});
 						if (constrainedTable.definition != null) {
 							// If the table is definition based then just make the bypass version match but pointing to the equivalent bypassed resources
 							bypassTable.definition = createBypassDefinition(
@@ -1151,7 +1162,7 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 				// we check if given the current permissions we can direct
 				// expands and filters to unconstraint resources
 				constrainedAbstractSqlModel.relationships = rewriteRelationships(
-					constrainedAbstractSqlModel,
+					constrainedAbstractSqlModel as AbstractSqlModel,
 					constrainedAbstractSqlModel.relationships,
 					permissionsLookup,
 					finalVocabulary,
@@ -1185,7 +1196,7 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 					},
 				);
 				deepFreezeExceptDefinition(constrainedAbstractSqlModel);
-				return constrainedAbstractSqlModel;
+				return constrainedAbstractSqlModel as AbstractSqlModel;
 			},
 			{
 				primitive: true,
