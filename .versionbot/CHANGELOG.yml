@@ -1,4 +1,17 @@
 - commits:
+    - subject: Avoid deep cloning tables when creating constrained models
+      hash: 172b1fb7781af36e172e88ca603b7d602e8b5653
+      body: |
+        This reduces the memory usage for each constrained model
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 23.2.1
+  title: ""
+  date: 2025-10-29T14:04:01.119Z
+- commits:
     - subject: "tests: Prefer waitFor instead of setTimeout"
       hash: dd0c40533ddf5c07059a1f042b21b303070e0bd9
       body: ""
@@ -5729,6 +5742,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5751,6 +5765,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5857,6 +5872,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6095,6 +6111,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6123,6 +6140,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6290,6 +6308,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6324,6 +6343,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6538,6 +6558,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9794,6 +9815,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9816,6 +9838,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9950,6 +9973,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10244,6 +10268,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10272,6 +10297,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10495,6 +10521,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -10529,6 +10556,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10771,6 +10799,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
