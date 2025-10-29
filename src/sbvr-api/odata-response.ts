@@ -124,21 +124,21 @@ const getWebResourceFields = (table: AbstractSqlTable) => {
 };
 
 const getFetchProcessingFields = (table: AbstractSqlTable) => {
-	return (table.fetchProcessingFields ??= _(table.fields)
-		.filter(
-			({ dataType }) =>
-				(sbvrTypes[dataType as keyof typeof sbvrTypes] as SbvrType)
-					?.fetchProcessing != null,
-		)
-		.map(({ fieldName, dataType }) => {
-			return [
-				sqlNameToODataName(fieldName),
-				(sbvrTypes[dataType as keyof typeof sbvrTypes] as SbvrType)
-					.fetchProcessing,
-			];
-		})
-		.fromPairs()
-		.value());
+	return (table.fetchProcessingFields ??= Object.fromEntries(
+		table.fields
+			.filter(
+				({ dataType }) =>
+					(sbvrTypes[dataType as keyof typeof sbvrTypes] as SbvrType)
+						?.fetchProcessing != null,
+			)
+			.map(({ fieldName, dataType }) => {
+				return [
+					sqlNameToODataName(fieldName),
+					(sbvrTypes[dataType as keyof typeof sbvrTypes] as SbvrType)
+						.fetchProcessing!,
+				] as const;
+			}),
+	));
 };
 
 export const process = async (
