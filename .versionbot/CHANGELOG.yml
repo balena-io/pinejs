@@ -1,4 +1,16 @@
 - commits:
+    - subject: Reduce unnecessary assignments
+      hash: 0604941acdc48f459ccfdc0d548ce93b4bf57f83
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 23.2.2
+  title: ""
+  date: 2025-10-29T15:08:13.960Z
+- commits:
     - subject: Avoid deep cloning tables when creating constrained models
       hash: 172b1fb7781af36e172e88ca603b7d602e8b5653
       body: |
@@ -5743,6 +5755,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5765,6 +5778,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5872,6 +5886,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6112,6 +6127,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6140,6 +6156,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6309,6 +6326,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6343,6 +6361,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6558,6 +6577,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9816,6 +9836,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9838,6 +9859,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9973,6 +9995,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10269,6 +10292,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10297,6 +10321,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10522,6 +10547,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -10556,6 +10582,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10799,6 +10826,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
