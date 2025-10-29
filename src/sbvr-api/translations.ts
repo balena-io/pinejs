@@ -130,7 +130,6 @@ const namespaceRelationships = (
 				delete (ret as RelationshipInternalNode)[key];
 			}
 		}
-		namespaceRelationships(relationship, alias);
 	}
 	if (ret !== relationships) {
 		return ret;
