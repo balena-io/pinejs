@@ -395,16 +395,18 @@ const getCreateWebResourceHooks = (
 const getWebResourcesHrefs = (
 	webResources?: WebResourcesDbResponse[] | null,
 ): string[] => {
-	const hrefs = (webResources ?? []).flatMap((resource) =>
+	if (webResources == null) {
+		return [];
+	}
+	return webResources.flatMap((resource) =>
 		Object.values(resource ?? {})
 			.filter((resourceKey) => resourceKey != null)
 			.map((resourceKey) => normalizeHref(resourceKey.href)),
 	);
-	return hrefs;
 };
 
 export const normalizeHref = (href: string) => {
-	return href.split('?')[0];
+	return href.split('?', 1)[0];
 };
 
 const getWebResourcesKeysFromRequest = (
