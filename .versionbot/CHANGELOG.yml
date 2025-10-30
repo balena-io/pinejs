@@ -1,4 +1,35 @@
 - commits:
+    - subject: "odata-response: avoid iterating the field names when there are no
+        webresource fields"
+      hash: 37ad9263d98e1f823538c52c5d87ab4ed9cde91d
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "odata-response: use native functions for creating
+        `fetchProcessingFields`"
+      hash: 1e283f7e4913b9d185d1c4f43437bf682f571521
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "odata-response: use `Set`s for `localFields`/`webresourceFields`
+        lookups"
+      hash: 24f0a65e6cf629578d245584833c7673ef1e7e15
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 23.2.4
+  title: ""
+  date: 2025-10-30T13:22:59.929Z
+- commits:
     - subject: "Translations: remove dead code when namespacing relationships"
       hash: a00806079ad2bd2edad1d0ffd3cf5b178fa67c6e
       body: ""
@@ -5769,6 +5800,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5791,6 +5823,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5900,6 +5933,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6144,6 +6178,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6172,6 +6207,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6345,6 +6381,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6379,6 +6416,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6596,6 +6634,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9858,6 +9897,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9880,6 +9920,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10017,6 +10058,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10317,6 +10359,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10345,6 +10388,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10574,6 +10618,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -10608,6 +10653,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10853,6 +10899,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
