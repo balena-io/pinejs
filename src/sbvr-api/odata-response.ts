@@ -9,12 +9,8 @@ declare module '@balena/abstract-sql-compiler' {
 		fetchProcessingFields?: {
 			[field: string]: NonNullable<SbvrType['fetchProcessing']>;
 		};
-		localFields?: {
-			[odataName: string]: true;
-		};
-		webresourceFields?: {
-			[odataName: string]: true;
-		};
+		localFields?: Set<string>;
+		webresourceFields?: Set<string>;
 	}
 }
 
@@ -105,10 +101,10 @@ export function resourceURI(
 
 const getLocalFields = (table: AbstractSqlTable) => {
 	if (table.localFields == null) {
-		table.localFields = {};
+		table.localFields = new Set<string>();
 		for (const { fieldName, dataType } of table.fields) {
 			if (!['ForeignKey', 'ConceptType'].includes(dataType)) {
-				table.localFields[sqlNameToODataName(fieldName)] = true;
+				table.localFields.add(sqlNameToODataName(fieldName));
 			}
 		}
 	}
@@ -117,10 +113,10 @@ const getLocalFields = (table: AbstractSqlTable) => {
 
 const getWebResourceFields = (table: AbstractSqlTable) => {
 	if (table.webresourceFields == null) {
-		table.webresourceFields = {};
+		table.webresourceFields = new Set<string>();
 		for (const { fieldName, dataType } of table.fields) {
 			if (dataType === 'WebResource') {
-				table.webresourceFields[sqlNameToODataName(fieldName)] = true;
+				table.webresourceFields.add(sqlNameToODataName(fieldName));
 			}
 		}
 	}
@@ -128,21 +124,21 @@ const getWebResourceFields = (table: AbstractSqlTable) => {
 };
 
 const getFetchProcessingFields = (table: AbstractSqlTable) => {
-	return (table.fetchProcessingFields ??= _(table.fields)
-		.filter(
-			({ dataType }) =>
-				(sbvrTypes[dataType as keyof typeof sbvrTypes] as SbvrType)
-					?.fetchProcessing != null,
-		)
-		.map(({ fieldName, dataType }) => {
-			return [
-				sqlNameToODataName(fieldName),
-				(sbvrTypes[dataType as keyof typeof sbvrTypes] as SbvrType)
-					.fetchProcessing,
-			];
-		})
-		.fromPairs()
-		.value());
+	return (table.fetchProcessingFields ??= Object.fromEntries(
+		table.fields
+			.filter(
+				({ dataType }) =>
+					(sbvrTypes[dataType as keyof typeof sbvrTypes] as SbvrType)
+						?.fetchProcessing != null,
+			)
+			.map(({ fieldName, dataType }) => {
+				return [
+					sqlNameToODataName(fieldName),
+					(sbvrTypes[dataType as keyof typeof sbvrTypes] as SbvrType)
+						.fetchProcessing!,
+				] as const;
+			}),
+	));
 };
 
 export const process = async (
@@ -181,13 +177,14 @@ export const process = async (
 	// We check that it's not a local field, rather than that it is a foreign key because of the case where the foreign key is on the other resource
 	// and hence not known to this resource
 	const expandableFields = fieldNames.filter(
-		(fieldName) => !Object.hasOwn(localFields, fieldName),
+		(fieldName) => !localFields.has(fieldName),
 	);
 
 	const webresourceFields = getWebResourceFields(table);
-	const requiredSigningFields = fieldNames.filter((fieldName) =>
-		Object.hasOwn(webresourceFields, fieldName),
-	);
+	const requiredSigningFields =
+		webresourceFields.size > 0
+			? fieldNames.filter((fieldName) => webresourceFields.has(fieldName))
+			: [];
 
 	const odataIdField = sqlNameToODataName(table.idField);
 	for (const row of rows) {
