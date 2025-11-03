@@ -15,7 +15,7 @@ import type {
 	FieldNode,
 	ResourceNode,
 } from '@balena/abstract-sql-compiler';
-import type { Dictionary } from './common-types.js';
+import type { Dictionary, ShallowWritableOnly } from './common-types.js';
 
 export type AliasValidNodeType =
 	| SelectQueryNode
@@ -24,7 +24,13 @@ export type AliasValidNodeType =
 	| UnknownTypeNodes
 	| NullNode;
 const aliasFields = (
-	translationAbstractSqlModel: AbstractSqlModel,
+	translationAbstractSqlModel: Omit<AbstractSqlModel, 'tables'> & {
+		tables: {
+			[resourceName: string]: ShallowWritableOnly<
+				AbstractSqlModel['tables'][string]
+			>;
+		};
+	},
 	fromResourceName: string,
 	toResource: string,
 	aliases: Dictionary<string | AliasValidNodeType>,
@@ -74,7 +80,13 @@ const aliasFields = (
 };
 
 const aliasResource = (
-	translationAbstractSqlModel: AbstractSqlModel,
+	translationAbstractSqlModel: Omit<AbstractSqlModel, 'tables'> & {
+		tables: {
+			[resourceName: string]: ShallowWritableOnly<
+				AbstractSqlModel['tables'][string]
+			>;
+		};
+	},
 	fromResourceName: string,
 	toResource: string,
 	aliases: Dictionary<string | AliasValidNodeType>,
@@ -137,7 +149,13 @@ const namespaceRelationships = (
 };
 
 export const translateAbstractSqlModel = (
-	fromAbstractSqlModel: AbstractSqlModel,
+	fromAbstractSqlModel: Omit<AbstractSqlModel, 'tables'> & {
+		tables: {
+			[resourceName: string]: ShallowWritableOnly<
+				AbstractSqlModel['tables'][string]
+			>;
+		};
+	},
 	toAbstractSqlModel: AbstractSqlModel,
 	fromVersion: string,
 	toVersion: string,
@@ -210,7 +228,7 @@ export const translateAbstractSqlModel = (
 		if (!key.includes('$')) {
 			key = `${key}${toVersionSuffix}`;
 		}
-		fromAbstractSqlModel.tables[key] = _.cloneDeep(table);
+		fromAbstractSqlModel.tables[key] = { ...table };
 	}
 
 	for (const key of fromResourceKeys) {

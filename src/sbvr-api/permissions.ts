@@ -19,7 +19,11 @@ import type {
 } from '@balena/odata-parser';
 import type { Tx } from '../database-layer/db.js';
 import type { ApiKey, User } from '../sbvr-api/sbvr-utils.js';
-import type { AnyObject, Dictionary } from './common-types.js';
+import type {
+	AnyObject,
+	Dictionary,
+	ShallowWritableOnly,
+} from './common-types.js';
 
 import {
 	isBindReference,
@@ -980,13 +984,6 @@ const rewriteRelationships = (
 	return newRelationships;
 };
 
-/**
- * Ideally this would be a deep readonly but that causes typescript to complain about excessively deep instantiation so a single level is the compromise,
- * meaning that it's actually 1st and 3rd+ level writable
- */
-type ShallowWritableOnly<T> = {
-	[P in keyof T]: Readonly<T[P]>;
-};
 const getBoundConstrainedMemoizer = memoizeWeak(
 	(abstractSqlModel: AbstractSqlModel) =>
 		memoizeWeak(
@@ -1000,7 +997,9 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 					'tables' | 'relationships'
 				> & {
 					tables: {
-						[resourceName: string]: ShallowWritableOnly<AbstractSqlTable>;
+						[resourceName: string]: ShallowWritableOnly<
+							AbstractSqlModel['tables'][string]
+						>;
 					};
 					relationships: ShallowWritableOnly<AbstractSqlModel['relationships']>;
 				} = {
