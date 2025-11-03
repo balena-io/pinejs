@@ -112,7 +112,7 @@ const namespaceRelationships = (
 		}
 
 		const changedEntry = namespaceRelationships(relationship, alias);
-		if (changedEntry) {
+		if (changedEntry != null) {
 			ret = { ...ret };
 			(ret as RelationshipInternalNode)[key] = changedEntry;
 		}
