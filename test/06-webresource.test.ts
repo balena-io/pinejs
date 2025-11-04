@@ -788,14 +788,14 @@ describe('06 webresources tests', function () {
 						.expect(201);
 
 					await Promise.all([
-						...Array.from({ length: 3 }).map(() =>
+						...Array.from({ length: 3 }, () =>
 							expectToInsertFile(
 								body.id,
 								`/${resourceName}/${publicArtifacts}`,
 								publicField,
 							),
 						),
-						...Array.from({ length: 3 }).map(() =>
+						...Array.from({ length: 3 }, () =>
 							expectToInsertFile(
 								body.id,
 								`/${resourceName}/${privateArtifacts}`,
