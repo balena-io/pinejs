@@ -2,7 +2,7 @@
 import type Mysql from 'mysql';
 import type Pg from 'pg';
 import type PgConnectionString from 'pg-connection-string';
-import type { Dictionary, Resolvable } from '../sbvr-api/common-types.js';
+import type { Resolvable } from '../sbvr-api/common-types.js';
 
 import { Engines } from '@balena/abstract-sql-compiler';
 import { EventEmitter } from 'eventemitter3';
@@ -136,7 +136,7 @@ const validateTransactionLockParameter = (
 	}
 };
 
-const transactionLockNamespaceMap: Dictionary<number> = {};
+const transactionLockNamespaceMap = new Map<string, number>();
 
 /**
  *
@@ -150,21 +150,20 @@ export function registerTransactionLockNamespace(
 	namespaceId: number,
 ) {
 	validateTransactionLockParameter(namespaceId, 'namespaceId');
-	if (transactionLockNamespaceMap[namespaceKey] != null) {
+	if (transactionLockNamespaceMap.has(namespaceKey)) {
 		throw new Error(
 			`Error while registering transaction lock namespace '${namespaceKey}'. Namespace key is already registered.`,
 		);
 	}
-	const existingNamespaceEntry = Object.entries(
-		transactionLockNamespaceMap,
-	).find(([, id]) => id === namespaceId);
-	if (existingNamespaceEntry != null) {
-		throw new Error(
-			`Error while registering transaction lock namespace '${namespaceKey}'. Transaction lock namespace id '${namespaceId}' already registered for namespace ${existingNamespaceEntry[0]}.`,
-		);
+	for (const entry of transactionLockNamespaceMap.entries()) {
+		if (entry[1] === namespaceId) {
+			throw new Error(
+				`Error while registering transaction lock namespace '${namespaceKey}'. Transaction lock namespace id '${namespaceId}' already registered for namespace ${entry[0]}.`,
+			);
+		}
 	}
 
-	transactionLockNamespaceMap[namespaceKey] = namespaceId;
+	transactionLockNamespaceMap.set(namespaceKey, namespaceId);
 }
 
 const maybePrepareCache: {
@@ -712,7 +711,7 @@ if (maybePg != null) {
 				blocking = true,
 			) {
 				validateTransactionLockParameter(key, 'key');
-				const namespaceId = transactionLockNamespaceMap[namespaceKey];
+				const namespaceId = transactionLockNamespaceMap.get(namespaceKey);
 				if (namespaceId == null) {
 					throw new Error(
 						`Transaction lock namespace ${namespaceKey} not registered.`,
