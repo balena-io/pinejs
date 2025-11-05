@@ -55,7 +55,7 @@ const selectColumns = Object.entries({
 // It polls the database for tasks to execute. It will execute
 // tasks in parallel up to a certain concurrency limit.
 export class Worker {
-	public handlers: Record<string, TaskHandler> = {};
+	public handlers = new Map<string, TaskHandler>();
 	private readonly concurrency: number;
 	private readonly interval: number;
 	private running = false;
@@ -68,16 +68,14 @@ export class Worker {
 
 	// Check if instance can execute more tasks
 	private canExecute(): boolean {
-		return (
-			this.executing < this.concurrency && Object.keys(this.handlers).length > 0
-		);
+		return this.executing < this.concurrency && this.handlers.size > 0;
 	}
 
 	private async execute(task: PartialTask, tx: Db.Tx): Promise<void> {
 		this.executing++;
 		try {
 			// Get specified handler
-			const handler = this.handlers[task.is_executed_by__handler];
+			const handler = this.handlers.get(task.is_executed_by__handler);
 			const startedOnTime = new Date();
 
 			// This should never actually happen
@@ -215,8 +213,7 @@ export class Worker {
 				if (!this.canExecute()) {
 					return;
 				}
-				const handlerNames = Object.keys(this.handlers);
-				if (handlerNames.length === 0) {
+				if (this.handlers.size === 0) {
 					// No handlers currently added so just wait for next poll in case one is added in the meantime
 					return;
 				}
@@ -236,7 +233,7 @@ export class Worker {
 							t."is scheduled to execute on-time" ASC,
 							t."id" ASC
 						LIMIT 1 FOR UPDATE SKIP LOCKED`,
-						[handlerNames, Math.ceil(this.interval / 1000)],
+						[Array.from(this.handlers.keys()), Math.ceil(this.interval / 1000)],
 					);
 
 					// Execute task if one was found
@@ -274,8 +271,6 @@ export class Worker {
 			);
 		}
 
-		const handlerNames = Object.keys(this.handlers);
-
 		// Check for any pending tasks with unknown handlers
 		const tasksWithUnknownHandlers = await this.client.get({
 			resource: 'task',
@@ -285,9 +280,11 @@ export class Worker {
 			options: {
 				$filter: {
 					status: 'queued',
-					...(handlerNames.length > 0 && {
+					...(this.handlers.size > 0 && {
 						$not: {
-							is_executed_by__handler: { $in: handlerNames },
+							is_executed_by__handler: {
+								$in: Array.from(this.handlers.keys()),
+							},
 						},
 					}),
 				},
