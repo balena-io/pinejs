@@ -137,7 +137,7 @@ export function setup(): void {
 			if (handlerName == null) {
 				throw new Error(`Must specify a task handler to execute`);
 			}
-			const handler = worker?.handlers[handlerName];
+			const handler = worker?.handlers.get(handlerName);
 			if (handler == null) {
 				throw new Error(
 					`No task handler with name '${handlerName}' registered`,
@@ -182,12 +182,12 @@ export function addTaskHandler<T extends Schema>(
 		throw new Error('Database does not support tasks');
 	}
 
-	if (worker.handlers[name] != null) {
+	if (worker.handlers.has(name)) {
 		throw new Error(`Task handler with name '${name}' already registered`);
 	}
-	worker.handlers[name] = {
+	worker.handlers.set(name, {
 		name,
 		fn,
 		validate: schema != null ? ajv.compile(schema) : undefined,
-	};
+	});
 }
