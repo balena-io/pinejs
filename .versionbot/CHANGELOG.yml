@@ -1,4 +1,24 @@
 - commits:
+    - subject: "db-layer: switch `maybePrepareCache` to using a `Map`"
+      hash: 4ad09860d7370eb267c8597fba253d1f0d272f42
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "db-layer: switch `transactionLockNamespaceMap` to using a `Map`"
+      hash: 46f213c6657b98b70ea28fdf13763de850a02651
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 23.2.9
+  title: ""
+  date: 2025-11-05T16:39:05.353Z
+- commits:
     - subject: "Tasks: switch to using a `Map` for storing task handlers"
       hash: f8e3bc91c79b9644ec81f640e89cda9699ff7925
       body: ""
@@ -5855,6 +5875,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5877,6 +5898,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -5991,6 +6013,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6245,6 +6268,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6273,6 +6297,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6456,6 +6481,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6490,6 +6516,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6712,6 +6739,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9984,6 +10012,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -10006,6 +10035,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10148,6 +10178,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10458,6 +10489,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10486,6 +10518,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10725,6 +10758,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -10759,6 +10793,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11009,6 +11044,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
