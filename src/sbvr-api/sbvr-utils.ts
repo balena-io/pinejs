@@ -1371,11 +1371,9 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 						});
 						const { resourceRenames } = models[version];
 						if (resourceRenames) {
-							const resourceName = resolveSynonym($request);
-							if (resourceRenames[resourceName]) {
-								$request.resourceName = sqlNameToODataName(
-									resourceRenames[resourceName],
-								);
+							const resourceRename = resourceRenames[resolveSynonym($request)];
+							if (resourceRename) {
+								$request.resourceName = sqlNameToODataName(resourceRename);
 							}
 						}
 					}
