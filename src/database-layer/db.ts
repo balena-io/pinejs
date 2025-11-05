@@ -166,9 +166,7 @@ export function registerTransactionLockNamespace(
 	transactionLockNamespaceMap.set(namespaceKey, namespaceId);
 }
 
-const maybePrepareCache: {
-	[sqlHash: string]: number;
-} = {};
+const maybePrepareCache = new Map<string, number>();
 const getPreparedName = (sql: Sql): string | undefined => {
 	if (env.db.prepareAfterN === false) {
 		return;
@@ -179,12 +177,12 @@ const getPreparedName = (sql: Sql): string | undefined => {
 		return sqlHash;
 	}
 
-	maybePrepareCache[sqlHash] ??= 0;
-	if (maybePrepareCache[sqlHash] > env.db.prepareAfterN) {
+	const currentCount = maybePrepareCache.get(sqlHash) ?? 0;
+	if (currentCount > env.db.prepareAfterN) {
 		return sqlHash;
 	}
 	// Only increment if we haven't already reached the threshold as we don't care past that point
-	maybePrepareCache[sqlHash]++;
+	maybePrepareCache.set(sqlHash, currentCount + 1);
 };
 
 const atomicExecuteSql: Database['executeSql'] = async function (
