@@ -298,10 +298,11 @@ const collapsePermissionFilters = <T>(
 	return v;
 };
 
-const namespaceRelationships = (
-	relationships: Relationship,
+function namespaceRelationships<T extends Relationship>(
+	relationships: T,
 	alias: string,
-): void => {
+): undefined | T {
+	let ret = relationships;
 	for (const [key, relationship] of Object.entries(
 		relationships as RelationshipInternalNode,
 	)) {
@@ -309,19 +310,27 @@ const namespaceRelationships = (
 			continue;
 		}
 
+		const changedEntry = namespaceRelationships(relationship, alias);
+		if (changedEntry != null) {
+			ret = { ...ret };
+			(ret as RelationshipInternalNode)[key] = changedEntry;
+		}
+
 		let mapping = (relationship as RelationshipLeafNode).$;
 		if (mapping?.length === 2) {
 			mapping = _.cloneDeep(mapping);
-			// we do check the length above, but typescript thinks the second
-			// element could be undefined
 			mapping[1]![0] = `${mapping[1]![0]}$${alias}`;
-			(relationships as RelationshipInternalNode)[`${key}$${alias}`] = {
+
+			ret = { ...ret };
+			(ret as RelationshipInternalNode)[`${key}$${alias}`] = {
 				$: mapping,
 			};
 		}
-		namespaceRelationships(relationship, alias);
 	}
-};
+	if (ret !== relationships) {
+		return ret;
+	}
+}
 
 type PermissionLookup = Dictionary<true | string[]>;
 
@@ -1198,11 +1207,12 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 								return;
 							}
 							for (const relationship of origRelationships) {
-								// TODO: Avoid this cloneDeep when not necessary
+								const origRelationship = relationships[relationship];
 								relationships[`${relationship}$${alias}`] = relationships[
 									relationship
-								] = _.cloneDeep(relationships[relationship]);
-								namespaceRelationships(relationships[relationship], alias);
+								] =
+									namespaceRelationships(origRelationship, alias) ??
+									origRelationship;
 							}
 							return relationships[permissionResourceName];
 						},
