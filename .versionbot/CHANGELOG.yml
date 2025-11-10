@@ -1,4 +1,39 @@
 - commits:
+    - subject: Update pinejs-client-core to 8.4.1
+      hash: fb35a0707998cbbdf4d61dfbcd622f817996e6de
+      body: |
+        Update pinejs-client-core from 8.4.0 to 8.4.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Stop adding white space after comma in $in expressions
+              hash: a0530b427983bab8b826a0e3d313531fa15aa377
+              body: >
+                inExpr = RWS "in" RWS ( listExpr / commonExpr )
+
+                listExpr  = OPEN BWS primitiveLiteral BWS *( COMMA BWS
+                primitiveLiteral BWS ) CLOSE
+
+                COMMA  = "," / "%2C"
+
+                BWS =  f( SP / HTAB / "%20" / "%09" )  ; "bad" whitespace
+              footer:
+                Change-type: patch
+                change-type: patch
+                See: https://docs.oasis-open.org/odata/odata/v4.01/os/abnf/odata-abnf-construction-rules.txt
+                see: https://docs.oasis-open.org/odata/odata/v4.01/os/abnf/odata-abnf-construction-rules.txt
+              author: Thodoris Greasidis
+              nested: []
+          version: pinejs-client-js-8.4.1
+          title: ""
+          date: 2025-11-10T17:12:36.457Z
+  version: 23.2.11
+  title: ""
+  date: 2025-11-10T21:48:31.823Z
+- commits:
     - subject: Avoid deep cloning relationships when hitting additional permissions
         for constrained models
       hash: 87f3eab16ce45346d89731020adbcf7334792d14
@@ -5891,6 +5926,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5913,6 +5949,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6029,6 +6066,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6287,6 +6325,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6315,6 +6354,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6502,6 +6542,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6536,6 +6577,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6760,6 +6802,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10036,6 +10079,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -10058,6 +10102,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10202,6 +10247,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10516,6 +10562,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10544,6 +10591,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10787,6 +10835,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -10821,6 +10870,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11073,6 +11123,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
