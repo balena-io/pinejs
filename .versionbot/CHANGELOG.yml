@@ -1,4 +1,18 @@
 - commits:
+    - subject: Pre-allocate a buffer to improve performance for hashing sql
+      hash: d50220d1083d63be27acd2fc6dbfbd492f7ef361
+      body: |
+        This avoids constantly creating new buffers for each call and the
+        associated GC work
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 23.2.12
+  title: ""
+  date: 2025-11-13T22:43:28.960Z
+- commits:
     - subject: Update pinejs-client-core to 8.4.1
       hash: fb35a0707998cbbdf4d61dfbcd622f817996e6de
       body: |
@@ -5927,6 +5941,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5949,6 +5964,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6066,6 +6082,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6326,6 +6343,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6354,6 +6372,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6543,6 +6562,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6577,6 +6597,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6802,6 +6823,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10080,6 +10102,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -10102,6 +10125,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10247,6 +10271,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10563,6 +10588,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10591,6 +10617,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10836,6 +10863,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -10870,6 +10898,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11123,6 +11152,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
