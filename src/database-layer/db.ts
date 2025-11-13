@@ -167,12 +167,14 @@ export function registerTransactionLockNamespace(
 }
 
 const maybePrepareCache = new Map<string, number>();
+// Pre-allocate a buffer to improve performance when hashing sql / reduce allocations
+const fnv1aOpts = { utf8Buffer: new Uint8Array(256) };
 const getPreparedName = (sql: Sql): string | undefined => {
 	if (env.db.prepareAfterN === false) {
 		return;
 	}
 	// Use a hash to minimize the size of the cache keys
-	const sqlHash = `${fnv1a(sql).toString(36)}${sql.length}`;
+	const sqlHash = `${fnv1a(sql, fnv1aOpts).toString(36)}${sql.length}`;
 	if (env.db.prepareAfterN === true) {
 		return sqlHash;
 	}
