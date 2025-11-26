@@ -1475,7 +1475,7 @@ export const handleODataRequest: Express.Handler = async (req, res, next) => {
 
 		const responses = await promise;
 
-		res.set('Cache-Control', 'no-cache');
+		res.set('Cache-Control', 'no-store, max-age=0');
 		// If we are dealing with a single request unpack the response and respond normally
 		if (req.batch == null || req.batch.length === 0) {
 			let [response] = responses;
