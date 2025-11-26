@@ -180,7 +180,7 @@ const getPreparedName = (sql: Sql): string | undefined => {
 	}
 
 	const currentCount = maybePrepareCache.get(sqlHash) ?? 0;
-	if (currentCount > env.db.prepareAfterN) {
+	if (currentCount >= env.db.prepareAfterN) {
 		return sqlHash;
 	}
 	// Only increment if we haven't already reached the threshold as we don't care past that point
