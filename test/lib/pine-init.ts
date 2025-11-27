@@ -1,6 +1,7 @@
 import express from 'express';
 import { exit } from 'process';
 import * as pine from '@balena/pinejs';
+import bodyParser from 'body-parser';
 
 export type PineTestOptions = {
 	configPath: string;
@@ -21,7 +22,13 @@ export async function init(
 ) {
 	const app = express();
 	app.use(express.urlencoded({ extended: true }));
-	app.use(express.json());
+	app.use(bodyParser.json());
+	app.use((req, _res, next) => {
+		// Ensure req.body is always defined to match body-parser v1 / express v4 behavior
+		// TODO: Remove the reliance on req.body always being defined
+		req.body ??= {};
+		next();
+	});
 
 	if (withLoginRoute) {
 		const { default: expressSession } = await import('express-session');
