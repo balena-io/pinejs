@@ -25,9 +25,8 @@ const generateTypes = async (
 		convertSerialToInteger?: boolean;
 	},
 ) => {
-	const { abstractSqlToTypescriptTypes } = await import(
-		'@balena/abstract-sql-to-typescript/generate'
-	);
+	const { abstractSqlToTypescriptTypes } =
+		await import('@balena/abstract-sql-to-typescript/generate');
 	const abstractSql = await getAbstractSqlModelFromFile(
 		inputFile,
 		program.opts().model,

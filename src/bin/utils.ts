@@ -111,9 +111,8 @@ export const getAbstractSqlModelFromFile = async (
 	} else {
 		throw new Error('Unrecognized config file');
 	}
-	const { generateLfModel, generateAbstractSqlModel } = await import(
-		'../sbvr-api/sbvr-utils.js'
-	);
+	const { generateLfModel, generateAbstractSqlModel } =
+		await import('../sbvr-api/sbvr-utils.js');
 	let lfModel;
 	try {
 		lfModel = generateLfModel(seModel);
