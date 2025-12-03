@@ -13,9 +13,8 @@ const parse = async (inputFile: string, outputFile?: string) => {
 };
 
 const transform = async (inputFile: string, outputFile?: string) => {
-	const { generateLfModel, generateAbstractSqlModel } = await import(
-		'../sbvr-api/sbvr-utils.js'
-	);
+	const { generateLfModel, generateAbstractSqlModel } =
+		await import('../sbvr-api/sbvr-utils.js');
 	const seModel = getSE(inputFile);
 	const lfModel = generateLfModel(seModel);
 	const result = generateAbstractSqlModel(lfModel);
@@ -35,15 +34,13 @@ const runCompile = async (inputFile: string, outputFile?: string) => {
 };
 
 const generateTypes = async (inputFile: string, outputFile?: string) => {
-	const { generateLfModel, generateAbstractSqlModel } = await import(
-		'../sbvr-api/sbvr-utils.js'
-	);
+	const { generateLfModel, generateAbstractSqlModel } =
+		await import('../sbvr-api/sbvr-utils.js');
 	const seModel = getSE(inputFile);
 	const lfModel = generateLfModel(seModel);
 	const abstractSql = generateAbstractSqlModel(lfModel);
-	const { abstractSqlToTypescriptTypes } = await import(
-		'@balena/abstract-sql-to-typescript/generate'
-	);
+	const { abstractSqlToTypescriptTypes } =
+		await import('@balena/abstract-sql-to-typescript/generate');
 	const types = abstractSqlToTypescriptTypes(abstractSql);
 
 	writeAll(types, outputFile);

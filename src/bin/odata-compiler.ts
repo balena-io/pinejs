@@ -10,9 +10,8 @@ const generateAbstractSqlQuery = async (
 	abstractSqlModel: AbstractSqlModel,
 	odata: string,
 ) => {
-	const { memoizedParseOdata, translateUri } = await import(
-		'../sbvr-api/uri-parser.js'
-	);
+	const { memoizedParseOdata, translateUri } =
+		await import('../sbvr-api/uri-parser.js');
 	const odataAST = memoizedParseOdata(odata);
 	const vocabulary = '';
 	return translateUri({

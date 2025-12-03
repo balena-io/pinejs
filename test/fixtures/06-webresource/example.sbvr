@@ -27,12 +27,12 @@ Fact Type: organization has name
 Fact Type: organization has not translated webresource
 	Necessity: each organization has at most one not translated webresource
 	Necessity: each not translated webresource is of exactly one organization.
-	Necessity: each organization that has a not translated webresource, has a not translated webresource that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.
+	Necessity: each organization that has a not translated webresource, has a not translated webresource that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 18874368.
 
 Fact Type: organization has logo image
 	Necessity: each organization has at most one logo image
 	Necessity: each logo image is of exactly one organization.
-	Necessity: each organization that has a logo image, has a logo image that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.
+	Necessity: each organization that has a logo image, has a logo image that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 18874368.
 
 Fact Type: organization releases public artifacts
 Fact Type: organization has private artifacts

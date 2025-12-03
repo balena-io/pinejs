@@ -26,6 +26,7 @@ import type { webResourceHandler } from '@balena/pinejs';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 
 const pipeline = util.promisify(pipelineRaw);
+const MAX_SIZE_SBVR_CONSTRAINT = 18874368;
 
 let pineTask: PineTest;
 describe('06 webresources tests', function () {
@@ -142,7 +143,7 @@ describe('06 webresources tests', function () {
 					// Create a large file by using an image at the head ( so that filetype can identify it as an image ),
 					// and then appending a large chunk
 					const { largeStream, largeFileSize } = await getLargeFileStream(
-						1024 * 1024 * 512 - fileSize,
+						MAX_SIZE_SBVR_CONSTRAINT * 0.95 - fileSize,
 						filePath,
 					);
 
@@ -403,7 +404,7 @@ describe('06 webresources tests', function () {
 
 				it(`deletes ${resourcePath} if transaction size rule is not respected on post`, async () => {
 					const { largeStream } = await getLargeFileStream(
-						1024 * 1024 * 600,
+						MAX_SIZE_SBVR_CONSTRAINT + 10 * 1024 * 1024,
 						filePath,
 					);
 					const res = await supertest(testLocalServer)
@@ -413,14 +414,14 @@ describe('06 webresources tests', function () {
 						.expect(400);
 
 					expect(res.body).to.equal(
-						`It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.`,
+						`It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than ${MAX_SIZE_SBVR_CONSTRAINT}.`,
 					);
 					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
 				it(`deletes ${resourcePath} if transaction size rule is not respected on patch`, async () => {
 					const { largeStream } = await getLargeFileStream(
-						1024 * 1024 * 600,
+						MAX_SIZE_SBVR_CONSTRAINT + 10 * 1024 * 1024,
 						filePath,
 					);
 
@@ -436,7 +437,7 @@ describe('06 webresources tests', function () {
 						.expect(400);
 
 					expect(res.body).to.equal(
-						`It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.`,
+						`It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than ${MAX_SIZE_SBVR_CONSTRAINT}.`,
 					);
 
 					expect(await listAllFilesInBucket()).to.deep.equal([
@@ -455,7 +456,7 @@ describe('06 webresources tests', function () {
 						.expect(400);
 
 					expect(res.body).to.equal(
-						`It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than 540000000.`,
+						`It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to "image/png" or "image/jpg" or "image/jpeg" and has a Size (Type) that is less than ${MAX_SIZE_SBVR_CONSTRAINT}.`,
 					);
 					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
@@ -1208,7 +1209,7 @@ describe('06 webresources tests', function () {
 						})
 						.expect(
 							400,
-							`"It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to \\"image/png\\" or \\"image/jpg\\" or \\"image/jpeg\\" and has a Size (Type) that is less than 540000000."`,
+							`"It is necessary that each organization that has a ${sbvrTranslatedResource}, has a ${sbvrTranslatedResource} that has a Content Type (Type) that is equal to \\"image/png\\" or \\"image/jpg\\" or \\"image/jpeg\\" and has a Size (Type) that is less than ${MAX_SIZE_SBVR_CONSTRAINT}."`,
 						);
 					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
