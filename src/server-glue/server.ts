@@ -33,7 +33,13 @@ if (!process.browser) {
 	app.use('/', serveStatic(path.join(root, 'static')));
 
 	app.use(cookieParser());
-	app.use(bodyParser());
+	app.use(bodyParser.json());
+	app.use((req, _res, next) => {
+		// Ensure req.body is always defined to match body-parser v1 / express v4 behavior
+		// TODO: Remove the reliance on req.body always being defined
+		req.body ??= {};
+		next();
+	});
 	app.use(methodOverride());
 	app.use(
 		expressSession({
