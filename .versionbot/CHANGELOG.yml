@@ -1,4 +1,20 @@
 - commits:
+    - subject: Update body-parser to 2.x, with middleware to keep `req.body ??= {}`
+        behavior
+      hash: 4abc3f07119bd7ee83b275d05740c9b5553f65d8
+      body: |
+        Ideally we would remove the reliance on `req.body` always being defined
+        but that is a larger change and in the meantime it is possible to
+        update with minimal work by keeping a shim
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 23.2.14
+  title: ""
+  date: 2025-12-03T13:08:23.780Z
+- commits:
     - subject: Use smaller maximum webresource multipart upload size on tests
       hash: 524718daa8c2462908260c3fc1214b6fec802f18
       body: ""
@@ -5955,6 +5971,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -5977,6 +5994,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6096,6 +6114,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6360,6 +6379,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6388,6 +6408,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6581,6 +6602,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6615,6 +6637,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6842,6 +6865,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10124,6 +10148,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -10146,6 +10171,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10293,6 +10319,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10613,6 +10640,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10641,6 +10669,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10890,6 +10919,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -10924,6 +10954,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11179,6 +11210,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
