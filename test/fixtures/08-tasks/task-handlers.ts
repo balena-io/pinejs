@@ -33,7 +33,7 @@ export type IncrementDeviceCountParams = FromSchema<
 	typeof incrementDeviceCountParamsSchema
 >;
 
-export const initTaskHandlers = () => {
+export const initTaskHandlers = async () => {
 	tasks.addTaskHandler(
 		'create_device',
 		async (options) => {
@@ -84,5 +84,5 @@ export const initTaskHandlers = () => {
 		incrementDeviceCountParamsSchema,
 	);
 
-	void tasks.worker?.start();
+	await tasks.worker?.start();
 };
