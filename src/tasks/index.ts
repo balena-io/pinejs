@@ -11,7 +11,6 @@ import type TasksModel from './tasks.js';
 import type { Task } from './tasks.js';
 import type { FromSchema } from 'json-schema-to-ts';
 import { importSBVR } from '../server-glue/sbvr-loader.js';
-import { addPineTaskHandlers } from './pine-tasks.js';
 
 export type * from './tasks.js';
 
@@ -125,8 +124,6 @@ export const setup: ConfigLoader.SetupFunction = () => {
 			}
 		},
 	});
-
-	addPineTaskHandlers();
 };
 
 export const config: ConfigLoader.Config = {
