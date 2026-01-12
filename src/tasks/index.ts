@@ -80,6 +80,11 @@ export function setup(): void {
 		return;
 	}
 
+	if (worker != null) {
+		// Don't try to setup multiple times
+		return;
+	}
+
 	const client = sbvrUtils.api[apiRoot];
 	worker = new Worker(client);
 
