@@ -56,23 +56,20 @@ const selectColumns = Object.entries({
 // tasks in parallel up to a certain concurrency limit.
 export class Worker {
 	public handlers = new Map<string, TaskHandler>();
-	private readonly concurrency: number;
+	private currentConcurrency = 0;
 	private readonly interval: number;
 	private running = false;
-	private executing = 0;
 
 	constructor(private readonly client: PinejsClient<TasksModel>) {
-		this.concurrency = tasksEnv.queueConcurrency;
 		this.interval = tasksEnv.queueIntervalMS;
 	}
 
 	// Check if instance can execute more tasks
 	private canExecute(): boolean {
-		return this.executing < this.concurrency && this.handlers.size > 0;
+		return this.running && this.currentConcurrency <= tasksEnv.queueConcurrency;
 	}
 
 	private async execute(task: PartialTask, tx: Db.Tx): Promise<void> {
-		this.executing++;
 		try {
 			// Get specified handler
 			const handler = this.handlers.get(task.is_executed_by__handler);
@@ -127,8 +124,6 @@ export class Worker {
 				err,
 			);
 			process.exit(1);
-		} finally {
-			this.executing--;
 		}
 	}
 
@@ -251,8 +246,12 @@ export class Worker {
 				if (!executed) {
 					await setTimeout(this.interval);
 				}
-				if (this.running) {
+				if (this.canExecute()) {
 					this.poll();
+				} else {
+					console.info('Stopping task worker poller');
+					// If stopping, decrement concurrency count so on start it will be recreated as necessary
+					this.currentConcurrency--;
 				}
 			}
 		})();
@@ -298,12 +297,16 @@ export class Worker {
 			);
 		}
 
-		if (this.running === true) {
-			return;
-		}
 		this.running = true;
-		// Spawn children to poll for and execute tasks
-		for (let i = 0; i < this.concurrency; i++) {
+		// Spawn children to poll for and execute tasks, only spawning additional up to the limit in the case we already have some running
+		for (
+			;
+			this.currentConcurrency < tasksEnv.queueConcurrency;
+			this.currentConcurrency++
+		) {
+			console.info(
+				`Spawning task worker poller ${this.currentConcurrency + 1} of ${tasksEnv.queueConcurrency}`,
+			);
 			this.poll();
 		}
 	}
