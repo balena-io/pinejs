@@ -32,48 +32,14 @@ declare module '../sbvr-api/sbvr-utils.js' {
 	}
 }
 
-export const config: ConfigLoader.Config = {
-	models: [
-		{
-			modelName: apiRoot,
-			apiRoot,
-			modelText,
-			customServerCode: { setup },
-			initSql,
-			migrations: {
-				'22.0.0-timestamps': async (tx, { db }) => {
-					switch (db.engine) {
-						// No need to migrate anything other than postgres
-						case 'postgres':
-							await tx.executeSql('DROP INDEX IF EXISTS idx_task_poll;');
-							await tx.executeSql(`\
-								ALTER TABLE "task"
-								ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
-								ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ,
-								ALTER COLUMN "ended on-time" SET DATA TYPE TIMESTAMPTZ USING "ended on-time"::TIMESTAMPTZ,
-								ALTER COLUMN "is scheduled to execute on-time" SET DATA TYPE TIMESTAMPTZ USING "is scheduled to execute on-time"::TIMESTAMPTZ,
-								ALTER COLUMN "started on-time" SET DATA TYPE TIMESTAMPTZ USING "started on-time"::TIMESTAMPTZ;`);
-							await tx.executeSql(`\
-								CREATE INDEX IF NOT EXISTS idx_task_poll ON task USING btree (
-									"is executed by-handler",
-									"is scheduled to execute on-time" ASC,
-									"id" ASC
-								) WHERE status = 'queued';`);
-							break;
-					}
-				},
-			},
-		},
-	],
-};
-
 export let worker: Worker | null = null;
 
 export function canExecuteTasks() {
 	return sbvrUtils.db.engine === 'postgres' && tasksEnv.queueConcurrency > 0;
 }
 
-export function setup(): void {
+// TODO-Major: stop exporting this
+export const setup: ConfigLoader.SetupFunction = () => {
 	// Async task functionality is only supported on Postgres
 	if (sbvrUtils.db.engine !== 'postgres') {
 		console.warn('Skipping task setup as database not supported');
@@ -161,7 +127,42 @@ export function setup(): void {
 	});
 
 	addPineTaskHandlers();
-}
+};
+
+export const config: ConfigLoader.Config = {
+	models: [
+		{
+			modelName: apiRoot,
+			apiRoot,
+			modelText,
+			customServerCode: { setup },
+			initSql,
+			migrations: {
+				'22.0.0-timestamps': async (tx, { db }) => {
+					switch (db.engine) {
+						// No need to migrate anything other than postgres
+						case 'postgres':
+							await tx.executeSql('DROP INDEX IF EXISTS idx_task_poll;');
+							await tx.executeSql(`\
+								ALTER TABLE "task"
+								ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
+								ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ,
+								ALTER COLUMN "ended on-time" SET DATA TYPE TIMESTAMPTZ USING "ended on-time"::TIMESTAMPTZ,
+								ALTER COLUMN "is scheduled to execute on-time" SET DATA TYPE TIMESTAMPTZ USING "is scheduled to execute on-time"::TIMESTAMPTZ,
+								ALTER COLUMN "started on-time" SET DATA TYPE TIMESTAMPTZ USING "started on-time"::TIMESTAMPTZ;`);
+							await tx.executeSql(`\
+								CREATE INDEX IF NOT EXISTS idx_task_poll ON task USING btree (
+									"is executed by-handler",
+									"is scheduled to execute on-time" ASC,
+									"id" ASC
+								) WHERE status = 'queued';`);
+							break;
+					}
+				},
+			},
+		},
+	],
+};
 
 // Register a task handler
 export function addTaskHandler(

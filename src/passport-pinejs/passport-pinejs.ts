@@ -33,7 +33,7 @@ export const checkPassword: PassportLocal.VerifyFunction = async (
 	}
 };
 
-const setup: ConfigLoader.SetupFunction = async (app: Express.Application) => {
+const setup: ConfigLoader.SetupFunction = async (app) => {
 	if (!process.browser) {
 		const { default: passport } = await import('passport');
 		app.use(passport.initialize());
