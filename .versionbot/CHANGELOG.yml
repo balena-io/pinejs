@@ -1,4 +1,35 @@
 - commits:
+    - subject: Add support for adjusting the task queue interval after initialization
+      hash: 799c389b4566ee8e724364c99b733f210f940529
+      body: |
+        This is necessary as we no longer allow setting up the task system
+        multiple times and hence creating additional workers with separate
+        intervals
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+    - subject: Add support for adjusting the task concurrency after initialization
+      hash: c2ddcadd8b428c32ec823482ac982cf6b69aba70
+      body: |
+        This requires calling `tasks.worker.start()` to increase the
+        concurrency and will be automatically observed when decreasing the
+        concurrency
+
+        This is necessary as we no longer allow setting up the task system
+        multiple times and hence creating additional workers with separate
+        concurrency limits which can result in a much higher concurrency limit
+        than expected
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 23.3.0
+  title: ""
+  date: 2026-01-13T18:08:23.048Z
+- commits:
     - subject: Avoid trying to set up tasks twice
       hash: cf256f4610aeb0d6720790f9fab8845d3d86e0c5
       body: |
@@ -6001,6 +6032,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6023,6 +6055,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6145,6 +6178,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6415,6 +6449,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6443,6 +6478,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6642,6 +6678,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6676,6 +6713,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6906,6 +6944,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10194,6 +10233,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -10216,6 +10256,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10366,6 +10407,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10692,6 +10734,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10720,6 +10763,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10862,6 +10906,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11122,6 +11167,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -11267,6 +11313,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
