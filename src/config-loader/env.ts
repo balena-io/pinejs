@@ -155,7 +155,15 @@ export const migrator = {
 };
 
 export const tasks = {
+	/**
+	 * Increasing the queue concurrency requires calling `tasks.worker.start()` again to apply the new concurrency limit.
+	 * Decreasing the concurrency will be applied automatically.
+	 */
 	queueConcurrency: intVar('PINEJS_QUEUE_CONCURRENCY', 0),
+	/**
+	 * Interval in milliseconds between polling the database for new tasks to execute, changes will be picked up
+	 * automatically although there may be a delay of up to the previous interval time before changes take effect.
+	 */
 	queueIntervalMS: intVar('PINEJS_QUEUE_INTERVAL_MS', 1000),
 };
 
