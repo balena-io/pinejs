@@ -57,12 +57,9 @@ const selectColumns = Object.entries({
 export class Worker {
 	public handlers = new Map<string, TaskHandler>();
 	private currentConcurrency = 0;
-	private readonly interval: number;
 	private running = false;
 
-	constructor(private readonly client: PinejsClient<TasksModel>) {
-		this.interval = tasksEnv.queueIntervalMS;
-	}
+	constructor(private readonly client: PinejsClient<TasksModel>) {}
 
 	// Check if instance can execute more tasks
 	private canExecute(): boolean {
@@ -228,7 +225,10 @@ export class Worker {
 							t."is scheduled to execute on-time" ASC,
 							t."id" ASC
 						LIMIT 1 FOR UPDATE SKIP LOCKED`,
-						[Array.from(this.handlers.keys()), Math.ceil(this.interval / 1000)],
+						[
+							Array.from(this.handlers.keys()),
+							Math.ceil(tasksEnv.queueIntervalMS / 1000),
+						],
 					);
 
 					// Execute task if one was found
@@ -244,7 +244,7 @@ export class Worker {
 				await setTimeout(100);
 			} finally {
 				if (!executed) {
-					await setTimeout(this.interval);
+					await setTimeout(tasksEnv.queueIntervalMS);
 				}
 				if (this.canExecute()) {
 					this.poll();
