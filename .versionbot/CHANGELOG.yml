@@ -1,4 +1,16 @@
 - commits:
+    - subject: Improve typing of `setup` functions
+      hash: 6c07622ba5fd73ea9f75c11982708b3c0e75de69
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 23.3.1
+  title: ""
+  date: 2026-01-13T22:51:52.081Z
+- commits:
     - subject: Add support for adjusting the task queue interval after initialization
       hash: 799c389b4566ee8e724364c99b733f210f940529
       body: |
@@ -6033,6 +6045,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6055,6 +6068,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6178,6 +6192,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6450,6 +6465,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6478,6 +6494,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6679,6 +6696,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6713,6 +6731,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6944,6 +6963,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10234,6 +10254,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -10256,6 +10277,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10407,6 +10429,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10735,6 +10758,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10763,6 +10787,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10906,6 +10931,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11168,6 +11194,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -11313,6 +11340,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
