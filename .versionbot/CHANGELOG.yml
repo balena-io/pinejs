@@ -1,4 +1,20 @@
 - commits:
+    - subject: Move responsibility for initializing webresource tasks to the
+        webresource code
+      hash: 48636d71e048bd4c8d1426e8ec8f62b159f85010
+      body: |
+        This makes far more sense as the tasks code shouldn't need to know
+        about who is using it and should only be responsible for providing the
+        framework for them to use
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 23.3.2
+  title: ""
+  date: 2026-01-14T13:27:14.608Z
+- commits:
     - subject: Improve typing of `setup` functions
       hash: 6c07622ba5fd73ea9f75c11982708b3c0e75de69
       body: ""
@@ -6046,6 +6062,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6068,6 +6085,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6192,6 +6210,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6466,6 +6485,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6494,6 +6514,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6697,6 +6718,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6731,6 +6753,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6963,6 +6986,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10255,6 +10279,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -10277,6 +10302,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10429,6 +10455,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10759,6 +10786,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10787,6 +10815,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10931,6 +10960,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11195,6 +11225,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -11340,6 +11371,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
