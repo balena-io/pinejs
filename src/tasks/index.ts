@@ -2,6 +2,7 @@ import type { Schema } from 'ajv';
 import { type CronExpression, CronExpressionParser } from 'cron-parser';
 import { tasks as tasksEnv } from '../config-loader/env.js';
 import { addPureHook } from '../sbvr-api/hooks.js';
+import * as permissions from '../sbvr-api/permissions.js';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
 import type { ConfigLoader } from '../server-glue/module.js';
 import { ajv, apiRoot } from './common.js';
@@ -11,6 +12,7 @@ import type TasksModel from './tasks.js';
 import type { Task } from './tasks.js';
 import type { FromSchema } from 'json-schema-to-ts';
 import { importSBVR } from '../server-glue/sbvr-loader.js';
+import { BadRequestError, ConflictError } from '../sbvr-api/errors.js';
 
 export type * from './tasks.js';
 
@@ -23,6 +25,13 @@ CREATE INDEX IF NOT EXISTS idx_task_poll ON task USING btree (
 	"is scheduled to execute on-time" ASC,
 	"id" ASC
 ) WHERE status = 'queued';
+
+-- TODO: Remove this once pinejs is able to auto generate partial unique indexes from rules.
+-- It is necessary that each handler that executes a task that is scheduled with a cron expression and has a status that is equal to "queued", executes at most one task that is scheduled with a cron expression and has a status that is equal to "queued".
+CREATE UNIQUE INDEX IF NOT EXISTS "task$/Mt7Ad3mHEm0JFpuaX1BioDwNSWTgsEFOG1igq8EIrk="
+ON "task" ("is executed by-handler")
+WHERE ("is scheduled with-cron expression" IS NOT NULL
+AND 'queued' = "status");
 `;
 
 declare module '../sbvr-api/sbvr-utils.js' {
@@ -164,6 +173,19 @@ export const config: ConfigLoader.Config = {
 							break;
 					}
 				},
+				'23.4.0-unique-cron-tasks': async (tx, { db }) => {
+					switch (db.engine) {
+						// No need to migrate anything other than postgres
+						case 'postgres':
+							await tx.executeSql(`\
+								-- It is necessary that each handler that executes a task that is scheduled with a cron expression and has a status that is equal to "queued", executes at most one task that is scheduled with a cron expression and has a status that is equal to "queued".
+								CREATE UNIQUE INDEX IF NOT EXISTS "task$/Mt7Ad3mHEm0JFpuaX1BioDwNSWTgsEFOG1igq8EIrk="
+								ON "task" ("is executed by-handler")
+								WHERE ("is scheduled with-cron expression" IS NOT NULL
+								AND 'queued' = "status");`);
+							break;
+					}
+				},
 			},
 		},
 	],
@@ -201,4 +223,66 @@ export function addTaskHandler<T extends Schema>(
 		fn,
 		validate: schema != null ? ajv.compile(schema) : undefined,
 	});
+}
+
+// Register a cron task and its handler
+export async function addCronTask(
+	name: string,
+	cron: string,
+	fn: TaskHandler<
+		NonNullable<Task['Read']['is_executed_with__parameter_set']>
+	>['fn'],
+): Promise<void> {
+	addTaskHandler(name, fn);
+
+	const client = sbvrUtils.api[apiRoot];
+	try {
+		await client.post({
+			resource: 'task',
+			passthrough: {
+				req: permissions.root,
+			},
+			options: {
+				returnResource: false,
+			},
+			body: {
+				is_executed_by__handler: name,
+				is_scheduled_with__cron_expression: cron,
+				status: 'queued',
+			},
+		});
+	} catch (err) {
+		if (
+			// TODO: Remove the ConflictError one we bump to https://github.com/balena-io-modules/abstract-sql-compiler/pull/316
+			// since then the rule will throw a proper BadRequestError instead of the generic ConflictError that's atm thrown
+			// from the partial unique index.
+			(err instanceof ConflictError &&
+				err.message === 'Unique key constraint violated') ||
+			(err instanceof BadRequestError &&
+				err.message ===
+					'It is necessary that each handler that executes a task that is scheduled with a cron expression and has a status that is equal to "queued", executes at most one task that is scheduled with a cron expression and has a status that is equal to "queued".')
+		) {
+			await client.patch({
+				resource: 'task',
+				passthrough: {
+					req: permissions.root,
+				},
+				options: {
+					$filter: {
+						is_executed_by__handler: name,
+						status: 'queued',
+						$and: [
+							{ is_scheduled_with__cron_expression: { $ne: null } },
+							{ is_scheduled_with__cron_expression: { $ne: cron } },
+						],
+					},
+				},
+				body: {
+					is_scheduled_with__cron_expression: cron,
+				},
+			});
+		} else {
+			throw err;
+		}
+	}
 }

@@ -7,7 +7,7 @@ import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
 import { env } from '@balena/pinejs';
 import type Model from '@balena/pinejs/out/tasks/tasks.js';
 import { CronExpressionParser } from 'cron-parser';
-import { PINE_TEST_SIGNALS, waitFor } from './lib/common.js';
+import { assertExists, PINE_TEST_SIGNALS, waitFor } from './lib/common.js';
 
 const actorId = 1;
 const fixturesBasePath = import.meta.dirname + '/fixtures/08-tasks/';
@@ -284,6 +284,28 @@ describe('08 task tests', function () {
 			).to.be.oneOf(potentialScheduleTimestamps);
 		});
 
+		it('should update the cron expression of pre-existing cron tasks on init, when a different one is provided in tasks.addCronTask()', async () => {
+			const {
+				body: [queuedTask],
+			} = await pineTest
+				.get({
+					resource: 'task',
+					options: {
+						$select: 'is_scheduled_with__cron_expression',
+						$filter: {
+							status: 'queued',
+							is_executed_by__handler: 'set_device_last_heartbeat',
+							is_scheduled_with__cron_expression: { $ne: null },
+						},
+					},
+				})
+				.expect(200);
+			assertExists(queuedTask);
+			expect(queuedTask).to.deep.equal({
+				is_scheduled_with__cron_expression: '0 0 0,3,6,12 * * *',
+			});
+		});
+
 		it('should not immediately execute tasks scheduled to execute in the future', async () => {
 			// Create a task to create a new device record in 3s
 			const name = randomUUID();
@@ -363,11 +385,126 @@ describe('08 task tests', function () {
 			expect(finalizedTask?.attempt_count).to.equal(attemptLimit);
 		});
 
-		it('should create new tasks for completed tasks with a cron string', async () => {
-			const cron = '0 0 10 1 1 *';
+		it('should not be able to create a second cron task with the same handler [using a POST to task]', async () => {
+			const cron = '0 0 2,4,6,8,12,14 * * *';
+			await pineTest
+				.post({
+					resource: 'task',
+					body: {
+						apikey,
+						key: randomUUID(),
+						is_executed_by__handler: 'create_device',
+						is_executed_with__parameter_set: {
+							name: randomUUID(),
+							type: randomUUID(),
+						},
+						is_scheduled_with__cron_expression: cron,
+					},
+				})
+				.expect((res) => {
+					expect(res.statusCode).to.be.oneOf([400, 409]);
+					if (res.statusCode === 409) {
+						expect([res.statusCode, res.text]).to.deep.equal([
+							409,
+							'"Unique key constraint violated"',
+						]);
+					} else {
+						expect([res.statusCode, res.text]).to.deep.equal([
+							400,
+							'"It is necessary that each handler that executes a task that is scheduled with a cron expression and has a status that is equal to \\"queued\\", executes at most one task that is scheduled with a cron expression and has a status that is equal to \\"queued\\"."',
+						]);
+					}
+				});
+			// TODO: This should become v once we bump to https://github.com/balena-io-modules/abstract-sql-compiler/pull/316
+			// .expect(
+			// 	400,
+			// 	'"It is necessary that each handler that executes a task that is scheduled with a cron expression and has a status that is equal to \\"queued\\", executes at most one task that is scheduled with a cron expression and has a status that is equal to \\"queued\\"."',
+			// );
+		});
 
-			// Test both succeeded and failure cases
-			for (const status of ['succeeded', 'failed']) {
+		it(`should be able to stop recurrent tasks by marking it as cancelled `, async () => {
+			await pineTest
+				.patch({
+					resource: 'task',
+					options: {
+						$filter: {
+							status: 'queued',
+							is_executed_by__handler: 'create_device',
+							is_scheduled_with__cron_expression: { $ne: null },
+						},
+					},
+					body: {
+						status: 'cancelled',
+					},
+				})
+				.expect(200);
+
+			const {
+				body: [cancelledTask],
+			} = await pineTest
+				.get({
+					resource: 'task',
+					options: {
+						$select: ['id', 'is_scheduled_to_execute_on__time'],
+						$filter: {
+							status: 'cancelled',
+							is_executed_by__handler: 'create_device',
+							is_scheduled_with__cron_expression: { $ne: null },
+						},
+						$orderby: { id: 'desc' },
+					},
+				})
+				.expect(200);
+			assertExists(cancelledTask);
+
+			// Wait unil when the task was supposed to get executed
+			const scheduledExecutionTime = new Date(
+				cancelledTask.is_scheduled_to_execute_on__time,
+			);
+			await setTimeout(
+				Math.max(scheduledExecutionTime.getTime() - Date.now(), 0) +
+					env.tasks.queueIntervalMS,
+			);
+
+			// check that the cancelled task was not exexuted
+			const { body: refetchedCancelledTask } = await pineTest
+				.get({
+					resource: 'task',
+					id: cancelledTask.id,
+					options: {
+						$select: ['status', 'started_on__time'],
+					},
+				})
+				.expect(200);
+			assertExists(refetchedCancelledTask);
+			expect(refetchedCancelledTask).to.deep.equal({
+				status: 'cancelled',
+				started_on__time: null,
+			});
+			// check that no new task was added
+			const {
+				body: [newQueuedTask],
+			} = await pineTest
+				.get({
+					resource: 'task',
+					options: {
+						$select: ['id', 'is_scheduled_to_execute_on__time'],
+						$filter: {
+							id: { $ge: cancelledTask.id },
+							status: 'queued',
+							is_executed_by__handler: 'create_device',
+							is_scheduled_with__cron_expression: { $ne: null },
+						},
+					},
+				})
+				.expect(200);
+			expect(newQueuedTask).to.be.undefined;
+		});
+
+		// Test both succeeded and failure cases
+		for (const status of ['succeeded', 'failed']) {
+			it(`should be able to create new tasks with a cron string where there are pre-existing tasks completed with status ${status}`, async () => {
+				const cron = '0 0 10 1 1 *';
 				const handler = status === 'succeeded' ? 'create_device' : 'will_fail';
 				const name = randomUUID();
 				await createTask(pineTest, apikey, {
@@ -404,8 +541,8 @@ describe('08 task tests', function () {
 						queuedTask?.is_scheduled_to_execute_on__time === nextExecutionDate
 					);
 				}, env.tasks.queueIntervalMS);
-			}
-		});
+			});
+		}
 
 		it('should not allow tasks with invalid handler params', async () => {
 			// Handler requires 'name' and 'type' params, but passing 'foo' param
