@@ -1,7 +1,7 @@
 Vocabulary: tasks
 
 Term: id
-    Concept Type: Big Serial (Type)
+	Concept Type: Big Serial (Type)
 Term: actor
 	Concept Type: Integer (Type)
 Term: attempt count
@@ -31,6 +31,7 @@ Fact type: task has key
 Fact type: task is created by actor
 	Necessity: each task is created by exactly one actor
 Fact type: task is executed by handler
+	Synonymous Form: handler executes task
 	Necessity: each task is executed by exactly one handler
 Fact type: task is executed with parameter set
 	Necessity: each task is executed with at most one parameter set
@@ -53,3 +54,4 @@ Fact type: task has attempt limit
 	Necessity: each task has exactly one attempt limit
 	Necessity: each task has an attempt limit that is greater than or equal to 1
 
+Rule: It is necessary that each handler that executes a task that is scheduled with a cron expression and has a status that is equal to "queued", executes at most one task that is scheduled with a cron expression and has a status that is equal to "queued".
