@@ -192,8 +192,8 @@ export class Worker {
 
 	// Calculate next attempt time using exponential backoff
 	private getNextAttemptTime(attempt: number): Date | null {
-		const delay = Math.ceil(Math.exp(Math.min(10, attempt)));
-		return new Date(Date.now() + delay);
+		const delayMS = Math.ceil(Math.exp(Math.min(10, attempt))) * 1000;
+		return new Date(Date.now() + delayMS);
 	}
 
 	// Poll for tasks and execute them
