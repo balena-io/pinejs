@@ -585,9 +585,9 @@ declare module '../sbvr-api/sbvr-utils.js' {
 	}
 }
 
-const setup: ConfigLoader.SetupFunction = () => {
+const setup: ConfigLoader.SetupFunction = async () => {
 	addDeleteFileTaskHandler();
-	void tasksWorker?.start();
+	await tasksWorker?.start();
 };
 
 export const config: ConfigLoader.Config = {
