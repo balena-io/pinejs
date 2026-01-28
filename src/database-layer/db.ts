@@ -107,6 +107,13 @@ export interface Database extends BaseDatabase {
 	) => Promise<Result>;
 	transaction: TransactionFn;
 	readTransaction: TransactionFn;
+	on?: (
+		name: 'notification',
+		fn: (...args: any[]) => Promise<void>,
+		options?: {
+			channel?: string;
+		},
+	) => void;
 }
 
 interface EngineParams {
@@ -752,9 +759,61 @@ if (maybePg != null) {
 				`);
 			}
 		}
+
+		// Connect and listen for notifications
+		async function listen(
+			channel: string,
+			fn: (...args: any[]) => Promise<void>,
+		) {
+			let listenerClient: Pg.PoolClient | null = null;
+
+			// Clean up and reconnect listener
+			const reconnect = () => {
+				try {
+					listenerClient?.release();
+				} catch (err) {
+					// Ignore listener client release errors
+				}
+				setTimeout(() => {
+					void listen(channel, fn);
+				}, 1000);
+			};
+
+			try {
+				listenerClient = await pool.connect();
+				listenerClient.on('end', reconnect);
+				listenerClient.on('notification', (msg) => {
+					if (msg.channel === channel) {
+						void fn(msg).catch((err) => {
+							console.error(`Error handling message for '${channel}':`, err);
+						});
+					}
+				});
+				await listenerClient.query(`LISTEN "${channel}"`);
+			} catch (err) {
+				console.error(
+					`Error setting up listener client for '${channel}':`,
+					err,
+				);
+				reconnect();
+			}
+		}
+
 		return {
 			engine: Engines.postgres,
 			executeSql: atomicExecuteSql,
+			on: async (name, fn, options) => {
+				if (name !== 'notification') {
+					throw new Error(`Unsupported listener type: ${name}`);
+				} else if (options?.channel == null) {
+					throw new Error('Missing channel option for notification listener');
+				} else if (options.channel.includes('"')) {
+					throw new Error(
+						`Invalid channel name for task LISTEN: ${options.channel}`,
+					);
+				}
+				await listen(options.channel, fn);
+			},
 			transaction: createTransaction(async (stackTraceErr, timeoutMS) => {
 				const client = await pool.connect();
 				const tx = new PostgresTx(client, false, stackTraceErr, timeoutMS);
