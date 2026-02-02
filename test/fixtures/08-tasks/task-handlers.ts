@@ -84,5 +84,5 @@ export const initTaskHandlers = () => {
 		incrementDeviceCountParamsSchema,
 	);
 
-	void tasks.worker?.start();
+	tasks.worker?.start();
 };

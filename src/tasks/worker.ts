@@ -262,7 +262,7 @@ export class Worker {
 	}
 
 	// Start polling for tasks
-	public async start(): Promise<void> {
+	public start(): void {
 		// Tasks only support postgres for now
 		if (sbvrUtils.db.engine !== 'postgres') {
 			throw new Error(
@@ -270,6 +270,28 @@ export class Worker {
 			);
 		}
 
+		this.running = true;
+		// Spawn children to poll for and execute tasks, only spawning additional up to the limit in the case we already have some running
+		for (
+			;
+			this.currentConcurrency < tasksEnv.queueConcurrency;
+			this.currentConcurrency++
+		) {
+			console.info(
+				`Spawning task worker poller ${this.currentConcurrency + 1} of ${tasksEnv.queueConcurrency}`,
+			);
+			this.poll();
+		}
+	}
+
+	/**
+	 * This should be called after all handlers should have been registered in order to assert
+	 * that there are no tasks in the database with handlers that have not been registered and
+	 * will therefore never be executed as that could cause unexpected behavior.
+	 *
+	 * If any such tasks are found, an error is thrown.
+	 */
+	public async assertNoUnknownHandlers(): Promise<void> {
 		// Check for any pending tasks with unknown handlers
 		const tasksWithUnknownHandlers = await this.client.get({
 			resource: 'task',
@@ -295,19 +317,6 @@ export class Worker {
 					.map((task) => `${task.id}(${task.is_executed_by__handler})`)
 					.join(', ')}`,
 			);
-		}
-
-		this.running = true;
-		// Spawn children to poll for and execute tasks, only spawning additional up to the limit in the case we already have some running
-		for (
-			;
-			this.currentConcurrency < tasksEnv.queueConcurrency;
-			this.currentConcurrency++
-		) {
-			console.info(
-				`Spawning task worker poller ${this.currentConcurrency + 1} of ${tasksEnv.queueConcurrency}`,
-			);
-			this.poll();
 		}
 	}
 }
