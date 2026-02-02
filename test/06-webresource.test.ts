@@ -20,7 +20,7 @@ import {
 	DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
 import { intVar, requiredVar } from '@balena/env-parsing';
-import { assertExists } from './lib/common.js';
+import { assertExists, PINE_TEST_SIGNALS } from './lib/common.js';
 import { PineTest } from 'pinejs-client-supertest';
 import type { webResourceHandler } from '@balena/pinejs';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
@@ -59,6 +59,8 @@ describe('06 webresources tests', function () {
 				app: testLocalServer,
 			},
 		);
+
+		pineServer.send(PINE_TEST_SIGNALS.START_TASK_WORKER);
 	});
 
 	after(async () => {

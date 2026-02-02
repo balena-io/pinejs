@@ -16,7 +16,7 @@ import { errors, permissions } from '../server-glue/module.js';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';
 import { TypedError } from 'typed-error';
 import type { Resolvable } from '../sbvr-api/common-types.js';
-import { canExecuteTasks, worker as tasksWorker } from '../tasks/index.js';
+import { canExecuteTasks } from '../tasks/index.js';
 import { importSBVR } from '../server-glue/sbvr-loader.js';
 import type WebresourceModel from './webresource.js';
 import { isMultipartUploadAvailable } from './multipartUpload.js';
@@ -587,7 +587,6 @@ declare module '../sbvr-api/sbvr-utils.js' {
 
 const setup: ConfigLoader.SetupFunction = () => {
 	addDeleteFileTaskHandler();
-	void tasksWorker?.start();
 };
 
 export const config: ConfigLoader.Config = {
