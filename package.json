@@ -20,7 +20,11 @@
     "webpack-build": "npm run webpack-browser && npm run webpack-module && npm run webpack-server",
     "lint": "balena-lint -t tsconfig.dev.json -e js -e ts src test build typings Gruntfile.cts && npx tsc --project tsconfig.dev.json --noEmit",
     "test": "npm run build && npm run lint && npm run webpack-build && npm run test:compose && npm run test:generated-types",
-    "test:compose": "trap 'docker compose -f docker-compose.npm-test.yml down ; echo Stopped ; exit 0' INT; docker compose -f docker-compose.npm-test.yml up -d && sleep 2 && DATABASE_URL=postgres://docker:docker@localhost:5431/postgres PINEJS_WEBRESOURCE_MAXFILESIZE=31457280 S3_ENDPOINT=http://localhost:43680 S3_ACCESS_KEY=USERNAME S3_SECRET_KEY=PASSWORD S3_STORAGE_ADAPTER_BUCKET=balena-pine-web-resources S3_REGION=us-east-1 PINEJS_QUEUE_CONCURRENCY=1 TZ=UTC PINEJS_WEBRESOURCE_MULTIPART_ENABLED=true npx mocha",
+    "test:start": "DATABASE_URL=postgres://docker:docker@localhost:5431/postgres PINEJS_WEBRESOURCE_MAXFILESIZE=31457280 S3_ENDPOINT=http://localhost:43680 S3_ACCESS_KEY=USERNAME S3_SECRET_KEY=PASSWORD S3_STORAGE_ADAPTER_BUCKET=balena-pine-web-resources S3_REGION=us-east-1 PINEJS_QUEUE_CONCURRENCY=1 TZ=UTC PINEJS_WEBRESOURCE_MULTIPART_ENABLED=true npx mocha",
+    "fasttest-build": "docker compose -f docker-compose.npm-test.yml up -d",
+    "fasttest": "npm run build && npm run test:start",
+    "fasttest-cleanup": "docker compose -f docker-compose.npm-test.yml down",
+    "test:compose": "trap 'npm run fasttest-cleanup ; echo Stopped ; exit 0' INT; npm run fasttest-build && sleep 2 && npm run test:start",
     "test:generated-types": "npm run generate-types && git diff --exit-code ./src/sbvr-api/user.ts ./src/migrator/migrations.ts ./src/sbvr-api/dev.ts",
     "lint-fix": "balena-lint -t tsconfig.dev.json -e js -e ts --fix src test build typings Gruntfile.cts",
     "generate-types": "node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/user.sbvr ./src/sbvr-api/user.ts && node ./bin/sbvr-compiler.js generate-types ./src/migrator/migrations.sbvr ./src/migrator/migrations.ts && node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/dev.sbvr ./src/sbvr-api/dev.ts && node ./bin/sbvr-compiler.js generate-types ./src/tasks/tasks.sbvr ./src/tasks/tasks.ts && node ./bin/sbvr-compiler.js generate-types ./src/webresource-handler/webresource.sbvr ./src/webresource-handler/webresource.ts && balena-lint -t tsconfig.dev.json --fix ./src/sbvr-api/user.ts ./src/migrator/migrations.ts ./src/sbvr-api/dev.ts"
