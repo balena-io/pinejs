@@ -93,11 +93,13 @@ async function runApp(processArgs: PineTestOptions) {
 			initRoutes(app);
 		}
 
+		await tasks.worker?.assertNoUnknownHandlers();
+
 		if (process.send) {
 			process.send({ init: 'ready' });
 		}
 
-		process.on('message', async (message) => {
+		process.on('message', (message) => {
 			if (message === PINE_TEST_SIGNALS.STOP_TASK_WORKER) {
 				// This avoids the worker from picking up any new tasks
 				// Useful for stopping running process on a sigterm, for example
@@ -105,7 +107,7 @@ async function runApp(processArgs: PineTestOptions) {
 			}
 
 			if (message === PINE_TEST_SIGNALS.START_TASK_WORKER) {
-				await tasks.worker?.start();
+				tasks.worker?.start();
 			}
 		});
 	} catch (e) {
