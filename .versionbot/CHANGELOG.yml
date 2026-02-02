@@ -1,4 +1,21 @@
 - commits:
+    - subject: "Tasks: separate the check for unknown handlers"
+      hash: a4354ff241d5520270c5a1b4948339261731d3a3
+      body: |
+        This allows for registering handlers/starting the task system without
+        first having to wait for/ensure all handlers are registered, avoiding
+        race conditions and general errors associated with that whilst keeping
+        the ability to have the safety check to ensure there aren't any
+        unexpected/dangling tasks
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 23.3.4
+  title: ""
+  date: 2026-02-02T17:04:03.543Z
+- commits:
     - subject: "Tasks: Calculate exponential backoff using ms"
       hash: a97ff20dad92e2305d55694cc38d5b2ef66a6767
       body: ""
@@ -6076,6 +6093,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6098,6 +6116,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6224,6 +6243,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6502,6 +6522,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6530,6 +6551,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6737,6 +6759,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6771,6 +6794,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7005,6 +7029,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10301,6 +10326,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -10323,6 +10349,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10477,6 +10504,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10811,6 +10839,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10839,6 +10868,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10985,6 +11015,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11253,6 +11284,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -11398,6 +11430,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
