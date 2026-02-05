@@ -1,5 +1,5 @@
 import type { Schema } from 'ajv';
-import { CronExpressionParser } from 'cron-parser';
+import { type CronExpression, CronExpressionParser } from 'cron-parser';
 import { tasks as tasksEnv } from '../config-loader/env.js';
 import { addPureHook } from '../sbvr-api/hooks.js';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
@@ -70,30 +70,40 @@ export const setup: ConfigLoader.SetupFunction = () => {
 			request.values.attempt_count = 0;
 			request.values.attempt_limit ??= 1;
 
+			const minAllowedScheduledTime = new Date(
+				Date.now() + tasksEnv.queueIntervalMS,
+			);
+
 			if (request.values.is_scheduled_with__cron_expression != null) {
+				let cronExpression: CronExpression | undefined;
 				try {
 					// always validate the cron expression when provided.
-					const cronExpression = CronExpressionParser.parse(
+					cronExpression = CronExpressionParser.parse(
 						request.values.is_scheduled_with__cron_expression,
 					);
-					// Set a scheduled start date if missing, using the cron expression after we validated it.
-					request.values.is_scheduled_to_execute_on__time ??= cronExpression
-						.next()
-						.toISOString();
 				} catch {
 					throw new Error(
 						`Invalid cron expression: ${request.values.is_scheduled_with__cron_expression}`,
 					);
 				}
+				// Set a scheduled start date if missing, using the cron expression after we validated it.
+				if (request.values.is_scheduled_to_execute_on__time == null) {
+					let nextScheduledRunTime = cronExpression.next().toDate();
+					if (nextScheduledRunTime < minAllowedScheduledTime) {
+						// Reschedule it for the next run, so that the task creation doesn't fail.
+						nextScheduledRunTime = cronExpression.next().toDate();
+					}
+					request.values.is_scheduled_to_execute_on__time =
+						nextScheduledRunTime.toISOString();
+				}
 			}
 
 			// Assert that the provided start time is far enough in the future
 			if (request.values.is_scheduled_to_execute_on__time != null) {
-				const now = new Date(Date.now() + tasksEnv.queueIntervalMS);
 				const startTime = new Date(
 					request.values.is_scheduled_to_execute_on__time,
 				);
-				if (startTime < now) {
+				if (startTime < minAllowedScheduledTime) {
 					throw new Error(
 						`Task scheduled start time must be greater than ${tasksEnv.queueIntervalMS} milliseconds in the future`,
 					);
