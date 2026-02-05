@@ -1059,13 +1059,21 @@ export const logger: {
 	[vocab: string]: Console;
 } = {};
 
+const getCustomHeaders = (
+	headers: Express.Request['headers'] | undefined,
+): Express.Request['headers'] => {
+	return Object.fromEntries(
+		Object.entries(headers ?? []).filter(([key]) => key.startsWith('x-')),
+	);
+};
+
 // We default to guest only permissions if no req object is passed in
 export const runURI = async (
 	method: string,
 	uri: string,
 	body: AnyObject = {},
 	tx?: Db.Tx,
-	req?: permissions.PermissionReq,
+	req?: permissions.PermissionReq & Partial<Express.Request>,
 	custom?: AnyObject,
 ): Promise<PromiseResultTypes> => {
 	const [, apiRoot] = uri.split('/', 2);
@@ -1108,6 +1116,8 @@ export const runURI = async (
 		params: {},
 		query: {},
 		tx,
+		headers: getCustomHeaders(req?.headers),
+		ip: req?.ip,
 	} as any;
 
 	const { promise } = runODataRequest(emulatedReq, apiRoot);
