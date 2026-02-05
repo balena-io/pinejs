@@ -70,18 +70,16 @@ export const setup: ConfigLoader.SetupFunction = () => {
 			request.values.attempt_count = 0;
 			request.values.attempt_limit ??= 1;
 
-			// Set scheduled start time using cron expression if provided
-			if (
-				request.values.is_scheduled_with__cron_expression != null &&
-				request.values.is_scheduled_to_execute_on__time == null
-			) {
+			if (request.values.is_scheduled_with__cron_expression != null) {
 				try {
-					request.values.is_scheduled_to_execute_on__time =
-						CronExpressionParser.parse(
-							request.values.is_scheduled_with__cron_expression,
-						)
-							.next()
-							.toISOString();
+					// always validate the cron expression when provided.
+					const cronExpression = CronExpressionParser.parse(
+						request.values.is_scheduled_with__cron_expression,
+					);
+					// Set a scheduled start date if missing, using the cron expression after we validated it.
+					request.values.is_scheduled_to_execute_on__time ??= cronExpression
+						.next()
+						.toISOString();
 				} catch {
 					throw new Error(
 						`Invalid cron expression: ${request.values.is_scheduled_with__cron_expression}`,
