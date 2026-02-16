@@ -1,17 +1,17 @@
-import type { ConfigLoader } from '@balena/pinejs';
+import type { ConfigLoader, Migrator } from '@balena/pinejs';
 
 const apiRoot = 'example';
 const modelName = 'example';
 const modelFile = import.meta.dirname + '/example.sbvr';
 
-const asyncSpammer = {
-	asyncFn: async (tx: any) => {
+const asyncSpammer: Migrator.AsyncMigration = {
+	asyncFn: async (tx) => {
 		const staticSql = `\
 		select pg_sleep(1);
 	`;
-		return await tx.executeSql(staticSql);
+		return (await tx.executeSql(staticSql)).rowsAffected;
 	},
-	syncFn: async (tx: any) => {
+	syncFn: async (tx) => {
 		const staticSql = `\
 		select pg_sleep(1);
 	`;
@@ -23,10 +23,10 @@ const asyncSpammer = {
 	backoffDelayMS: 50, // aggressive small delays
 	errorThreshold: 15,
 	finalize: false,
-	type: 'async',
+	type: 'async' as Migrator.MigrationCategories.async,
 };
 
-const asyncSpammers: { [key: string]: object } = {};
+const asyncSpammers: Migrator.RunnableAsyncMigrations = {};
 
 for (let spammerKey = 2; spammerKey < 20; spammerKey++) {
 	const key: string = spammerKey.toString().padStart(4, '0') + '-async-spammer';
