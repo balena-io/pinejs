@@ -259,6 +259,14 @@ const $run = async (
 												);
 											},
 										);
+										if (
+											typeof migratedRows !== 'number' ||
+											!Number.isInteger(migratedRows)
+										) {
+											throw new Error(
+												`Async migration function returned invalid migrated row count, got: ${typeof migratedRows}`,
+											);
+										}
 										migrationState.migrated_row_count += migratedRows;
 										if (migratedRows === 0) {
 											// when all rows have been catched up once we only catch up less frequently
