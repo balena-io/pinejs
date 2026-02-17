@@ -1,4 +1,18 @@
 - commits:
+    - subject: Fix the flakiness of the scheduled task creation test
+      hash: a2ecf40b91f6a927b14d23d635b3f4a1c01d7ffb
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        See: https://balena.fibery.io/Work/Project/961
+        see: https://balena.fibery.io/Work/Project/961
+      author: Thodoris Greasidis
+      nested: []
+  version: 23.3.9
+  title: ""
+  date: 2026-02-17T12:48:27.607Z
+- commits:
     - subject: "Migrations: handle invalid return from async migration fns"
       hash: 612793444b68501f6d0e28fa9638d5e311f54887
       body: ""
@@ -6158,6 +6172,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6180,6 +6195,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6311,6 +6327,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6599,6 +6616,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6627,6 +6645,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6844,6 +6863,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6878,6 +6898,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7117,6 +7138,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10423,6 +10445,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -10445,6 +10468,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10604,6 +10628,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10948,6 +10973,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10976,6 +11002,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11127,6 +11154,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11405,6 +11433,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -11550,6 +11579,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
