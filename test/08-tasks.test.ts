@@ -228,12 +228,15 @@ describe('08 task tests', function () {
 		it('should set scheduled execution time when cron expression is provided [using a POST to task]', async () => {
 			// Create a task to create a new device record every 5s
 			const cron = `*/5 * * * * *`;
-			const expectedSchedule = new Date(
-				Math.max(
-					CronExpressionParser.parse(cron).next().getTime(),
-					Date.now() + env.tasks.queueIntervalMS,
-				),
-			);
+			let expectedScheduleTimestamp = CronExpressionParser.parse(cron)
+				.next()
+				.getTime();
+			if (expectedScheduleTimestamp - Date.now() < env.tasks.queueIntervalMS) {
+				// if the next schedule is too close to now(), we use the next timestamp of the schedule
+				expectedScheduleTimestamp = CronExpressionParser.parse(cron)
+					.next()
+					.getTime();
+			}
 			const task = await createTask(pineTest, apikey, {
 				is_executed_by__handler: 'create_device',
 				is_executed_with__parameter_set: {
@@ -256,7 +259,7 @@ describe('08 task tests', function () {
 			// Check the calculated scheduled time matches the expected time
 			expect(
 				new Date(task.is_scheduled_to_execute_on__time).getTime(),
-			).to.equal(expectedSchedule.getTime());
+			).to.equal(expectedScheduleTimestamp);
 		});
 
 		it('should not immediately execute tasks scheduled to execute in the future', async () => {
