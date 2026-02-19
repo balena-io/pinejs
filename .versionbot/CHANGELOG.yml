@@ -1,4 +1,26 @@
 - commits:
+    - subject: Update generated type comments
+      hash: 96be68f6c82be7b976f68745e26b4aa48bd82303
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: joshbwlng
+      nested: []
+    - subject: "Add id-token: write permission for NPM OIDC publishing"
+      hash: e46ea2d4597fb53f15c52db805819685e42a8780
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 23.3.10
+  title: ""
+  date: 2026-02-19T03:00:53.543Z
+- commits:
     - subject: Fix the flakiness of the scheduled task creation test
       hash: a2ecf40b91f6a927b14d23d635b3f4a1c01d7ffb
       body: ""
@@ -6173,6 +6195,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6195,6 +6218,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6327,6 +6351,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6617,6 +6642,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6645,6 +6671,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6864,6 +6891,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6898,6 +6926,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7138,6 +7167,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10446,6 +10476,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -10468,6 +10499,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10628,6 +10660,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10974,6 +11007,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -11002,6 +11036,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11154,6 +11189,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11434,6 +11470,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -11579,6 +11616,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
