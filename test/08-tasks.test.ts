@@ -228,14 +228,36 @@ describe('08 task tests', function () {
 		it('should set scheduled execution time when cron expression is provided [using a POST to task]', async () => {
 			// Create a task to create a new device record every 5s
 			const cron = `*/5 * * * * *`;
-			let expectedScheduleTimestamp = CronExpressionParser.parse(cron)
-				.next()
-				.getTime();
-			if (expectedScheduleTimestamp - Date.now() < env.tasks.queueIntervalMS) {
-				// if the next schedule is too close to now(), we use the next timestamp of the schedule
-				expectedScheduleTimestamp = CronExpressionParser.parse(cron)
-					.next()
-					.getTime();
+			const parsedCron = CronExpressionParser.parse(cron);
+			const initialExpectedScheduleTimestamp = parsedCron.next().getTime();
+			let potentialScheduleTimestamps = [initialExpectedScheduleTimestamp];
+
+			const timeToNextRun = initialExpectedScheduleTimestamp - Date.now();
+			const maxExpectedCreateTaskResponseTime = 200;
+			if (
+				timeToNextRun <
+				env.tasks.queueIntervalMS + maxExpectedCreateTaskResponseTime
+			) {
+				// Since
+				// * CronExpressionParser.parse() can take ~50ms
+				// * createTask() can take ~150ms
+				// * the cron job of this test is on purpose every 5s
+				// * queueIntervalMS is 1000ms
+				// there is a legitimate race condition between the expected execution time calculated by
+				// the test vs the one calculated within the hook, which can occur often enough.
+				// As a result, in order to avoid the test being flaky, when the timings are too close,
+				// we allow the is_scheduled_to_execute_on__time to either match our initial run expectation or the next of it.
+				// The race condition exists both when timeToNextRun < 1000ms and when it's just above it eg 1050ms
+				// and as a result we also need to take the maxExpectedCreateTaskResponseTime into account.
+				const nextPotentialScheduleTimestamp = parsedCron.next().getTime();
+				if (
+					Math.abs(timeToNextRun - env.tasks.queueIntervalMS) <
+					maxExpectedCreateTaskResponseTime
+				) {
+					potentialScheduleTimestamps.push(nextPotentialScheduleTimestamp);
+				} else {
+					potentialScheduleTimestamps = [nextPotentialScheduleTimestamp];
+				}
 			}
 			const task = await createTask(pineTest, apikey, {
 				is_executed_by__handler: 'create_device',
@@ -259,7 +281,7 @@ describe('08 task tests', function () {
 			// Check the calculated scheduled time matches the expected time
 			expect(
 				new Date(task.is_scheduled_to_execute_on__time).getTime(),
-			).to.equal(expectedScheduleTimestamp);
+			).to.be.oneOf(potentialScheduleTimestamps);
 		});
 
 		it('should not immediately execute tasks scheduled to execute in the future', async () => {
