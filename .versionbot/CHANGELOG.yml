@@ -1,4 +1,18 @@
 - commits:
+    - subject: Add the addCronTask helper to make registering cron tasks easier
+      hash: a132a08fc083f87de4e9ccdc0f03b0962c3b5ac9
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+        See: https://balena.fibery.io/Work/Project/961
+        see: https://balena.fibery.io/Work/Project/961
+      author: Thodoris Greasidis
+      nested: []
+  version: 23.4.0
+  title: ""
+  date: 2026-02-26T16:52:11.844Z
+- commits:
     - subject: Fix the flakiness of the cron task creation test
       hash: e0716d4c749c6fec659aa95ed16b6c462d5a4b44
       body: ""
@@ -6211,6 +6225,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6233,6 +6248,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6367,6 +6383,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6661,6 +6678,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6689,6 +6707,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6912,6 +6931,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6946,6 +6966,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7188,6 +7209,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10500,6 +10522,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -10522,6 +10545,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10684,6 +10708,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11034,6 +11059,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -11062,6 +11088,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11216,6 +11243,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11500,6 +11528,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -11645,6 +11674,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
