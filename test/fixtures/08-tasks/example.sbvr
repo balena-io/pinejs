@@ -6,6 +6,9 @@ Term: name
 Term: note
 	  Concept Type: Text (Type)
 
+Term: last heartbeat
+	Concept Type: Date Time (Type)
+
 Term: type
 	  Concept Type: Short Text (Type)
 
@@ -19,6 +22,12 @@ Fact Type: device has name
 
 Fact Type: device has note
 	 Necessity: each device has at most one note.
+
+Fact Type: device has note
+	 Necessity: each device has at most one note.
+
+Fact type: device has last heartbeat
+	Necessity: each device has at most one last heartbeat.
 
 Fact Type: device has type
 	 Necessity: each device has exactly one type.

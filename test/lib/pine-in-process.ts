@@ -85,7 +85,7 @@ async function runApp(processArgs: PineTestOptions) {
 		// load task handlers
 		if (processArgs.taskHandlersPath) {
 			const { initTaskHandlers } = await import(processArgs.taskHandlersPath);
-			initTaskHandlers();
+			await initTaskHandlers();
 		}
 
 		if (processArgs.routesPath) {
