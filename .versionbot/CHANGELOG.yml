@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency @types/supertest to v7
+      hash: dffa79b81b0aebdbc7ef961fec604a4afecd4c1a
+      body: |
+        Update @types/supertest from 6.0.3 to 7.2.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 23.4.1
+  title: ""
+  date: 2026-03-04T14:02:15.609Z
+- commits:
     - subject: Add the addCronTask helper to make registering cron tasks easier
       hash: a132a08fc083f87de4e9ccdc0f03b0962c3b5ac9
       body: ""
@@ -6226,6 +6239,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6248,6 +6262,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6383,6 +6398,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6679,6 +6695,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6707,6 +6724,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6932,6 +6950,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6966,6 +6985,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7209,6 +7229,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10523,6 +10544,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -10545,6 +10567,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10708,6 +10731,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11060,6 +11084,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -11088,6 +11113,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11243,6 +11269,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11529,6 +11556,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -11674,6 +11702,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
