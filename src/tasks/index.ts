@@ -46,8 +46,7 @@ export function canExecuteTasks() {
 	return sbvrUtils.db.engine === 'postgres' && tasksEnv.queueConcurrency > 0;
 }
 
-// TODO-Major: stop exporting this
-export const setup: ConfigLoader.SetupFunction = () => {
+const setup: ConfigLoader.SetupFunction = () => {
 	// Async task functionality is only supported on Postgres
 	if (sbvrUtils.db.engine !== 'postgres') {
 		console.warn('Skipping task setup as database not supported');
