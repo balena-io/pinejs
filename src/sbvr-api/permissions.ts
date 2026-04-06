@@ -1591,9 +1591,8 @@ export const checkApiKey = async (
 
 export const resolveAuthHeader = async (
 	req: Express.Request,
+	tx: Tx | undefined,
 	expectedScheme = 'Bearer',
-	// TODO: Consider making tx the second argument in the next major
-	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
 	const auth = req.header('Authorization');
 	if (!auth) {
@@ -1628,7 +1627,7 @@ export const customAuthorizationMiddleware = (expectedScheme = 'Bearer') => {
 		next?: Express.NextFunction,
 	): Promise<void> => {
 		try {
-			const apiKey = await resolveAuthHeader(req, expectedScheme);
+			const apiKey = await resolveAuthHeader(req, undefined, expectedScheme);
 			if (apiKey) {
 				req.apiKey = apiKey;
 			}
