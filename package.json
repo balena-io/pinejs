@@ -48,7 +48,7 @@
     "@types/memoizee": "^0.4.12",
     "@types/method-override": "^3.0.0",
     "@types/mysql": "^2.15.27",
-    "@types/node": "^20.19.21",
+    "@types/node": "^22.2.0",
     "@types/passport": "^1.0.17",
     "@types/passport-local": "^1.0.38",
     "@types/passport-strategy": "^0.2.38",
@@ -131,7 +131,7 @@
     "serve-static": "^1.16.2"
   },
   "engines": {
-    "node": "^20.14.0 || ^22.0.0 || ^24.5.0",
+    "node": "^22.2.0 || ^24.5.0",
     "npm": ">=10.7.0"
   },
   "lint-staged": {
