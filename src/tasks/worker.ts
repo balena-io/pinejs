@@ -21,7 +21,9 @@ type TaskResponse = Resolvable<{
 	error?: string;
 }>;
 
-export interface TaskHandler<T = AnyObject> {
+export interface TaskHandler<
+	T = NonNullable<Task['Read']['is_executed_with__parameter_set']>,
+> {
 	name: string;
 	fn: (options: TaskArgs<T>) => TaskResponse;
 	validate?: ValidateFunction;

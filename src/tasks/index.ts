@@ -9,7 +9,6 @@ import { ajv, apiRoot } from './common.js';
 import type { TaskHandler } from './worker.js';
 import { Worker } from './worker.js';
 import type TasksModel from './tasks.js';
-import type { Task } from './tasks.js';
 import type { FromSchema } from 'json-schema-to-ts';
 import { importSBVR } from '../server-glue/sbvr-loader.js';
 import { BadRequestError, ConflictError } from '../sbvr-api/errors.js';
@@ -193,9 +192,7 @@ export const config: ConfigLoader.Config = {
 // Register a task handler
 export function addTaskHandler(
 	name: string,
-	fn: TaskHandler<
-		NonNullable<Task['Read']['is_executed_with__parameter_set']>
-	>['fn'],
+	fn: TaskHandler['fn'],
 	schema?: undefined,
 ): void;
 export function addTaskHandler<T extends Schema>(
@@ -205,9 +202,7 @@ export function addTaskHandler<T extends Schema>(
 ): void;
 export function addTaskHandler<T extends Schema>(
 	name: string,
-	fn: TaskHandler<
-		NonNullable<Task['Read']['is_executed_with__parameter_set']>
-	>['fn'],
+	fn: TaskHandler['fn'],
 	schema?: T,
 ): void {
 	if (worker == null) {
@@ -228,9 +223,7 @@ export function addTaskHandler<T extends Schema>(
 export async function addCronTask(
 	name: string,
 	cron: string,
-	fn: TaskHandler<
-		NonNullable<Task['Read']['is_executed_with__parameter_set']>
-	>['fn'],
+	fn: TaskHandler['fn'],
 ): Promise<void> {
 	addTaskHandler(name, fn);
 
