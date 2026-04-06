@@ -1642,9 +1642,8 @@ export const authorizationMiddleware = customAuthorizationMiddleware();
 
 export const resolveApiKey = async (
 	req: HookReq | Express.Request,
+	tx: Tx | undefined,
 	paramName = 'apikey',
-	// TODO: Consider making tx the second argument in the next major
-	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
 	const apiKey =
 		req.params[paramName] ?? req.body[paramName] ?? req.query[paramName];
@@ -1661,7 +1660,7 @@ export const customApiKeyMiddleware = (paramName = 'apikey') => {
 		next?: Express.NextFunction,
 	): Promise<void> => {
 		try {
-			const apiKey = await resolveApiKey(req, paramName);
+			const apiKey = await resolveApiKey(req, undefined, paramName);
 			if (apiKey) {
 				req.apiKey = apiKey;
 			}
