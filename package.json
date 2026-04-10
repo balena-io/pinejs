@@ -30,10 +30,10 @@
     "generate-types": "node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/user.sbvr ./src/sbvr-api/user.ts && node ./bin/sbvr-compiler.js generate-types ./src/migrator/migrations.sbvr ./src/migrator/migrations.ts && node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/dev.sbvr ./src/sbvr-api/dev.ts && node ./bin/sbvr-compiler.js generate-types ./src/tasks/tasks.sbvr ./src/tasks/tasks.ts && node ./bin/sbvr-compiler.js generate-types ./src/webresource-handler/webresource.sbvr ./src/webresource-handler/webresource.ts && balena-lint -t tsconfig.dev.json --fix ./src/sbvr-api/user.ts ./src/migrator/migrations.ts ./src/sbvr-api/dev.ts"
   },
   "dependencies": {
-    "@balena/abstract-sql-compiler": "^11.2.3",
-    "@balena/abstract-sql-to-typescript": "^6.1.2",
+    "@balena/abstract-sql-compiler": "^11.3.18",
+    "@balena/abstract-sql-to-typescript": "^6.1.19",
     "@balena/env-parsing": "^1.2.6",
-    "@balena/lf-to-abstract-sql": "^5.0.12",
+    "@balena/lf-to-abstract-sql": "^6.0.0",
     "@balena/odata-parser": "^4.2.8",
     "@balena/odata-to-abstract-sql": "^10.0.4",
     "@balena/sbvr-parser": "^1.4.13",
@@ -48,7 +48,7 @@
     "@types/memoizee": "^0.4.12",
     "@types/method-override": "^3.0.0",
     "@types/mysql": "^2.15.27",
-    "@types/node": "^20.19.21",
+    "@types/node": "^22.2.0",
     "@types/passport": "^1.0.17",
     "@types/passport-local": "^1.0.38",
     "@types/passport-strategy": "^0.2.38",
@@ -72,7 +72,7 @@
   "devDependencies": {
     "@balena/lint": "^9.3.8",
     "@balena/pinejs": "file:./",
-    "@balena/pinejs-webresource-s3": "^2.1.10",
+    "@balena/pinejs-webresource-s3": "^2.1.27",
     "@faker-js/faker": "^10.0.0",
     "@swc-node/register": "^1.11.1",
     "@swc/core": "^1.13.5",
@@ -131,7 +131,7 @@
     "serve-static": "^1.16.2"
   },
   "engines": {
-    "node": "^20.14.0 || ^22.0.0 || ^24.5.0",
+    "node": "^22.2.0 || ^24.5.0",
     "npm": ">=10.7.0"
   },
   "lint-staged": {
