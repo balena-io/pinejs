@@ -1,4 +1,889 @@
 - commits:
+    - subject: "Tasks: Default the generic arg of TaskHandler to the type of
+        is_executed_with__parameter_set"
+      hash: 87d9ec00a91ca160d5b32d97cd2605156577d446
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Thodoris Greasidis
+      nested: []
+    - subject: "permissions: Make the TX the second argument of resolveApiKey()"
+      hash: d9fed00ba198cd1a31a828bebe718606e91d6465
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Thodoris Greasidis
+      nested: []
+    - subject: "permissions: Make the TX the second argument of resolveAuthHeader()"
+      hash: 40fda0e26caabd4eaa9ee8456461fe02e945c4f5
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Thodoris Greasidis
+      nested: []
+    - subject: "tasks: Stop exporting the setup() function"
+      hash: f60db63c3d2e1dd581ae31f94e0918bc5d6e9fcf
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Update pine's sub-dependencies
+      hash: 29eb1d6212fa4a9ec748a9dda93768b0ce901227
+      body: |
+        It's a major because the lf-to-abstract-sql
+        bump it affects the generated sql & name of
+        some rules that get optimized to check
+        constraints.
+
+        Update @balena/lf-to-abstract-sql from 5.0.12 to 6.0.0
+        Update @balena/abstract-sql-compiler from 11.2.3 to 11.3.18
+        Update @balena/pinejs-webresource-s3 from 2.1.10 to 2.1.27
+        Update @balena/abstract-sql-to-typescript from 6.1.2 to 6.1.19
+      footer:
+        Change-type: major
+        change-type: major
+        See: https://github.com/balena-io-modules/lf-to-abstract-sql/pull/98
+        see: https://github.com/balena-io-modules/lf-to-abstract-sql/pull/98
+      author: Thodoris Greasidis
+      nested:
+        - commits:
+            - subject: Revert flowzone pinning to master
+              hash: 14578726007f8ed6baf4ec23bfe21aee6f7f1cd4
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Kyle Harding
+              nested: []
+          version: abstract-sql-compiler-11.3.18
+          title: ""
+          date: 2026-03-26T17:20:35.565Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 3eb3c97
+              hash: 3f32f59254b88fe34cd7f3de9bee574f05fcf0de
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.3.17
+          title: ""
+          date: 2026-03-26T10:13:08.010Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b49c1e
+              hash: 07f56d883a5c87960827278aa6738063324cb78e
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.3.16
+          title: ""
+          date: 2026-03-26T09:12:28.069Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8d926e2
+              hash: b34b67533aa5504222a5a2fdceb7fdec253eea91
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.3.15
+          title: ""
+          date: 2026-03-26T08:11:27.426Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 20a58d6
+              hash: 117e61d9ada74bac398983e870a9651f4eeefe57
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.3.14
+          title: ""
+          date: 2026-03-26T07:13:23.028Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b1359d
+              hash: c379c202b1b9f37879c58dc48e8b2e199eb0b714
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.3.13
+          title: ""
+          date: 2026-03-26T06:14:45.035Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b87702
+              hash: e703da0d4631d4d980f35b78810639ebb3a8d909
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.3.12
+          title: ""
+          date: 2026-03-26T05:29:20.093Z
+        - commits:
+            - subject: Update product-os/flowzone digest to cc9836f
+              hash: 5e1f8b54519a3842498d66396ff8295721ad865a
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.3.11
+          title: ""
+          date: 2026-03-26T03:47:38.847Z
+        - commits:
+            - subject: Update product-os/flowzone digest to b79645a
+              hash: c006dad2bc4f033db41c33f8dd0d4b8a622cd562
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.3.10
+          title: ""
+          date: 2026-03-26T02:42:50.518Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 4815186
+              hash: 3f374f70d03307eb400c5f891e86ed48087b37b2
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.3.9
+          title: ""
+          date: 2026-03-26T01:20:29.091Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 267495d
+              hash: acc8c2f8842d98a71017832ae28f5d7f113dde37
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.3.8
+          title: ""
+          date: 2026-03-26T00:00:30.102Z
+        - commits:
+            - subject: Update product-os/flowzone digest to f955793
+              hash: 0d8738f0045c04dce83ed5207ceaff0a42f5083b
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.3.7
+          title: ""
+          date: 2026-03-25T23:10:16.700Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8674dc5
+              hash: fe6eeea01c5ed586770f34b6955a2379a0943c0e
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.3.6
+          title: ""
+          date: 2026-03-25T21:31:56.530Z
+        - commits:
+            - subject: Update product-os/flowzone digest to eb703ea
+              hash: a12800ff78023a1f82bd08e95301afcced33195a
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+            - subject: Pin product-os/flowzone action to 54776e8
+              hash: cd45ca6dbfcebc746337a925b01feaf26e9f8d02
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-compiler-11.3.5
+          title: ""
+          date: 2026-03-25T20:03:02.960Z
+        - commits:
+            - subject: "optimizations/check-constraint: Check that the ReferencedFieldToField
+                conversion only runs for the expected table"
+              hash: 41bd92a6d0094286234e7fe02af2694ea5746836
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                See: https://balena.fibery.io/Work/Project/961
+                see: https://balena.fibery.io/Work/Project/961
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-11.3.4
+          title: ""
+          date: 2026-03-17T15:14:16.563Z
+        - commits:
+            - subject: Split the check-constraint schema optimization to a separate file
+              hash: b54ec3a27411b354e192238d4af0797e2becf976
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                See: https://balena.fibery.io/Work/Project/961
+                see: https://balena.fibery.io/Work/Project/961
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-11.3.3
+          title: ""
+          date: 2026-03-11T15:25:54.082Z
+        - commits:
+            - subject: "Add id-token: write permission for NPM OIDC publishing"
+              hash: 0eaaeff40d5cbc496038b4328ae203c1769ce584
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Kyle Harding <kyle@balena.io>
+                signed-off-by: Kyle Harding <kyle@balena.io>
+              author: Kyle Harding
+              nested: []
+          version: abstract-sql-compiler-11.3.2
+          title: ""
+          date: 2026-02-19T14:07:34.826Z
+        - commits:
+            - subject: Extract convertReferencedFieldsToFields helper and switch to a for loop
+              hash: e34931fdfb981f00a1630a0e01f6a0bb52ee3118
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                See: https://balena.fibery.io/Work/Project/961
+                see: https://balena.fibery.io/Work/Project/961
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-11.3.1
+          title: ""
+          date: 2026-01-29T05:22:04.348Z
+        - commits:
+            - subject: Add affected ids optimization support for `SELECT NOT EXISTS (SELECT
+                ...)` rules
+              hash: 141d124deafea993927b57d1656721d434bac920
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-compiler-11.3.0
+          title: ""
+          date: 2026-01-22T15:45:47.996Z
+        - commits:
+            - subject: "tests: Replace lodash helpers with native alternatives"
+              hash: 56c6b0e816b1f228258411fbcbae7b035fb3b21e
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                See: https://balena.fibery.io/Work/Project/961
+                see: https://balena.fibery.io/Work/Project/961
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-11.2.6
+          title: ""
+          date: 2026-01-22T15:28:51.659Z
+        - commits:
+            - subject: "tests: Replace lodash helpers with native counterparts where possible"
+              hash: 51d203d57cd59cbe350e21f59d868c648df27000
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                See: https://balena.fibery.io/Work/Project/961
+                see: https://balena.fibery.io/Work/Project/961
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-11.2.5
+          title: ""
+          date: 2026-01-22T13:51:09.063Z
+        - commits:
+            - subject: Re-run balena-lint
+              hash: b60bf48f4b1cfa411dc799f1497a059dc0faa697
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested: []
+            - subject: Update tests for sbvr-types v11
+              hash: 155ffe53a9e18cdd0b261197673048d3ad483d1a
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                See: https://balena.fibery.io/Work/Project/961
+                see: https://balena.fibery.io/Work/Project/961
+              author: Thodoris Greasidis
+              nested: []
+          version: abstract-sql-compiler-11.2.4
+          title: ""
+          date: 2026-01-22T13:21:34.907Z
+        - commits:
+            - subject: Revert flowzone pinning to master
+              hash: 796f27e670fbb9c4a645a3f71abfa1e403171000
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Kyle Harding
+              nested: []
+          version: abstract-sql-to-typescript-6.1.19
+          title: ""
+          date: 2026-03-26T17:20:41.230Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8ea01d3
+              hash: 1a09c3628c3d7870337a049024dd55731a57165d
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.18
+          title: ""
+          date: 2026-03-26T12:05:48.048Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 3eb3c97
+              hash: d20f3a4bee163ae4009432b26b6cd550c1d10b90
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.17
+          title: ""
+          date: 2026-03-26T10:12:50.045Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b49c1e
+              hash: 7e54d3c7e3cb65cb08bff18bcebcdfcc2ad683dd
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.16
+          title: ""
+          date: 2026-03-26T09:12:13.042Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8d926e2
+              hash: 8316d18ac41dc40c0070772f348b371979602114
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.15
+          title: ""
+          date: 2026-03-26T08:11:11.002Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 20a58d6
+              hash: ed5deb1a6418c3f0d4872778c88072364b974b85
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.14
+          title: ""
+          date: 2026-03-26T07:13:12.851Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b1359d
+              hash: b2e09b6703799779d25d966e29d13ad02c49f750
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.13
+          title: ""
+          date: 2026-03-26T06:14:33.908Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b87702
+              hash: 22ded4e5c48483602681a82b72f39a26a6492a5c
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.12
+          title: ""
+          date: 2026-03-26T05:28:13.878Z
+        - commits:
+            - subject: Update product-os/flowzone digest to cc9836f
+              hash: 004f41b776f691e4a559ced6f807ec738862f01b
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.11
+          title: ""
+          date: 2026-03-26T03:46:58.042Z
+        - commits:
+            - subject: Update product-os/flowzone digest to b79645a
+              hash: c598c8e0ab6e96256b3fd26a8c1224a0498d77bb
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.10
+          title: ""
+          date: 2026-03-26T02:42:41.175Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 4815186
+              hash: 52bdb5cc1701a1945d871abb17466522e0078ca8
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.9
+          title: ""
+          date: 2026-03-26T01:20:24.729Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 267495d
+              hash: 58cf2ab04c1e6dd1a3143f6c2d0901bc14066fe6
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.8
+          title: ""
+          date: 2026-03-26T00:00:16.795Z
+        - commits:
+            - subject: Update product-os/flowzone digest to f955793
+              hash: 42b9fa6d740db64d5d0e158fa3f9192fceed6faa
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.7
+          title: ""
+          date: 2026-03-25T23:09:43.462Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8674dc5
+              hash: 235addedcc9c062bbcd6d01fed3db8385d408a92
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.6
+          title: ""
+          date: 2026-03-25T21:31:25.402Z
+        - commits:
+            - subject: Update product-os/flowzone digest to eb703ea
+              hash: 2a9025f9baddd812b1d9e31df91d85a7d71ebff5
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+            - subject: Update product-os/flowzone digest to 54776e8
+              hash: cb6d26427d8e1a8d99c1ff508e666417ff84cfa1
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.5
+          title: ""
+          date: 2026-03-25T20:02:33.722Z
+        - commits:
+            - subject: Pin product-os/flowzone action to a53cf4b
+              hash: 61143c653ca416eaf2a3e1dd5d6a68c4ec01f73e
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.4
+          title: ""
+          date: 2026-03-24T18:07:19.156Z
+        - commits:
+            - subject: "Add id-token: write permission for NPM OIDC publishing"
+              hash: 1006cce49079d5a39d69f85e44ac1f903097b58f
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Kyle Harding <kyle@balena.io>
+                signed-off-by: Kyle Harding <kyle@balena.io>
+              author: Kyle Harding
+              nested: []
+          version: abstract-sql-to-typescript-6.1.3
+          title: ""
+          date: 2026-02-19T01:33:57.929Z
+        - commits:
+            - subject: Drop support for nodejs < 22.2.0
+              hash: 6499c4f1b5e05382c3efc667619e1840130bad86
+              body: ""
+              footer:
+                Change-type: major
+                change-type: major
+              author: Thodoris Greasidis
+              nested: []
+            - subject: Replace attribute check with single this.tables lookup
+              hash: da88a79627609665328142984b8c60baf30413ae
+              body: |
+                this.attributes was a redundant registry that
+                only AttrDatabaseAttribute ever wrote to, causing
+                the term-form case to be missed. All other rules
+                already use GetTable() === 'Attribute' so align
+                ProcessAtomicFormulationsAttributes with the same
+                pattern.
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: jaomaloy <jan.maloy@balena.io>
+                signed-off-by: jaomaloy <jan.maloy@balena.io>
+              author: jaomaloy
+              nested: []
+          version: lf-to-abstract-sql-6.0.0
+          title: ""
+          date: 2026-04-06T16:06:16.378Z
+        - commits:
+            - subject: Add test for Term Form Resource with FK + Field composite natural key
+              hash: 8ca14268f22547cace51ce99a3b81affb3abf7cb
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Thodoris Greasidis
+              nested: []
+          version: lf-to-abstract-sql-5.0.31
+          title: ""
+          date: 2026-04-06T15:58:39.531Z
+        - commits:
+            - subject: Revert flowzone pinning to master
+              hash: b39464917b5ecce5f6ec38acbd2162f059cfd9b0
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Kyle Harding
+              nested: []
+          version: lf-to-abstract-sql-5.0.30
+          title: ""
+          date: 2026-03-26T17:22:00.304Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8ea01d3
+              hash: 7a725fa58c0b613116f9aacc2317b9b813742eda
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.29
+          title: ""
+          date: 2026-03-26T12:10:15.143Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 3eb3c97
+              hash: 85559e5411af84a671f6a5b8d9c9da4b14fb0780
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.28
+          title: ""
+          date: 2026-03-26T10:18:25.389Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b49c1e
+              hash: eea2c4a9a478489f6e2da39bc7427a8942b7a948
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.27
+          title: ""
+          date: 2026-03-26T09:17:50.325Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8d926e2
+              hash: da56a385f4acad430eeede3b445daec72449cd66
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.26
+          title: ""
+          date: 2026-03-26T08:16:15.062Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 20a58d6
+              hash: 5be1c56b72f55c93670a9e2aa94e59dfb1b194b4
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.25
+          title: ""
+          date: 2026-03-26T07:19:11.042Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b1359d
+              hash: c86ee3ea5c2900d92393db8425db829f6931a547
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.24
+          title: ""
+          date: 2026-03-26T06:19:58.351Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b87702
+              hash: 5c8ab76def1f13f6394daa69478bd54f964f39ae
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.23
+          title: ""
+          date: 2026-03-26T05:32:31.442Z
+        - commits:
+            - subject: Update product-os/flowzone digest to cc9836f
+              hash: 0ddb4cfa8eea37799af109fdd615540f0e575968
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.22
+          title: ""
+          date: 2026-03-26T03:52:19.889Z
+        - commits:
+            - subject: Update product-os/flowzone digest to b79645a
+              hash: e08eb6f64baa1546cdde755610f803c3bcf8e9e1
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.21
+          title: ""
+          date: 2026-03-26T02:47:20.811Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 4815186
+              hash: ed4c0ad21302ebf78b6a4003d5c4f9da59e5b8c8
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.20
+          title: ""
+          date: 2026-03-26T01:25:00.189Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 267495d
+              hash: 1c372f1c76817eb2858eb74577c5bc7a863bc5a7
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.19
+          title: ""
+          date: 2026-03-26T00:04:50.671Z
+        - commits:
+            - subject: Update product-os/flowzone digest to f955793
+              hash: f0a4a35a895d3ee154a6448c1c6fe5325d99b3d8
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.18
+          title: ""
+          date: 2026-03-25T23:13:47.795Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8674dc5
+              hash: 71bba7384ed5d647baa310963e6f1c40da6d7b10
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.17
+          title: ""
+          date: 2026-03-25T21:36:56.577Z
+        - commits:
+            - subject: Update product-os/flowzone digest to eb703ea
+              hash: dacb4dd83c83d2d6f9e10806381b353c89e29278
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.16
+          title: ""
+          date: 2026-03-25T20:06:26.179Z
+        - commits:
+            - subject: Pin product-os/flowzone action to a53cf4b
+              hash: e8370dad0e511d1eebc56edff9f2df2ce6a1acfb
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: lf-to-abstract-sql-5.0.15
+          title: ""
+          date: 2026-03-24T18:15:30.342Z
+        - commits:
+            - subject: Fix rule info table name for term forms
+              hash: 5ce073f5774e6137d2651ae945425ab80e6147f2
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: lf-to-abstract-sql-5.0.14
+          title: ""
+          date: 2026-02-24T00:27:35.372Z
+        - commits:
+            - subject: "Add id-token: write permission for NPM OIDC publishing"
+              hash: 45940cc781ebdb9f75613f21f25758b7c3f9ff82
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Kyle Harding <kyle@balena.io>
+                signed-off-by: Kyle Harding <kyle@balena.io>
+              author: Kyle Harding
+              nested: []
+          version: lf-to-abstract-sql-5.0.13
+          title: ""
+          date: 2026-02-19T01:56:49.027Z
+    - subject: Update tsconfig target to es2024
+      hash: 8ff433d368c5ffddfa300a64bb8ae98e6df0255f
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Drop support for nodejs < 22.2.0
+      hash: 9c4376f5d654d6331277cd5faf0e0c2dc99a5841
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Thodoris Greasidis
+      nested: []
+  version: 24.0.0
+  title: ""
+  date: 2026-04-10T10:53:35.600Z
+- commits:
     - subject: Update dependency @types/supertest to v7
       hash: dffa79b81b0aebdbc7ef961fec604a4afecd4c1a
       body: |
@@ -6240,6 +7125,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -6262,6 +7148,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6398,6 +7285,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6696,6 +7584,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -6724,6 +7613,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -6951,6 +7841,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -6985,6 +7876,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7229,6 +8121,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10545,6 +11438,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -10567,6 +11461,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10731,6 +11626,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11085,6 +11981,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -11113,6 +12010,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11269,6 +12167,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11557,6 +12456,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -11702,6 +12602,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
