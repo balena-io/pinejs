@@ -1,4 +1,17 @@
 - commits:
+    - subject: Narrow typings of `resolveAuthHeader` to only what is needed
+      hash: 696b26d450d4b83758e70ddbbe07f24aa7c63ba9
+      body: |
+        https://balena.fibery.io/Work/Project/1002
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 24.0.1
+  title: ""
+  date: 2026-05-19T15:33:48.523Z
+- commits:
     - subject: "Tasks: Default the generic arg of TaskHandler to the type of
         is_executed_with__parameter_set"
       hash: 87d9ec00a91ca160d5b32d97cd2605156577d446
@@ -7126,6 +7139,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -7148,6 +7162,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7285,6 +7300,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7585,6 +7601,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -7613,6 +7630,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7842,6 +7860,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -7876,6 +7895,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8121,6 +8141,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11439,6 +11460,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -11461,6 +11483,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11626,6 +11649,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11982,6 +12006,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -12010,6 +12035,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -12167,6 +12193,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -12457,6 +12484,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -12602,6 +12630,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
