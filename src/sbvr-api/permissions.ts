@@ -1590,7 +1590,7 @@ export const checkApiKey = async (
 };
 
 export const resolveAuthHeader = async (
-	req: Express.Request,
+	req: Pick<Express.Request, 'header'>,
 	tx: Tx | undefined,
 	expectedScheme = 'Bearer',
 ): Promise<PermissionReq['apiKey']> => {
