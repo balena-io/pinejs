@@ -29,7 +29,7 @@ import { booleanToEnabledString } from '../config-loader/env.js';
 
 export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 	const { migrations, apiRoot: apiRootModelName } = model;
-	if (migrations == null || _.isEmpty(migrations)) {
+	if (migrations == null || Object.keys(migrations).length === 0) {
 		return;
 	}
 	const asyncMigrations: RunnableAsyncMigrations | undefined =

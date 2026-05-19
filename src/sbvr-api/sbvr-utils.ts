@@ -173,7 +173,7 @@ const memoizedResolvedSynonym = memoizeWeak(
 		resourceName: string,
 	): string => {
 		const sqlName = odataNameToSqlName(resourceName);
-		return _(sqlName)
+		return sqlName
 			.split('-')
 			.map((namePart) => abstractSqlModel.synonyms[namePart] ?? namePart)
 			.join('-');
