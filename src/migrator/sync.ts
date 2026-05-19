@@ -13,7 +13,6 @@ import {
 import type { Tx } from '../database-layer/db.js';
 import type { Config, Model } from '../config-loader/config-loader.js';
 
-import _ from 'lodash';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
 import { importSBVR } from '../server-glue/sbvr-loader.js';
 
@@ -52,7 +51,7 @@ export const run = async (
 	model: ApiRootModel,
 ): Promise<MigrationExecutionResult> => {
 	const { migrations } = model;
-	if (migrations == null || _.isEmpty(migrations)) {
+	if (migrations == null || Object.keys(migrations).length === 0) {
 		return;
 	}
 	const runnableMigrations = getRunnableSyncMigrations(migrations);

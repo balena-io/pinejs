@@ -18,7 +18,6 @@ import type { Result, Row } from '../database-layer/db.js';
 
 import { sqlNameToODataName } from '@balena/odata-to-abstract-sql';
 import type { SbvrType } from '@balena/sbvr-types';
-import _ from 'lodash';
 import {
 	sbvrTypes,
 	resolveNavigationResource,
@@ -240,9 +239,9 @@ export const process = async (
 };
 
 export const prepareModel = (abstractSqlModel: AbstractSqlModel) => {
-	_.forEach(abstractSqlModel.tables, (table) => {
+	for (const table of Object.values(abstractSqlModel.tables)) {
 		getLocalFields(table);
 		getFetchProcessingFields(table);
 		getWebResourceFields(table);
-	});
+	}
 };
