@@ -1,7 +1,6 @@
 import type * as AbstractSQLCompiler from '@balena/abstract-sql-compiler';
 import type {
 	ODataBinds,
-	ODataOptions,
 	ODataQuery,
 	SupportedMethod,
 } from '@balena/odata-parser';
@@ -248,7 +247,7 @@ const memoizedOdata2AbstractSQL = (() => {
 		if (odataQuery.options) {
 			odataQuery = {
 				...odataQuery,
-				options: _.pick(odataQuery.options, cachedProps) as ODataOptions,
+				options: _.pick(odataQuery.options, cachedProps),
 			};
 		}
 		const { tree, extraBodyVars, extraBindVars } = $memoizedOdata2AbstractSQL(

@@ -1778,10 +1778,7 @@ const runQuery = async (
 	}
 
 	const { query, bindings } = sqlQuery;
-	const values = await getAndCheckBindValues(
-		request as RequiredField<typeof request, 'engine'>,
-		bindings,
-	);
+	const values = await getAndCheckBindValues(request, bindings);
 
 	if (env.DEBUG) {
 		logger[vocabulary].log(query, values);

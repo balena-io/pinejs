@@ -1028,7 +1028,8 @@ if (typeof window !== 'undefined' && window.openDatabase != null) {
 						resolve(results);
 					};
 					const errorCallback: SQLStatementErrorCallback = (_tx, err) => {
-						reject(err as any as Error);
+						// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- we need to do the cast for another rule
+						reject(err as unknown as Error);
 						return false;
 					};
 

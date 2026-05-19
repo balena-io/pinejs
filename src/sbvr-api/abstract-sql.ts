@@ -24,7 +24,8 @@ const compileQuery = (
 		if (modifiedFields != null) {
 			deepFreeze(modifiedFields);
 		}
-		abstractSqlQuery = abstractSqlQuery as any as CachedSqlQuery;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- we need to do the cast for later use
+		abstractSqlQuery = abstractSqlQuery as unknown as CachedSqlQuery;
 		abstractSqlQuery.length = 0;
 		abstractSqlQuery.engine = engine;
 		abstractSqlQuery.sqlQuery = sqlQuery;
