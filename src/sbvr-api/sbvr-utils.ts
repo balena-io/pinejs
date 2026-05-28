@@ -142,7 +142,8 @@ export interface Actor {
 }
 
 export interface User extends Actor {
-	id: number;
+	// id is optional as scoped api keys only contain a set of permissions for a given actor
+	id?: number;
 	actor: number;
 }
 
