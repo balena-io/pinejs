@@ -137,8 +137,13 @@ const models: {
 	};
 } = {};
 
+export type ExtraBinds = Record<`@__${string}`, string>;
+
+// TODO next major: update this interface to have `actor: number;` and remove from derived types
 export interface Actor {
 	permissions?: string[];
+	/** Caller-supplied named binds; keys must use the `@__` prefix. `@__ACTOR_ID` is reserved. */
+	extraBinds?: ExtraBinds;
 }
 
 export interface User extends Actor {

@@ -15,10 +15,11 @@ import type Express from 'express';
 import type {
 	ODataBinds,
 	ODataQuery,
+	ParameterAliasBind,
 	SupportedMethod,
 } from '@balena/odata-parser';
 import type { Tx } from '../database-layer/db.js';
-import type { ApiKey, User } from '../sbvr-api/sbvr-utils.js';
+import type { Actor, ApiKey, User } from '../sbvr-api/sbvr-utils.js';
 import type {
 	AnyObject,
 	Dictionary,
@@ -58,11 +59,9 @@ import { importSBVR } from '../server-glue/sbvr-loader.js';
 
 const userModel = await importSBVR('./user.sbvr', import.meta);
 
-const DEFAULT_ACTOR_BIND = '@__ACTOR_ID';
-const DEFAULT_ACTOR_BIND_REGEX = new RegExp(
-	_.escapeRegExp(DEFAULT_ACTOR_BIND),
-	'g',
-);
+const EXTRA_BIND_PREFIX = '@__';
+const DEFAULT_ACTOR_BIND = `${EXTRA_BIND_PREFIX}ACTOR_ID` as const;
+const EXTRA_BIND_REGEX = new RegExp(_.escapeRegExp(EXTRA_BIND_PREFIX), 'g');
 
 export { PermissionError, PermissionParsingError };
 export interface PermissionReq {
@@ -1732,14 +1731,20 @@ const getGuestPermissions = memoize(
 		}
 		const guestPermissions = _.uniq(await getUserPermissions(result.id));
 
-		if (guestPermissions.some((p) => DEFAULT_ACTOR_BIND_REGEX.test(p))) {
-			throw new Error('Guest permissions cannot reference actors');
+		if (guestPermissions.some((p) => EXTRA_BIND_REGEX.test(p))) {
+			throw new Error(
+				'Guest permissions cannot reference actor or extra bindings',
+			);
 		}
 		guestPermissionsInitialized = true;
 		return guestPermissions;
 	},
 	{ promise: true },
 );
+const startsWithBindPrefix = (
+	bindName: string,
+): bindName is `${typeof EXTRA_BIND_PREFIX}${string}` =>
+	bindName.startsWith(EXTRA_BIND_PREFIX);
 
 const getReqPermissions = async (
 	req: PermissionReq,
@@ -1759,15 +1764,39 @@ const getReqPermissions = async (
 	})();
 
 	let actorPermissions: string[] = [];
-	const addActorPermissions = (actorId: number, perms: string[]) => {
-		odataBinds[DEFAULT_ACTOR_BIND] = ['Real', actorId];
-		actorPermissions = perms;
+	const addActorPermissions = (creds: Actor & { actor: number }) => {
+		odataBinds[DEFAULT_ACTOR_BIND] = ['Real', creds.actor];
+		if (creds.extraBinds != null) {
+			for (const [bindName, bindValue] of Object.entries(creds.extraBinds)) {
+				if (!startsWithBindPrefix(bindName)) {
+					throw new BadRequestError(
+						`extraBinds keys must use the '${EXTRA_BIND_PREFIX}' prefix (got '${bindName}')`,
+					);
+				}
+				if (bindName === DEFAULT_ACTOR_BIND) {
+					throw new BadRequestError(
+						`The '${DEFAULT_ACTOR_BIND}' bind is reserved and cannot be overridden via extraBinds`,
+					);
+				}
+				let tree: [bindName: string, value: ParameterAliasBind];
+				try {
+					({ tree } = ODataParser.parse(`${bindName}=${bindValue}`, {
+						startRule: 'ProcessRule',
+						rule: 'ParameterAliasOption',
+					}));
+				} catch {
+					throw new BadRequestError(`Invalid bind value for '${bindName}'`);
+				}
+				odataBinds[bindName] = tree[1];
+			}
+		}
+		actorPermissions = creds.permissions!;
 	};
 
 	if (req.user?.permissions != null) {
-		addActorPermissions(req.user.actor, req.user.permissions);
+		addActorPermissions(req.user);
 	} else if (req.apiKey?.permissions != null) {
-		addActorPermissions(req.apiKey.actor, req.apiKey.permissions);
+		addActorPermissions(req.apiKey);
 	}
 
 	return getPermissionsLookup(actorPermissions, guestPermissions);
