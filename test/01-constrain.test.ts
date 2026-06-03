@@ -82,5 +82,17 @@ describe('01 basic constrain tests', function () {
 				})
 				.expect(400, '"\\"name\\" cannot be null"');
 		});
+
+		it('should return 400 when filter uses an undefined named parameter', async () => {
+			await supertest(testLocalServer)
+				.get('/university/student?$filter=id eq @missingParam')
+				.expect(400);
+		});
+
+		it('should return 400 when filter uses an undefined named parameter on a string field', async () => {
+			await supertest(testLocalServer)
+				.get('/university/student?$filter=name eq @missingParam')
+				.expect(400);
+		});
 	});
 });
