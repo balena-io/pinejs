@@ -113,22 +113,16 @@ export const getAndCheckBindValues = async (
 					field = maybeField;
 				} else if (Number.isInteger(bindValue)) {
 					if (bindValue >= odataBinds.length) {
-						console.error(
-							`Invalid binding number '${bindValue}' for binds: `,
-							odataBinds,
+						throw new BadRequestError(
+							`Invalid binding number for: ${bindValue}`,
 						);
-						throw new Error('Invalid binding');
 					}
 					let dataType;
 					[dataType, value] = odataBinds[bindValue];
 					field = { dataType };
 				} else if (typeof bindValue === 'string') {
 					if (!Object.hasOwn(odataBinds, bindValue)) {
-						console.error(
-							`Invalid binding '${bindValue}' for binds: `,
-							odataBinds,
-						);
-						throw new Error('Invalid binding');
+						throw new BadRequestError(`Missing binding: ${bindValue}`);
 					}
 					let dataType;
 					[dataType, value] = odataBinds[bindValue as BindKey];
