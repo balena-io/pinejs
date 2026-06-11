@@ -1,4 +1,289 @@
 - commits:
+    - subject: Add support for binding per request with custom req
+      hash: 0ced7421b4bea29c808227bca2490797a20b9386
+      body: |
+        Update @balena/odata-parser from 4.2.8 to 4.3.0
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Otavio Jacobi
+      nested:
+        - commits:
+            - subject: Add `ParameterAliasBind` typing utility
+              hash: 2f357db4d0308f7af528c071a959dea097e11a7b
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Otavio Jacobi
+          version: odata-parser-4.3.0
+          title: ""
+          date: 2026-06-03T14:44:38.692Z
+        - commits:
+            - subject: Avoid duplicate parenthesis check in `FilterNegateExpression`
+              hash: 53902d15f20b2fe4d5e97265eeac0e5ef5186580
+              body: |
+                We can use the existing parenthesis check of `FilterByValue` ->
+                `GroupedPrecedenceExpression`
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-4.2.30
+          title: ""
+          date: 2026-05-08T11:57:37.881Z
+        - commits:
+            - subject: Simplify arg checking for `FilterMethodCallExpression`
+              hash: 6584e1b45101de7ae00506a6243e47093671e36c
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-4.2.29
+          title: ""
+          date: 2026-05-07T14:51:52.119Z
+        - commits:
+            - subject: Revert flowzone pinning to master
+              hash: a58f209394f140eaaa2a6d85eb5cf8249c93d48d
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Kyle Harding
+          version: odata-parser-4.2.28
+          title: ""
+          date: 2026-03-26T17:18:49.203Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8ea01d3
+              hash: cec7c302ccdb577b397d343f1ebb161d94582af8
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.27
+          title: ""
+          date: 2026-03-26T12:12:27.913Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 3eb3c97
+              hash: b178cc324e09394a19ce4b7b4abf1e41d2aa4110
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.26
+          title: ""
+          date: 2026-03-26T10:20:31.929Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b49c1e
+              hash: cdbd0ad5bc7333001467ea19dba0d6d76ed8a876
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.25
+          title: ""
+          date: 2026-03-26T09:20:17.422Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8d926e2
+              hash: 7912afa90d49109b00fb33937ec11f23b2fef95c
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.24
+          title: ""
+          date: 2026-03-26T08:17:48.875Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 20a58d6
+              hash: b3ff2e08d1b636e86949fbe464dea83b1cf8bf3a
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.23
+          title: ""
+          date: 2026-03-26T07:20:37.791Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b1359d
+              hash: 1c8823d97b34f8c944e6767c10f6eb7f6365911a
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.22
+          title: ""
+          date: 2026-03-26T06:22:07.258Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b87702
+              hash: 67eaea126060e181fe250af9c78b6a527ae76958
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.21
+          title: ""
+          date: 2026-03-26T05:34:19.644Z
+        - commits:
+            - subject: Update product-os/flowzone digest to cc9836f
+              hash: ba419fff732daf97b07894f31b797b954f380f48
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.20
+          title: ""
+          date: 2026-03-26T03:54:36.271Z
+        - commits:
+            - subject: Update product-os/flowzone digest to b79645a
+              hash: 1859680d0e7083637264e1a6e8838d03e3f8a6fe
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.19
+          title: ""
+          date: 2026-03-26T02:49:09.964Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 4815186
+              hash: b29a92b717ce4195270ad41d26e99b1852f26db9
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.18
+          title: ""
+          date: 2026-03-26T01:27:28.694Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 267495d
+              hash: 1fa09d6adcc4c852c7466541286be25c7d9e1f08
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.17
+          title: ""
+          date: 2026-03-26T00:07:04.917Z
+        - commits:
+            - subject: Update product-os/flowzone digest to f955793
+              hash: 28e40909f474e86741315050c880d43164330616
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.16
+          title: ""
+          date: 2026-03-25T23:15:38.386Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8674dc5
+              hash: 7126b8e1a924fd53fb9758796dd2bd104c99cd70
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.15
+          title: ""
+          date: 2026-03-25T21:39:37.444Z
+        - commits:
+            - subject: Update product-os/flowzone digest to eb703ea
+              hash: c1b6105b2470d017af9526adbbbee021740f967d
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.14
+          title: ""
+          date: 2026-03-25T20:08:19.616Z
+        - commits:
+            - subject: Pin product-os/flowzone action to a53cf4b
+              hash: ce49098e4290b09c1d2d425c4aa8151d1d1b2655
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: odata-parser-4.2.13
+          title: ""
+          date: 2026-03-24T18:20:31.661Z
+        - commits:
+            - subject: "Tests: remove lodash"
+              hash: 83043192219fb01d9c7968ab633d7afb529e5aca
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-4.2.12
+          title: ""
+          date: 2026-03-12T20:38:46.950Z
+        - commits:
+            - subject: "Add id-token: write permission for NPM OIDC publishing"
+              hash: cb767ef366951cd363cd272a1752f3521a5d29ec
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Kyle Harding <kyle@balena.io>
+                signed-off-by: Kyle Harding <kyle@balena.io>
+              author: Kyle Harding
+          version: odata-parser-4.2.11
+          title: ""
+          date: 2026-03-12T14:49:15.983Z
+        - commits:
+            - subject: Avoid unnecessary allocations for date binds
+              hash: f5d8d9b67611e732288eb4979d7707f2a007ff5f
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-4.2.10
+          title: ""
+          date: 2025-10-16T14:37:31.073Z
+        - commits:
+            - subject: Replace `CollapseObjectArray` with `Object.fromEntries`
+              hash: cff575f1888896b9278adda63988df3922aae6c7
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: odata-parser-4.2.9
+          title: ""
+          date: 2025-10-16T14:25:34.129Z
+  version: 24.1.0
+  title: ""
+  date: 2026-06-11T13:37:36.638Z
+- commits:
     - subject: Update dependency commander to v15
       hash: 4580137dee57a126b2f194bd724909d81a2c8f04
       body: |
@@ -7235,6 +7520,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -7257,6 +7543,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7402,6 +7689,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7718,6 +8006,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -7746,6 +8035,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -7991,6 +8281,7 @@
 
 
 
+
                                                                 We know what type
                                                                 they return and they
                                                                 should be explicitly
@@ -8025,6 +8316,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8278,6 +8570,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11612,6 +11905,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -11634,6 +11928,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -11807,6 +12102,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -12179,6 +12475,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -12207,6 +12504,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -12372,6 +12670,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -12678,6 +12977,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -12823,6 +13123,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
