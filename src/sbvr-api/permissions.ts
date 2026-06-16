@@ -20,11 +20,7 @@ import type {
 } from '@balena/odata-parser';
 import type { Tx } from '../database-layer/db.js';
 import type { Actor, ApiKey, User } from '../sbvr-api/sbvr-utils.js';
-import type {
-	AnyObject,
-	Dictionary,
-	ShallowWritableOnly,
-} from './common-types.js';
+import type { AnyObject, ShallowWritableOnly } from './common-types.js';
 
 import {
 	isBindReference,
@@ -331,7 +327,7 @@ function namespaceRelationships<T extends Relationship>(
 	}
 }
 
-type PermissionLookup = Dictionary<true | string[]>;
+type PermissionLookup = Record<string, true | string[]>;
 
 const getPermissionsLookup = env.createCache(
 	'permissionsLookup',

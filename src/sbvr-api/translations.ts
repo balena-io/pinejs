@@ -15,7 +15,7 @@ import type {
 	FieldNode,
 	ResourceNode,
 } from '@balena/abstract-sql-compiler';
-import type { Dictionary, ShallowWritableOnly } from './common-types.js';
+import type { ShallowWritableOnly } from './common-types.js';
 
 export type AliasValidNodeType =
 	| SelectQueryNode
@@ -33,7 +33,7 @@ const aliasFields = (
 	},
 	fromResourceName: string,
 	toResource: string,
-	aliases: Dictionary<string | AliasValidNodeType>,
+	aliases: Record<string, string | AliasValidNodeType>,
 ): SelectNode[1] => {
 	const fromFields =
 		translationAbstractSqlModel.tables[fromResourceName].fields;
@@ -89,7 +89,7 @@ const aliasResource = (
 	},
 	fromResourceName: string,
 	toResource: string,
-	aliases: Dictionary<string | AliasValidNodeType>,
+	aliases: Record<string, string | AliasValidNodeType>,
 ): Definition => {
 	if (!translationAbstractSqlModel.tables[toResource]) {
 		throw new Error(`Tried to alias to a non-existent resource: ${toResource}`);
@@ -159,17 +159,18 @@ export const translateAbstractSqlModel = (
 	toAbstractSqlModel: AbstractSqlModel,
 	fromVersion: string,
 	toVersion: string,
-	translationDefinitions: Dictionary<
+	translationDefinitions: Record<
+		string,
 		| (Definition & { $toResource?: string })
-		| Dictionary<string | AliasValidNodeType>
+		| Record<string, string | AliasValidNodeType>
 	> = {},
-): Dictionary<string> => {
+): Record<string, string> => {
 	const isDefinition = (
 		d: (typeof translationDefinitions)[string],
 	): d is Definition => 'abstractSql' in d;
 	const toVersionSuffix = `$${toVersion}`;
 
-	const resourceRenames: Dictionary<string> = {};
+	const resourceRenames: Record<string, string> = {};
 
 	fromAbstractSqlModel.rules = toAbstractSqlModel.rules;
 
