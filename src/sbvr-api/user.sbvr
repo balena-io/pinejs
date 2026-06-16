@@ -31,6 +31,11 @@ Term:       actor
 Term:       user
 	Reference Scheme: username
 	Concept Type: actor
+-- `user` already has `Concept Type: actor` above; this fact type references that
+-- same relationship to make the `actor` column unique.
+Fact type:  user has actor
+	Necessity: Each user has exactly one actor.
+	Necessity: Each actor is of at most one user.
 Fact type:  user has username
 	Necessity: Each user has exactly one username.
 	Necessity: Each username is of exactly one user.

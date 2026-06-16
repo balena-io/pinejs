@@ -1932,6 +1932,9 @@ const authModelConfig = {
 					break;
 			}
 		},
+		'24.1.2-user-actor-unique': `
+			CREATE UNIQUE INDEX IF NOT EXISTS "user_actor_key" ON "user" ("actor");
+		`,
 	},
 } as const satisfies sbvrUtils.ExecutableModel;
 export const config = {
