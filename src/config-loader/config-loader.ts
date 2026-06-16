@@ -4,11 +4,7 @@ import type {
 	Definition,
 } from '@balena/abstract-sql-compiler';
 import type { Database } from '../database-layer/db.js';
-import type {
-	AnyObject,
-	RequiredField,
-	Resolvable,
-} from '../sbvr-api/common-types.js';
+import type { RequiredField, Resolvable } from '../sbvr-api/common-types.js';
 
 import {
 	type Migration,
@@ -75,36 +71,20 @@ export interface Config {
 	webResourceHandler?: WebResourceHandler;
 }
 
-const getOrCreate = async (
-	authApiTx: sbvrUtils.PinejsClient,
-	resource: string,
-	uniqueFields: AnyObject,
-	extraFields?: AnyObject,
-) => {
-	const result = (await authApiTx.get({
-		resource,
-		id: uniqueFields,
-		options: {
-			$select: 'id',
-		},
-	})) as { id: number } | undefined;
-	if (result != null) {
-		return result.id;
-	}
-	const { id } = (await authApiTx.post({
-		resource,
-		body: { ...uniqueFields, ...extraFields },
-		options: { returnResource: false },
-	})) as { id: number };
-	return id;
-};
-
 const getOrCreatePermission = async (
-	authApiTx: sbvrUtils.PinejsClient,
+	authApiTx: typeof sbvrUtils.api.Auth,
 	permissionName: string,
 ) => {
 	try {
-		return await getOrCreate(authApiTx, 'permission', { name: permissionName });
+		return (await authApiTx.getOrCreate({
+			resource: 'permission',
+			id: { name: permissionName },
+			body: {},
+			options: {
+				$select: 'id',
+				returnResource: false,
+			},
+		}))!.id;
 	} catch (e: any) {
 		e.message = `Could not create or find permission "${permissionName}": ${e.message}`;
 		throw e;
@@ -142,23 +122,34 @@ export const setup = (app: Express.Application) => {
 				await Promise.all(
 					users.map(async (user) => {
 						try {
-							const userID = await getOrCreate(
-								authApiTx,
-								'user',
-								{
+							const userID = (await authApiTx.getOrCreate({
+								resource: 'user',
+								id: {
 									username: user.username,
 								},
-								{
+								body: {
 									password: user.password,
 								},
-							);
+								options: {
+									$select: 'id',
+									returnResource: false,
+								},
+							}))!.id;
 							if (user.permissions != null) {
 								await Promise.all(
 									user.permissions.map(async (permissionName) => {
 										const permissionID = await permissionsCache[permissionName];
-										await getOrCreate(authApiTx, 'user__has__permission', {
-											user: userID,
-											permission: permissionID,
+										await authApiTx.getOrCreate({
+											resource: 'user__has__permission',
+											id: {
+												user: userID,
+												permission: permissionID,
+											},
+											body: {},
+											options: {
+												$select: 'id',
+												returnResource: false,
+											},
 										});
 									}),
 								);
