@@ -1,4 +1,4 @@
-/// <references types="websql"/>
+/// <reference types="websql"/>
 import type Mysql from 'mysql';
 import type Pg from 'pg';
 import type PgConnectionString from 'pg-connection-string';
