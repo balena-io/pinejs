@@ -433,6 +433,7 @@ const convertToLambda = (filter: AnyObject, identifier: string) => {
 			for (const element of object) {
 				replaceObject(element);
 			}
+			return;
 		}
 
 		if (Object.hasOwn(object, 'name')) {
