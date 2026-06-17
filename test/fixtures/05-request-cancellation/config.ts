@@ -19,4 +19,4 @@ export default {
 			permissions: ['resource.all'],
 		},
 	],
-} as ConfigLoader.Config;
+} satisfies ConfigLoader.Config;

@@ -164,9 +164,9 @@ export const initRoutes = (app: express.Express) => {
 		'/unprefixed-bind',
 		handle(() =>
 			readStudents('university.student.read?semester_credits eq @CREDITS', {
-				// Deliberately outside the @__ namespace to exercise the runtime guard.
+				// @ts-expect-error Deliberately outside the @__ namespace to exercise the runtime guard.
 				'@CREDITS': '10',
-			} as sbvrUtils.ExtraBinds),
+			}),
 		),
 	);
 };

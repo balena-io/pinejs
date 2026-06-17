@@ -1,6 +1,5 @@
 import type { ConfigLoader } from '@balena/pinejs';
 import { getAbstractSqlModelFromFile } from '@balena/pinejs/out/bin/utils.js';
-import type { AbstractSqlQuery } from '@balena/abstract-sql-compiler';
 
 export const toVersion = 'v2';
 
@@ -13,7 +12,7 @@ v1AbstractSqlModel.tables['student'].fields.push({
 	fieldName: 'computed field',
 	dataType: 'Text',
 	required: false,
-	computed: ['EmbeddedText', 'v1_computed_field'] as AbstractSqlQuery,
+	computed: ['EmbeddedText', 'v1_computed_field'],
 });
 
 v1AbstractSqlModel.relationships['version'] = { v1: {} };

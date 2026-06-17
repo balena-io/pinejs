@@ -87,7 +87,7 @@ describe('06 webresources tests', function () {
 			resourceName: 'v1',
 			sbvrTranslatedResource: 'not translated webresource',
 		},
-	];
+	] as const;
 
 	transalations.forEach(
 		({ resourcePath, resourceName, sbvrTranslatedResource }) => {

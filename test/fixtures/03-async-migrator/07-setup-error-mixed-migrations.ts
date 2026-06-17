@@ -1,3 +1,5 @@
+import type { ConfigLoader } from '@balena/pinejs';
+
 const apiRoot = 'example';
 const modelName = 'example';
 const modelFile = import.meta.dirname + '/example.sbvr';
@@ -11,6 +13,7 @@ export default {
 			migrations: {
 				'0001': '<emptyMigration>',
 				sync: {
+					// @ts-expect-error Intentionally invalid type combo to test failure mode
 					'0002': '<emptyMigration>',
 				},
 			},
@@ -23,4 +26,4 @@ export default {
 			permissions: ['resource.all'],
 		},
 	],
-} as any;
+} satisfies ConfigLoader.Config;
