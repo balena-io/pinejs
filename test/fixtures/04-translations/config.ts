@@ -1,4 +1,3 @@
-import type { AbstractSqlQuery } from '@balena/abstract-sql-compiler';
 import { getAbstractSqlModelFromFile } from '@balena/pinejs/out/bin/utils.js';
 import type { ConfigLoader } from '@balena/pinejs';
 
@@ -21,7 +20,7 @@ abstractSql.tables['student'].fields.push({
 	fieldName: 'computed field',
 	dataType: 'Text',
 	required: false,
-	computed: ['EmbeddedText', 'latest_computed_field'] as AbstractSqlQuery,
+	computed: ['EmbeddedText', 'latest_computed_field'],
 });
 
 export default {
@@ -74,4 +73,4 @@ export default {
 			permissions: ['resource.all'],
 		},
 	],
-} as ConfigLoader.Config;
+} satisfies ConfigLoader.Config;

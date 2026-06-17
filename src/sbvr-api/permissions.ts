@@ -1352,13 +1352,13 @@ const $getUserPermissions = (() => {
 	return env.createCache(
 		'userPermissions',
 		async (userId: number, tx?: Tx) => {
-			const permissions = (await getUserPermissionsQuery()(
+			const permissions = await getUserPermissionsQuery()(
 				{
 					userId,
 				},
 				undefined,
 				{ tx },
-			)) as Array<{ name: string }>;
+			);
 			return permissions.map((permission) => permission.name);
 		},
 		{
@@ -1486,13 +1486,13 @@ const $getApiKeyPermissions = (() => {
 	return env.createCache(
 		'apiKeyPermissions',
 		async (apiKey: string, tx?: Tx) => {
-			const permissions = (await getApiKeyPermissionsQuery()(
+			const permissions = await getApiKeyPermissionsQuery()(
 				{
 					apiKey,
 				},
 				undefined,
 				{ tx },
-			)) as Array<{ name: string }>;
+			);
 			return permissions.map((permission) => permission.name);
 		},
 		{

@@ -1,6 +1,5 @@
 import type { ConfigLoader } from '@balena/pinejs';
 import { getAbstractSqlModelFromFile } from '@balena/pinejs/out/bin/utils.js';
-import type { AbstractSqlQuery } from '@balena/abstract-sql-compiler';
 
 export const v3AbstractSqlModel = await getAbstractSqlModelFromFile(
 	import.meta.dirname + '/university.sbvr',
@@ -13,7 +12,7 @@ v3AbstractSqlModel.tables['student'].fields.push({
 	fieldName: 'computed field',
 	dataType: 'Text',
 	required: false,
-	computed: ['EmbeddedText', 'v3_computed_field'] as AbstractSqlQuery,
+	computed: ['EmbeddedText', 'v3_computed_field'],
 });
 
 v3AbstractSqlModel.relationships['version'] = { v3: {} };

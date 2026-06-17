@@ -39,4 +39,4 @@ export default {
 		},
 	],
 	webResourceHandler: s3Handler,
-} as ConfigLoader.Config;
+} satisfies ConfigLoader.Config;

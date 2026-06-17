@@ -48,4 +48,4 @@ export default {
 			permissions: [],
 		},
 	],
-} as ConfigLoader.Config;
+} satisfies ConfigLoader.Config;
