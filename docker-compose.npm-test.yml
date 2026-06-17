@@ -1,7 +1,7 @@
 version: "2.1"
 services:
   postgres:
-    image: postgres:17-alpine@sha256:4649d4ce53680767b3ba9a57f814d7ffa5cd694a03bba551576fb3dd6cb90b01
+    image: postgres:18-alpine@sha256:d3e64d36360a9f40c30fbbc5dd2dde799fe35f8537500c8b067551a6497f50f4
     environment:
       POSTGRES_USER: docker
       POSTGRES_PASSWORD: docker
