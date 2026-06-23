@@ -52,6 +52,7 @@ import type { Config } from '../config-loader/config-loader.js';
 import type { ODataOptions } from 'pinejs-client-core';
 import type { Permission } from './user.js';
 import { importSBVR } from '../server-glue/sbvr-loader.js';
+import { deepFreezeExceptPaths, TERMINATE, WILDCARD } from './deep-freeze.js';
 
 const userModel = await importSBVR('./user.sbvr', import.meta);
 
@@ -703,39 +704,6 @@ const onceGetter = <T, U extends keyof T>(
 	});
 };
 
-const WILDCARD = Symbol('*');
-const TERMINATE = Symbol('TERMINATE');
-const deepFreezeExceptPaths = (
-	obj: AnyObject,
-	excludePaths: Array<Array<string | typeof WILDCARD | typeof TERMINATE>> = [],
-) => {
-	if (!excludePaths.some((path) => path.length === 0)) {
-		Object.freeze(obj);
-	}
-
-	propLoop: for (const prop of Object.getOwnPropertyNames(obj)) {
-		const newExcludePaths: typeof excludePaths = [];
-		for (const path of excludePaths) {
-			if (path.length > 0 && (path[0] === prop || path[0] === WILDCARD)) {
-				if (path[1] === TERMINATE) {
-					// If we're terminating at this path/prop then we don't want to even try to access it as that could trigger getters or other side effects,
-					// so we continue the outer loop
-					continue propLoop;
-				}
-				newExcludePaths.push(path.slice(1));
-			}
-		}
-
-		if (
-			Object.hasOwn(obj, prop) &&
-			obj[prop] !== null &&
-			(typeof obj[prop] === 'object' || typeof obj[prop] === 'function')
-		) {
-			deepFreezeExceptPaths(obj[prop], newExcludePaths);
-		}
-	}
-};
-
 const createBypassDefinition = (definition: Definition) =>
 	_.cloneDeepWith(definition, (abstractSql) => {
 		if (
@@ -1232,6 +1200,7 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 				deepFreezeExceptPaths(constrainedAbstractSqlModel, [
 					['tables'],
 					['tables', WILDCARD],
+					['tables', WILDCARD, 'validator', TERMINATE],
 					['tables', WILDCARD, 'definition', TERMINATE],
 					['synonyms'],
 					['relationships'],

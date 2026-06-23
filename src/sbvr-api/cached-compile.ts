@@ -2,6 +2,7 @@ import type Fs from 'fs';
 
 import { optionalVar } from '@balena/env-parsing';
 import _ from 'lodash';
+import { stringifyIgnoreValidator } from './validation.js';
 
 const cacheFile = optionalVar('PINEJS_CACHE_FILE', '.pinejs-cache.json');
 let cache: null | {
@@ -22,11 +23,16 @@ const SAVE_DEBOUNCE_TIME = 5000;
 
 const saveCache = _.debounce(() => {
 	if (fs != null) {
-		fs.writeFile(cacheFile, JSON.stringify(cache), 'utf8', (err) => {
-			if (err) {
-				console.warn('Error saving pinejs cache:', err);
-			}
-		});
+		fs.writeFile(
+			cacheFile,
+			JSON.stringify(cache, stringifyIgnoreValidator),
+			'utf8',
+			(err) => {
+				if (err) {
+					console.warn('Error saving pinejs cache:', err);
+				}
+			},
+		);
 	}
 }, SAVE_DEBOUNCE_TIME);
 
