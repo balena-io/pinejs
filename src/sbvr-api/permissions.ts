@@ -87,10 +87,7 @@ interface NestedCheckAnd<T> {
 }
 type NestedCheckArray<T> = Array<NestedCheck<T>>;
 type NestedCheck<T> =
-	| NestedCheckOr<T>
-	| NestedCheckAnd<T>
-	| NestedCheckArray<T>
-	| T;
+	NestedCheckOr<T> | NestedCheckAnd<T> | NestedCheckArray<T> | T;
 type PermissionCheck = NestedCheck<string>;
 
 type MappedType<I, O> =
