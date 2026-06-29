@@ -1,6 +1,4 @@
 import type { Config } from '../config-loader/config-loader.js';
-import type { AnyObject } from '../sbvr-api/common-types.js';
-
 import { Store } from 'express-session';
 import * as permissions from '../sbvr-api/permissions.js';
 import { api } from '../sbvr-api/sbvr-utils.js';
@@ -63,7 +61,7 @@ export class PinejsSessionStore extends Store {
 						$select: 'data',
 					},
 				})
-				.then((session: AnyObject) => {
+				.then((session) => {
 					if (session != null) {
 						return session.data;
 					}
@@ -119,7 +117,7 @@ export class PinejsSessionStore extends Store {
 						},
 					},
 				})
-				.then((sessions: AnyObject[]) => sessions.map((s) => s.session_id)),
+				.then((sessions) => sessions.map((s) => s.session_id)),
 		);
 	}) as Store['all'];
 
