@@ -24,10 +24,14 @@ describe('07 permissions tests', function () {
 	describe('university vocabulary with admin permissions', () => {
 		let adminCookie: string;
 		before(async () => {
-			const res = await supertest(testLocalServer).post('/login').send({
-				username: 'admin',
-				password: 'admin',
-			});
+			const res = await supertest(testLocalServer)
+				.post('/login')
+				.set('X-Requested-With', 'XMLHttpRequest')
+				.send({
+					username: 'admin',
+					password: 'admin',
+				})
+				.expect(200);
 			adminCookie = res.headers['set-cookie'];
 		});
 

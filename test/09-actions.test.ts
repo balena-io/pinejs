@@ -39,14 +39,22 @@ describe('09 actions tests', function () {
 		let teacherCookie: string;
 		before(async () => {
 			const [admin, teacher] = await Promise.all([
-				supertest(testLocalServer).post('/login').send({
-					username: 'admin',
-					password: 'admin',
-				}),
-				supertest(testLocalServer).post('/login').send({
-					username: 'teacher',
-					password: 'teacher',
-				}),
+				supertest(testLocalServer)
+					.post('/login')
+					.set('X-Requested-With', 'XMLHttpRequest')
+					.send({
+						username: 'admin',
+						password: 'admin',
+					})
+					.expect(200),
+				supertest(testLocalServer)
+					.post('/login')
+					.set('X-Requested-With', 'XMLHttpRequest')
+					.send({
+						username: 'teacher',
+						password: 'teacher',
+					})
+					.expect(200),
 			]);
 
 			adminCookie = admin.headers['set-cookie'];
