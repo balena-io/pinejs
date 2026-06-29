@@ -75,7 +75,7 @@
     "@balena/pinejs-webresource-s3": "^2.1.27",
     "@faker-js/faker": "10.5.0",
     "@swc-node/register": "1.11.1",
-    "@swc/core": "1.15.41",
+    "@swc/core": "1.15.43",
     "@types/busboy": "1.5.4",
     "@types/chai": "5.2.3",
     "@types/grunt": "0.4.32",
