@@ -1,7 +1,7 @@
 import { api, type Response } from '../../sbvr-api/sbvr-utils.js';
 import type { MultipartUploadHandler } from '../multipartUpload.js';
 import { getMultipartUploadHandler } from '../multipartUpload.js';
-import type { BeginMultipartUploadPayload, UploadPart } from '../index.js';
+import type { UploadPart } from '../index.js';
 import { getWebResourceFields } from '../index.js';
 import { BadRequestError, NotImplementedError } from '../../sbvr-api/errors.js';
 import { permissions, sbvrUtils } from '../../server-glue/module.js';
@@ -61,14 +61,17 @@ const beginUploadAction = async ({
 	}
 
 	const handler = getMultipartUploadHandler();
-	const { fieldName, beginUploadPayload } = parseBeginUpload(request, handler);
+	const { fieldName, payload, chunkSize } = parseBeginUpload(request, handler);
 
 	await runFakeDbPatch(request, {
-		[fieldName]: { ...beginUploadPayload, href: 'fake_patch' },
+		[fieldName]: { ...payload, href: 'fake_patch' },
 	});
 
 	const { fileKey, uploadId, uploadParts } =
-		await handler.multipartUpload.begin(fieldName, beginUploadPayload);
+		await handler.multipartUpload.begin(fieldName, {
+			...payload,
+			chunk_size: chunkSize,
+		});
 	const uuid = randomUUID();
 	await api.webresource.post({
 		resource: 'multipart_upload',
@@ -80,7 +83,8 @@ const beginUploadAction = async ({
 			upload_id: uploadId,
 			file_key: fileKey,
 			status: 'pending',
-			...beginUploadPayload,
+			...payload,
+			chunk_size: chunkSize,
 			expiry_date: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days in ms
 			is_created_by__actor: req.user?.actor,
 		},
@@ -118,22 +122,19 @@ const parseBeginUpload = (
 			`The provided field '${fieldName}' is not a valid webresource`,
 		);
 	}
-	const beginUploadPayload = {
-		...values[fieldName],
-		chunk_size:
-			values[fieldName].chunk_size ??
-			webResourceHandler.multipartUpload.getDefaultPartSize(),
-	} satisfies BeginMultipartUploadPayload;
 
-	if (
-		beginUploadPayload.chunk_size <
-		webResourceHandler.multipartUpload.getMinimumPartSize()
-	) {
+	const { chunk_size: requestedChunkSize, ...payload } = values[fieldName];
+
+	const chunkSize =
+		requestedChunkSize ??
+		webResourceHandler.multipartUpload.getDefaultPartSize();
+	if (chunkSize < webResourceHandler.multipartUpload.getMinimumPartSize()) {
 		throw new BadRequestError('Chunk size is too small');
 	}
 
 	return {
-		beginUploadPayload,
+		payload,
+		chunkSize,
 		fieldName,
 	};
 };

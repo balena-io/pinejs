@@ -12,8 +12,8 @@ import { delay } from '../sbvr-api/control-flow.js';
 
 import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
 export enum MigrationCategories {
-	'sync' = 'sync',
-	'async' = 'async',
+	sync = 'sync',
+	async = 'async',
 }
 export const defaultMigrationCategory = MigrationCategories.sync;
 export type CategorizedMigrations = {
