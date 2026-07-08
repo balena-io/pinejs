@@ -224,7 +224,7 @@ describe('07 permissions tests', function () {
 				},
 			});
 			expect(auth).to.be.eq(
-				'auth.permission.write?(is_of__user/any(u:u/actor eq @__ACTOR)) or (is_of__role/any(r:r/user__has__role/any(ur:ur/is_of__user/any(u:u/actor eq @__ACTOR))))',
+				'auth.permission.write?is_of__user/any(u:u/actor eq @__ACTOR) or is_of__role/any(r:r/user__has__role/any(ur:ur/is_of__user/any(u:u/actor eq @__ACTOR)))',
 			);
 		});
 
@@ -273,7 +273,7 @@ describe('07 permissions tests', function () {
 				},
 			});
 			expect(auth).to.be.eq(
-				"auth.user.read?(actor/canAccess()) or ((username eq 'someuser') and (user__has__role/any(uhr:uhr/user/canAccess())))",
+				"auth.user.read?actor/canAccess() or (username eq 'someuser' and user__has__role/any(uhr:uhr/user/canAccess()))",
 			);
 		});
 	});
