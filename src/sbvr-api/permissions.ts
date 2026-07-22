@@ -703,18 +703,35 @@ const onceGetter = <T, U extends keyof T>(
 	});
 };
 
-const deepFreezeExceptDefinition = (obj: AnyObject) => {
-	Object.freeze(obj);
+const WILDCARD = Symbol('*');
+const TERMINATE = Symbol('TERMINATE');
+const deepFreezeExceptPaths = (
+	obj: AnyObject,
+	excludePaths: Array<Array<string | typeof WILDCARD | typeof TERMINATE>> = [],
+) => {
+	if (!excludePaths.some((path) => path.length === 0)) {
+		Object.freeze(obj);
+	}
 
-	for (const prop of Object.getOwnPropertyNames(obj)) {
-		// We skip the definition because we know it's a property we've defined that will throw an error in some cases
+	propLoop: for (const prop of Object.getOwnPropertyNames(obj)) {
+		const newExcludePaths: typeof excludePaths = [];
+		for (const path of excludePaths) {
+			if (path.length > 0 && (path[0] === prop || path[0] === WILDCARD)) {
+				if (path[1] === TERMINATE) {
+					// If we're terminating at this path/prop then we don't want to even try to access it as that could trigger getters or other side effects,
+					// so we continue the outer loop
+					continue propLoop;
+				}
+				newExcludePaths.push(path.slice(1));
+			}
+		}
+
 		if (
-			prop !== 'definition' &&
 			Object.hasOwn(obj, prop) &&
 			obj[prop] !== null &&
-			!['object', 'function'].includes(typeof obj[prop])
+			(typeof obj[prop] === 'object' || typeof obj[prop] === 'function')
 		) {
-			deepFreezeExceptDefinition(obj);
+			deepFreezeExceptPaths(obj[prop], newExcludePaths);
 		}
 	}
 };
@@ -1211,7 +1228,14 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 						},
 					},
 				);
-				deepFreezeExceptDefinition(constrainedAbstractSqlModel);
+				// We skip freezing paths that we know we're going to have to  modify
+				deepFreezeExceptPaths(constrainedAbstractSqlModel, [
+					['tables'],
+					['tables', WILDCARD],
+					['tables', WILDCARD, 'definition', TERMINATE],
+					['synonyms'],
+					['relationships'],
+				]);
 				return constrainedAbstractSqlModel as AbstractSqlModel;
 			},
 			{
