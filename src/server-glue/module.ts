@@ -1,6 +1,8 @@
 import type Express from 'express';
 
 import './sbvr-loader.js';
+// Necessary for interface merging to work properly for adding the `validator` property to `AbstractSqlTable`
+import '../sbvr-api/validation.js';
 
 import * as dbModule from '../database-layer/db.js';
 import * as configLoader from '../config-loader/config-loader.js';

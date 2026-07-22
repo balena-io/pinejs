@@ -38,7 +38,6 @@ import {
 } from '@balena/odata-to-abstract-sql';
 import $sbvrTypes from '@balena/sbvr-types';
 const { default: sbvrTypes } = $sbvrTypes;
-import deepFreeze from 'deep-freeze';
 import type { ActionParams, ODataOptions, Params } from 'pinejs-client-core';
 import { PinejsClientCore, type PromiseResultTypes } from 'pinejs-client-core';
 
@@ -105,6 +104,7 @@ import {
 } from './abstract-sql.js';
 export { resolveOdataBind } from './abstract-sql.js';
 import * as odataResponse from './odata-response.js';
+import * as validation from './validation.js';
 import { env } from '../server-glue/module.js';
 import { translateAbstractSqlModel } from './translations.js';
 import {
@@ -112,6 +112,8 @@ import {
 	setExecutedMigrations,
 } from '../migrator/utils.js';
 import { isActionRequest, runAction } from './actions.js';
+import { stringifyIgnoreValidator } from './validation.js';
+import { deepFreezeExceptPaths, TERMINATE, WILDCARD } from './deep-freeze.js';
 
 const LF2AbstractSQLTranslator = LF2AbstractSQL.createTranslator(sbvrTypes);
 const LF2AbstractSQLTranslatorVersion = `${LF2AbstractSQLVersion}+${sbvrTypesVersion}`;
@@ -665,7 +667,10 @@ export const executeModels = async (
 				await syncMigrator.postRun(tx, model);
 
 				odataResponse.prepareModel(compiledModel.abstractSql);
-				deepFreeze(compiledModel.abstractSql);
+				validation.prepareModel(compiledModel.abstractSql);
+				deepFreezeExceptPaths(compiledModel.abstractSql, [
+					['tables', WILDCARD, 'validator', TERMINATE],
+				]);
 
 				const versions = [apiRoot];
 				if (compiledModel.translateTo != null) {
@@ -748,7 +753,10 @@ export const executeModels = async (
 						model_value:
 							typeof model[modelType] === 'string'
 								? { value: model[modelType] }
-								: model[modelType],
+								: // Only send a JSON valid version of the model or it will be rejected
+									JSON.parse(
+										JSON.stringify(model[modelType], stringifyIgnoreValidator),
+									),
 						model_type: modelType,
 					};
 					const id = result?.[0]?.id;
@@ -1349,8 +1357,17 @@ const runODataRequest = (req: Express.Request, vocabulary: string) => {
 							})
 						: resolveSynonym($request);
 
-					if (abstractSqlModel.tables[resolvedResourceName] == null) {
+					const table = abstractSqlModel.tables[resolvedResourceName];
+					if (table == null) {
 						throw new UnauthorizedError();
+					}
+
+					// TODO: probably need special canAccess handling.. atm it works because we use `looseObject`
+					const validator = validation.getValidator(table);
+					try {
+						parsedRequest.values = validator.parse(parsedRequest.values);
+					} catch {
+						throw new BadRequestError();
 					}
 
 					$request.hooks = [];

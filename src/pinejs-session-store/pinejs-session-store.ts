@@ -72,7 +72,8 @@ export class PinejsSessionStore extends Store {
 	public set = ((sid, data, callback) => {
 		const body = {
 			session_id: sid,
-			data,
+			// Convert from a `Session` instance into a plain object that is valid to pass
+			data: { ...data },
 			expiry_time: data?.cookie?.expires ?? null,
 		};
 		void asCallback(
