@@ -1,4 +1,323 @@
 - commits:
+    - subject: Use zod schemas from sbvr-types to perform early validation before
+        passing to hooks
+      hash: 8983e0175d4bc6bcb99103feb97c9f9f5d2cd2a3
+      body: |
+        Update @balena/sbvr-types from 11.1.4 to 11.3.0
+
+        This means hooks will receive validated data that they can trust to be
+        of the expected type and improve the developer experience along with
+        safety
+
+        https://balena.fibery.io/Work/Project/1002
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add zod schemas that can be used for early validation of types
+              hash: e529b0d268ca69b8d4e7e014a92ae89881ed128b
+              body: |
+                https://balena.fibery.io/Work/Project/1002
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: sbvr-types-11.3.0
+          title: ""
+          date: 2026-07-08T14:10:15.380Z
+        - commits:
+            - subject: Update dependency lint-staged to v17.0.8
+              hash: 49c3f9aa33055edada75d632fd4c4c1e8107d8d2
+              body: |
+                Update lint-staged from 17.0.7 to 17.0.8
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.2.5
+          title: ""
+          date: 2026-06-27T00:24:06.984Z
+        - commits:
+            - subject: Pin dependencies
+              hash: 01f140aeaa425324a3d0709b969a2f0b1a435a47
+              body: |
+                Update typescript
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.2.4
+          title: ""
+          date: 2026-06-20T00:17:53.609Z
+        - commits:
+            - subject: Update typescript to 6.x
+              hash: 7f7b234ab0f50116d40e59af4fc38e431af7dbe5
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-11.2.3
+          title: ""
+          date: 2026-06-18T13:49:51.337Z
+        - commits:
+            - subject: Pin dependencies
+              hash: 21f7dfb9feccab840f3af20905063eef28adb21e
+              body: |
+                Update @types/bcrypt
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.2.2
+          title: ""
+          date: 2026-06-13T00:29:30.541Z
+        - commits:
+            - subject: Update dependency lint-staged to v17
+              hash: 75097e64db9d54e6845268efbd43a7640e35bdf0
+              body: |
+                Update lint-staged from 16.4.0 to 17.0.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.2.1
+          title: ""
+          date: 2026-05-12T03:18:02.312Z
+        - commits:
+            - subject: Add 'Date Time Range' type
+              hash: e638b470c7c0c086257dcb1a4c71cd657e131c37
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+                Signed-off-by: jaomaloy <jan.maloy@balena.io>
+                signed-off-by: jaomaloy <jan.maloy@balena.io>
+              author: jaomaloy
+          version: sbvr-types-11.2.0
+          title: ""
+          date: 2026-04-15T08:57:50.937Z
+        - commits:
+            - subject: Revert flowzone pinning to master
+              hash: 1eb5955a3b3d152ad747fa195d062bad7f7b402f
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Kyle Harding
+          version: sbvr-types-11.1.22
+          title: ""
+          date: 2026-03-26T17:23:01.680Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8ea01d3
+              hash: 5498249ae0fd4ae8efca2c8846b2798a10f5ec11
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.21
+          title: ""
+          date: 2026-03-26T12:14:37.591Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 3eb3c97
+              hash: 58ebeb05437c07b2bff20f60cbf25b0a48203ebc
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.20
+          title: ""
+          date: 2026-03-26T10:23:48.584Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b49c1e
+              hash: 77eda3773c745bdfd85633336cf9ea8151056a31
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.19
+          title: ""
+          date: 2026-03-26T09:25:21.624Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8d926e2
+              hash: 32f3e7f68ad225133e96e50b1edad11eb63bfae2
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.18
+          title: ""
+          date: 2026-03-26T08:21:20.625Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 20a58d6
+              hash: 157685a0f0aa03cb9a1d59cd3f4b8597b5962ef5
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.17
+          title: ""
+          date: 2026-03-26T07:23:57.806Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b1359d
+              hash: 5038a169013bf6847e544521bd04733eb673fcbf
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.16
+          title: ""
+          date: 2026-03-26T06:25:24.691Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 7b87702
+              hash: fca583aedbfb98d4aa6900a45bb4e3a5f95b8fef
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.15
+          title: ""
+          date: 2026-03-26T05:36:45.616Z
+        - commits:
+            - subject: Update product-os/flowzone digest to cc9836f
+              hash: 88207935534d64a3e804ccd25b970f0441d2b76c
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.14
+          title: ""
+          date: 2026-03-26T03:57:29.770Z
+        - commits:
+            - subject: Update product-os/flowzone digest to b79645a
+              hash: b38be4f16c680d7d204e8a6a2c82eee5712ea622
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.13
+          title: ""
+          date: 2026-03-26T02:52:17.512Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 4815186
+              hash: 46beffa280c433e58565b42452c1447e2644eb8b
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.12
+          title: ""
+          date: 2026-03-26T01:29:53.661Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 267495d
+              hash: 82e6bb3d655cb68f1aaf967cdc79666e633fa651
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.11
+          title: ""
+          date: 2026-03-26T00:10:29.234Z
+        - commits:
+            - subject: Update product-os/flowzone digest to f955793
+              hash: 568c64ad946c0f14bbe77da559109aa85d8ccef4
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.10
+          title: ""
+          date: 2026-03-25T23:17:55.242Z
+        - commits:
+            - subject: Update product-os/flowzone digest to 8674dc5
+              hash: d7c4352fce57d2b6b5c7d2c687b111f4be943ba8
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.9
+          title: ""
+          date: 2026-03-25T21:42:59.987Z
+        - commits:
+            - subject: Update product-os/flowzone digest to eb703ea
+              hash: a4ca6e611f82a618b5992aaa1189320e18e18ff1
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.8
+          title: ""
+          date: 2026-03-25T20:11:14.732Z
+        - commits:
+            - subject: Pin product-os/flowzone action to a53cf4b
+              hash: 9ff4599fc77a3fceea168ca1e03618de244ca706
+              body: |
+                Update product-os/flowzone
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+          version: sbvr-types-11.1.7
+          title: ""
+          date: 2026-03-24T18:23:24.283Z
+        - commits:
+            - subject: "Add id-token: write permission for NPM OIDC publishing"
+              hash: ab01f7d00c2905b30c0c70289a7cb273cf088a7e
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+                Signed-off-by: Kyle Harding <kyle@balena.io>
+                signed-off-by: Kyle Harding <kyle@balena.io>
+              author: Kyle Harding
+          version: sbvr-types-11.1.6
+          title: ""
+          date: 2026-02-19T01:39:15.124Z
+        - commits:
+            - subject: Update dependencies
+              hash: faa3686f258876ea0e58aa0f8c82026c9484a33e
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: sbvr-types-11.1.5
+          title: ""
+          date: 2026-02-16T15:37:36.341Z
+  version: 24.2.0
+  title: ""
+  date: 2026-07-22T14:06:24.711Z
+- commits:
     - subject: "Permissions: fix `deepFreezeExceptDefinition` usage to work as intended"
       hash: 4d642d034519394f24977b7217bccf0f534d73be
       body: |
@@ -7822,6 +8141,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -7844,6 +8164,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8012,6 +8333,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8374,6 +8696,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -8402,6 +8725,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8562,6 +8886,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8858,6 +9183,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -9003,6 +9329,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -12383,6 +12710,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -12405,6 +12733,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -12601,6 +12930,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -13019,6 +13349,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -13047,6 +13378,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -13235,6 +13567,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -13587,6 +13920,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -13732,6 +14066,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
