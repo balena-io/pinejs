@@ -1,18 +1,13 @@
-import type { RequiredField } from '../src/sbvr-api/common-types.js' with { 'resolution-mode': 'import' };
+import type { RequiredField } from '../src/sbvr-api/common-types.js' with {
+	'resolution-mode': 'import',
+};
 
 import * as path from 'path';
 import * as webpack from 'webpack';
 import type { Configuration } from 'webpack';
 const root = path.dirname(__dirname);
 
-const config: RequiredField<
-	Configuration,
-	'plugins' | 'resolve' | 'externals'
-> & {
-	externals: {
-		[index: string]: string | boolean | string[] | { [index: string]: any };
-	};
-} = {
+const config = {
 	mode: 'production',
 	devtool: 'source-map',
 	entry: root,
@@ -44,13 +39,18 @@ const config: RequiredField<
 		'typed-error': true,
 	},
 	resolve: {
+		alias: {},
 		extensions: ['.js', '.ts'],
 		extensionAlias: {
 			'.js': ['.ts', '.js'],
 			'.mjs': ['.mts', '.mjs'],
 		},
 	},
-	plugins: [new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 })],
+	plugins: [
+		new webpack.optimize.LimitChunkCountPlugin({
+			maxChunks: 1,
+		}) as webpack.WebpackPluginInstance,
+	],
 	module: {
 		rules: [
 			{
@@ -69,6 +69,13 @@ const config: RequiredField<
 			},
 		],
 	},
+} satisfies RequiredField<
+	Configuration,
+	'plugins' | 'resolve' | 'externals'
+> & {
+	externals: {
+		[index: string]: string | boolean | string[] | { [index: string]: any };
+	};
 };
 
 export default config;
