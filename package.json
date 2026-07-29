@@ -33,7 +33,7 @@
     "@balena/abstract-sql-compiler": "^11.3.18",
     "@balena/abstract-sql-to-typescript": "^6.1.19",
     "@balena/env-parsing": "^1.2.6",
-    "@balena/lf-to-abstract-sql": "^6.0.0",
+    "@balena/lf-to-abstract-sql": "^6.0.3",
     "@balena/odata-parser": "^4.3.0",
     "@balena/odata-to-abstract-sql": "^10.0.4",
     "@balena/sbvr-parser": "^1.4.13",
