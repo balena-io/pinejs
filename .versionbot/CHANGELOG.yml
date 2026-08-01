@@ -1,4 +1,26 @@
 - commits:
+    - subject: Update dependency webpack to v5.109.2
+      hash: 0ba3ef57767b94f266565e157555a8fe1d356947
+      body: |
+        Update webpack from 5.109.0 to 5.109.2
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+    - subject: Update dependency webpack to v5.109.0
+      hash: a8819ba6d2998274607099d25814d3872d627561
+      body: |
+        Update webpack from 5.108.4 to 5.109.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 24.2.8
+  title: ""
+  date: 2026-08-01T00:38:58.854Z
+- commits:
     - subject: Update dependency pinejs-client-supertest to v3.2.0
       hash: 5a32a41d7b909429f46384bd19c419a93aa495c1
       body: |
@@ -8307,6 +8329,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -8329,6 +8352,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8505,6 +8529,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -8883,6 +8908,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -8911,6 +8937,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9079,6 +9106,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9391,6 +9419,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -9536,6 +9565,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -12932,6 +12962,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -12954,6 +12985,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -13158,6 +13190,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -13592,6 +13625,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -13620,6 +13654,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -13816,6 +13851,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14184,6 +14220,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -14329,6 +14366,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
