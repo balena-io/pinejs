@@ -101,7 +101,7 @@
     "husky": "9.1.7",
     "lint-staged": "17.3.0",
     "load-grunt-tasks": "5.1.0",
-    "mocha": "11.7.6",
+    "mocha": "11.8.0",
     "on-finished": "2.4.1",
     "pinejs-client-supertest": "3.2.0",
     "raw-loader": "4.0.2",
