@@ -325,6 +325,19 @@ function namespaceRelationships<T extends Relationship>(
 	}
 }
 
+// Namespacing relationships for an alias does not depend on the permissions, so we share the result between all of
+// the permission constrained versions of a model that namespace the same relationships, rather than creating a copy
+// for each of them
+const memoizedNamespaceRelationships = memoizeWeak(
+	<T extends Relationship>(relationships: T, alias: string): T => {
+		const namespacedRelationships =
+			namespaceRelationships(relationships, alias) ?? relationships;
+		deepFreezeExceptPaths(namespacedRelationships);
+		return namespacedRelationships;
+	},
+	{ primitive: true },
+);
+
 type PermissionLookup = Record<string, true | string[]>;
 
 const getPermissionsLookup = env.createCache(
@@ -1188,9 +1201,7 @@ const getBoundConstrainedMemoizer = memoizeWeak(
 								const origRelationship = relationships[relationship];
 								relationships[`${relationship}$${alias}`] = relationships[
 									relationship
-								] =
-									namespaceRelationships(origRelationship, alias) ??
-									origRelationship;
+								] = memoizedNamespaceRelationships(origRelationship, alias);
 							}
 							return relationships[permissionResourceName];
 						},
