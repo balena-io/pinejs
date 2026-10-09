@@ -1,4 +1,20 @@
 - commits:
+    - subject: Share the namespaced relationships between permission constrained models
+      hash: 7f1cc706547a0f6dbbb16694e3c20b6e5a62d6c1
+      body: |
+        Namespacing relationships for an alias does not depend on the
+        permissions, so we share the result between all of the permission
+        constrained versions of a model that namespace the same relationships,
+        rather than creating a copy for each of them
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 24.2.42
+  title: ""
+  date: 2026-10-09T16:00:27.776Z
+- commits:
     - subject: Update postgres:18-alpine Docker digest to 77f5851
       hash: 6320029d6935d61a9b9b0462106f770f15c3a8da
       body: |
@@ -8794,6 +8810,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -8816,6 +8833,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9026,6 +9044,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9472,6 +9491,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -9500,6 +9520,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9702,6 +9723,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10082,6 +10104,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -10227,6 +10250,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -13691,6 +13715,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -13713,6 +13738,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -13951,6 +13977,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14453,6 +14480,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -14481,6 +14509,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14711,6 +14740,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15147,6 +15177,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -15292,6 +15323,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
