@@ -1,4 +1,16 @@
 - commits:
+    - subject: Improve memoizee/weak typings - a WeakMap key must be an object
+      hash: 8b4a22a8d8fad6722d8a2a7eee37701d9efd2c10
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 24.2.44
+  title: ""
+  date: 2026-10-14T01:04:55.028Z
+- commits:
     - subject: Update dependency supertest to v7.3.1
       hash: f869096703ad8d5a14a72b87d398c04424f583c2
       body: |
@@ -8825,6 +8837,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -8847,6 +8860,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9059,6 +9073,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9509,6 +9524,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -9537,6 +9553,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9741,6 +9758,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10125,6 +10143,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -10270,6 +10289,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -13738,6 +13758,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -13760,6 +13781,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14000,6 +14022,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14506,6 +14529,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -14534,6 +14558,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14766,6 +14791,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15206,6 +15232,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -15351,6 +15378,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
