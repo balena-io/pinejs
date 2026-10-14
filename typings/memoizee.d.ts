@@ -17,7 +17,7 @@ declare module 'memoizee/weak.js' {
 		resolvers?: Array<(arg: any) => any>;
 	}
 
-	function memoizeWeak<F extends (...args: any[]) => any>(
+	function memoizeWeak<F extends (obj: object, ...args: any[]) => any>(
 		f: F,
 		options?: MemoizeWeakOptions<F>,
 	): F & Memoize.Memoized<F>;
