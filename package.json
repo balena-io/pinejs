@@ -77,7 +77,7 @@
     "@faker-js/faker": "10.6.0",
     "@swc-node/register": "1.12.1",
     "@swc/core": "1.16.18",
-    "@types/busboy": "1.5.4",
+    "@types/busboy": "1.5.5",
     "@types/chai": "5.2.3",
     "@types/grunt": "0.4.32",
     "@types/mocha": "10.0.10",
