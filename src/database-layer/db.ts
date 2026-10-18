@@ -166,9 +166,22 @@ export function registerTransactionLockNamespace(
 	transactionLockNamespaceMap.set(namespaceKey, namespaceId);
 }
 
+const startTransactionStatement = 'START TRANSACTION;';
+const startTransactionReadOnlyStatement = 'START TRANSACTION READ ONLY;';
+const commitStatement = 'COMMIT;';
+const rollbackStatement = 'ROLLBACK;';
+
+// Transaction control statements have no bindings, so leaving them unprepared lets pg send them with the simple
+// query protocol (a single message instead of bind/execute/sync) and skips hashing them for every transaction
+const unpreparedStatements = new Set<Sql>([
+	startTransactionStatement,
+	startTransactionReadOnlyStatement,
+	commitStatement,
+	rollbackStatement,
+]);
 const maybePrepareCache = new Map<string, number>();
 const getPreparedName = (sql: Sql): string | undefined => {
-	if (env.db.prepareAfterN === false) {
+	if (env.db.prepareAfterN === false || unpreparedStatements.has(sql)) {
 		return;
 	}
 	// Use a hash to minimize the size of the cache keys
@@ -681,7 +694,7 @@ if (maybePg != null) {
 						queryQueue.length = 0;
 					}
 					await timeout(
-						this.$executeSql('ROLLBACK;'),
+						this.$executeSql(rollbackStatement),
 						env.db.rollbackTimeout,
 						'Rolling back transaction timed out',
 					);
@@ -695,7 +708,7 @@ if (maybePg != null) {
 
 			protected async _commit() {
 				try {
-					await this.$executeSql('COMMIT;');
+					await this.$executeSql(commitStatement);
 					this.db.release();
 				} catch (err: any) {
 					this.db.release(err);
@@ -756,13 +769,13 @@ if (maybePg != null) {
 			transaction: createTransaction(async (stackTraceErr, timeoutMS) => {
 				const client = await pool.connect();
 				const tx = new PostgresTx(client, false, stackTraceErr, timeoutMS);
-				void tx.executeSql('START TRANSACTION;');
+				void tx.executeSql(startTransactionStatement);
 				return tx;
 			}),
 			readTransaction: createTransaction(async (stackTraceErr, timeoutMS) => {
 				const client = await replica.connect();
 				const tx = new PostgresTx(client, false, stackTraceErr, timeoutMS);
-				void tx.executeSql('START TRANSACTION READ ONLY;');
+				void tx.executeSql(startTransactionReadOnlyStatement);
 				return tx.asReadOnly();
 			}),
 			...alwaysExport,
@@ -843,13 +856,13 @@ if (maybeMysql != null) {
 			}
 
 			protected async _rollback() {
-				const promise = this.$executeSql('ROLLBACK;');
+				const promise = this.$executeSql(rollbackStatement);
 				this.close();
 				await promise;
 			}
 
 			protected async _commit() {
-				const promise = this.$executeSql('COMMIT;');
+				const promise = this.$executeSql(commitStatement);
 				this.close();
 				await promise;
 			}
@@ -881,7 +894,7 @@ if (maybeMysql != null) {
 					client.release();
 				};
 				const tx = new MySqlTx(client, close, false, stackTraceErr, timeoutMS);
-				void tx.executeSql('START TRANSACTION;');
+				void tx.executeSql(startTransactionStatement);
 				return tx;
 			}),
 			readTransaction: createTransaction(async (stackTraceErr, timeoutMS) => {
@@ -890,7 +903,7 @@ if (maybeMysql != null) {
 					client.release();
 				};
 				const tx = new MySqlTx(client, close, false, stackTraceErr, timeoutMS);
-				void tx.executeSql('START TRANSACTION READ ONLY;');
+				void tx.executeSql(startTransactionReadOnlyStatement);
 				return tx.asReadOnly();
 			}),
 			...alwaysExport,
