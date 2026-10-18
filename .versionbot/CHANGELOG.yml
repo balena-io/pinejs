@@ -1,4 +1,23 @@
 - commits:
+    - subject: Optimize transaction control statements
+      hash: 6dfec1c66a266990c4d57fdbec3572117ac39691
+      body: |
+        They're simple/known statements internal to the db module which are run
+        a lot (at least two of them per transaction) and  do not benefit from
+        being prepared statements, so by skipping the check for preparing them
+        it means we can both avoid paying the cost of hashing and use the
+        simpler wire protocol
+
+        https://balena.fibery.io/Work/Project/3083
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 24.3.1
+  title: ""
+  date: 2026-10-18T23:23:14.703Z
+- commits:
     - subject: Add oficial support to node26
       hash: e2536b02c7329b194a7fcacb49924ae90dd9e6d0
       body: ""
@@ -8896,6 +8915,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -8918,6 +8938,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9135,6 +9156,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9595,6 +9617,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -9623,6 +9646,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9832,6 +9856,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10226,6 +10251,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -10371,6 +10397,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -13849,6 +13876,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -13871,6 +13899,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14116,6 +14145,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14632,6 +14662,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -14660,6 +14691,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14897,6 +14929,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15347,6 +15380,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -15492,6 +15526,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
