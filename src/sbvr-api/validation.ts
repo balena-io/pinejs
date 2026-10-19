@@ -23,7 +23,7 @@ export const getValidator = (table: AbstractSqlTable) => {
 					required ? 'optional' : 'nullish'
 				]();
 		}
-		table.validator = z.looseObject(zObject);
+		table.validator = z.compile(z.looseObject(zObject));
 	}
 	return table.validator;
 };
