@@ -7,27 +7,7 @@ const routesPath =
 	import.meta.dirname + '/fixtures/05-request-cancellation/routes.js';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
 import { PineTest } from 'pinejs-client-supertest';
-import request from 'request';
 import { setTimeout } from 'timers/promises';
-
-const requestAsync = (
-	opts:
-		| (request.UriOptions & request.CoreOptions)
-		| (request.UrlOptions & request.CoreOptions),
-) => {
-	let req: ReturnType<typeof request>;
-	const promise = new Promise((resolve, reject) => {
-		req = request(opts, (err: Error, response) => {
-			if (err) {
-				reject(err);
-				return;
-			}
-			resolve(response);
-		});
-	}) as Promise<request.Response> & { req: ReturnType<typeof request> };
-	promise.req = req!;
-	return promise;
-};
 
 async function expectLogs(pineTest: PineTest, expectedLogs: string[]) {
 	const { body: logs } = await pineTest
@@ -74,17 +54,29 @@ describe('05 request cancellation tests', function () {
 
 	describe('OData requests', function () {
 		it('should stop & rollback the transaction when a request is aborted', async () => {
-			const { req } = requestAsync({
-				url: `${testLocalServer}/example/slow_resource`,
+			const abortController = new AbortController();
+			const pendingRequest = fetch(`${testLocalServer}/example/slow_resource`, {
 				method: 'POST',
-				body: {
-					name: 'TestOData',
+				headers: {
+					'Content-Type': 'application/json',
+					Accept: 'application/json',
 				},
-				json: true,
+				body: JSON.stringify({
+					name: 'TestOData',
+				}),
+				signal: abortController.signal,
 			});
 
 			await setTimeout(100);
-			req.abort();
+			abortController.abort();
+			// Await straight after aborting so the rejection is handled in the same tick
+			let abortError: unknown;
+			try {
+				await pendingRequest;
+			} catch (err) {
+				abortError = err;
+			}
+			expect(abortError).to.have.property('name', 'AbortError');
 			await setTimeout(500);
 
 			const { body } = await pineTest
@@ -109,15 +101,18 @@ describe('05 request cancellation tests', function () {
 		});
 
 		it('should be able to create a slow resource entry using a request', async () => {
-			const res = await requestAsync({
-				url: `${testLocalServer}/example/slow_resource`,
+			const res = await fetch(`${testLocalServer}/example/slow_resource`, {
 				method: 'POST',
-				body: {
-					name: 'TestOData',
+				headers: {
+					'Content-Type': 'application/json',
+					Accept: 'application/json',
 				},
-				json: true,
+				body: JSON.stringify({
+					name: 'TestOData',
+				}),
 			});
-			expect(res).to.have.property('statusCode', 201);
+			await res.text();
+			expect(res).to.have.property('status', 201);
 
 			const { body } = await pineTest
 				.get({
@@ -154,17 +149,32 @@ describe('05 request cancellation tests', function () {
 			const name = `TestCustomEndpoint-${evenToHook}`;
 
 			it(`should stop & rollback the transaction when a custom endpoint has hooked to the req using ${evenToHook}`, async () => {
-				const { req } = requestAsync({
-					url: `${testLocalServer}/slow-custom-endpoint?event=${evenToHook}`,
-					method: 'POST',
-					body: {
-						name,
+				const abortController = new AbortController();
+				const pendingRequest = fetch(
+					`${testLocalServer}/slow-custom-endpoint?event=${evenToHook}`,
+					{
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							Accept: 'application/json',
+						},
+						body: JSON.stringify({
+							name,
+						}),
+						signal: abortController.signal,
 					},
-					json: true,
-				});
+				);
 
 				await setTimeout(100);
-				req.abort();
+				abortController.abort();
+				// Await straight after aborting so the rejection is handled in the same tick
+				let abortError: unknown;
+				try {
+					await pendingRequest;
+				} catch (err) {
+					abortError = err;
+				}
+				expect(abortError).to.have.property('name', 'AbortError');
 				await setTimeout(500);
 
 				const { body } = await pineTest
@@ -191,15 +201,21 @@ describe('05 request cancellation tests', function () {
 			});
 
 			it(`should be able to create a slow resource entry using a custom endpoint that has hooked the transaction to the req using ${evenToHook}`, async () => {
-				const res = await requestAsync({
-					url: `${testLocalServer}/slow-custom-endpoint?event=${evenToHook}`,
-					method: 'POST',
-					body: {
-						name,
+				const res = await fetch(
+					`${testLocalServer}/slow-custom-endpoint?event=${evenToHook}`,
+					{
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							Accept: 'application/json',
+						},
+						body: JSON.stringify({
+							name,
+						}),
 					},
-					json: true,
-				});
-				expect(res).to.have.property('statusCode', 201);
+				);
+				await res.text();
+				expect(res).to.have.property('status', 201);
 
 				const { body } = await pineTest
 					.get({
