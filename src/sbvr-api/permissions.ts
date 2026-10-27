@@ -1762,7 +1762,7 @@ const getReqPermissions = async (
 	})();
 
 	let actorPermissions: string[] = [];
-	const addActorPermissions = (creds: Actor & { actor: number }) => {
+	const addActorPermissions = (creds: Actor) => {
 		odataBinds[DEFAULT_ACTOR_BIND] = ['Real', creds.actor];
 		if (creds.extraBinds != null) {
 			for (const [bindName, bindValue] of Object.entries(creds.extraBinds)) {
