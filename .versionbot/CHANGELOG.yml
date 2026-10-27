@@ -1,4 +1,60 @@
 - commits:
+    - subject: Combine the api key actor id and permissions caches
+      hash: 4509accfc35e1c8289d3115486dc45d142366045
+      body: |
+        This reduces cache lookups required and they always need to be fetched
+        together so separate caches are not a benefit
+
+        https://balena.fibery.io/Work/Project/3083
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Stop exporting `getApiKeyPermissions` function
+      hash: b2a4c003afd8204ffab17b545634be047a38e699
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Drop support for nodejs 22
+      hash: 135ea6df33cd94d2b4100d714e9e94c1e82b02e3
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Update @balena/sbvr-types to 12.x
+      hash: ffff89a430f6c8c6f07777cd81d181383bc4cb6d
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Stop exporting `Dictionary<T>` type - use `Record<string, T>` instead
+      hash: 6fbc06c509f886bfe0ff76ff69fb4f3bc0f975d7
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Add required `actor` property to the `Actor` type
+      hash: c1249810c9b245597d7912a3919db7021c465436
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+  version: 25.0.0
+  title: ""
+  date: 2026-10-27T22:15:39.142Z
+- commits:
     - subject: Update @balena/abstract-sql-to-typescript to 6.1.29
       hash: fb136be92084b923d17a6acedbd8f16590474fa1
       body: ""
@@ -9026,6 +9082,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9048,6 +9105,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9274,6 +9332,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9752,6 +9811,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -9780,6 +9840,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9998,6 +10059,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10410,6 +10472,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -10555,6 +10618,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14051,6 +14115,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -14073,6 +14138,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14327,6 +14393,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14861,6 +14928,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -14889,6 +14957,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15135,6 +15204,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15603,6 +15673,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -15748,6 +15819,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
