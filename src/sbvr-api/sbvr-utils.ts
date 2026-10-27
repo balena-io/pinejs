@@ -141,8 +141,8 @@ const models: {
 
 export type ExtraBinds = Record<`@__${string}`, string>;
 
-// TODO next major: update this interface to have `actor: number;` and remove from derived types
 export interface Actor {
+	actor: number;
 	permissions?: string[];
 	/** Caller-supplied named binds; keys must use the `@__` prefix. `@__ACTOR_ID` is reserved. */
 	extraBinds?: ExtraBinds;
@@ -151,12 +151,10 @@ export interface Actor {
 export interface User extends Actor {
 	// id is optional as scoped api keys only contain a set of permissions for a given actor
 	id?: number;
-	actor: number;
 }
 
 export interface ApiKey extends Actor {
 	key: string;
-	actor: number;
 }
 
 export interface Response {

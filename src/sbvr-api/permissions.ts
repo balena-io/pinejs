@@ -1388,7 +1388,30 @@ export const getUserPermissions = async (
 	}
 };
 
-const $getApiKeyPermissions = (() => {
+const getApiKeyPermissionsAndActorId = (() => {
+	const getApiKeyActorIdQuery = _.once(() =>
+		sbvrUtils.api.Auth.prepare(
+			{
+				resource: 'api_key',
+				passthrough: {
+					req: rootRead,
+				},
+				id: {
+					key: { '@': 'apiKey' },
+				},
+				options: {
+					$select: 'is_of__actor',
+					$filter: {
+						$or: [
+							{ expiry_date: null },
+							{ expiry_date: { $gt: { $now: null } } },
+						],
+					},
+				},
+			},
+			{ apiKey: ['string'] },
+		),
+	);
 	const getApiKeyPermissionsQuery = _.once(() =>
 		sbvrUtils.api.Auth.prepare(
 			{
@@ -1485,89 +1508,51 @@ const $getApiKeyPermissions = (() => {
 			{ apiKey: ['string'] },
 		),
 	);
-	return env.createCache(
-		'apiKeyPermissions',
-		async (apiKey: string, tx?: Tx) => {
-			const permissions = await getApiKeyPermissionsQuery()(
-				{
-					apiKey,
-				},
-				undefined,
-				{ tx },
-			);
-			return permissions.map((permission) => permission.name);
-		},
-		{
-			primitive: true,
-			promise: true,
-			normalizer: ([apiKey]) => apiKey,
-		},
-	);
-})();
-export const getApiKeyPermissions = async (
-	apiKey: string,
-	tx?: Tx,
-): Promise<string[]> => {
-	if (typeof apiKey !== 'string') {
-		throw new Error('API key has to be a string, got: ' + typeof apiKey);
-	}
-	try {
-		return await $getApiKeyPermissions(apiKey, tx);
-	} catch (err: any) {
-		sbvrUtils.logger.Auth.error('Error loading api key permissions', err);
-		throw err;
-	}
-};
-
-const getApiKeyActorId = (() => {
-	const getApiKeyActorIdQuery = _.once(() =>
-		sbvrUtils.api.Auth.prepare(
-			{
-				resource: 'api_key',
-				passthrough: {
-					req: rootRead,
-				},
-				id: {
-					key: { '@': 'apiKey' },
-				},
-				options: {
-					$select: 'is_of__actor',
-					$filter: {
-						$or: [
-							{ expiry_date: null },
-							{ expiry_date: { $gt: { $now: null } } },
-						],
-					},
-				},
-			},
-			{ apiKey: ['string'] },
-		),
-	);
 	const apiActorPermissionError = new PermissionError();
+	const $getApiKeyPermissionsAndActorId = async (apiKey: string, tx: Tx) => {
+		// The actor id is fetched first as it fails for unknown or expired api keys,
+		// which then only cost a single query
+		const apiKeyResult = await getApiKeyActorIdQuery()(
+			{
+				apiKey,
+			},
+			undefined,
+			{ tx },
+		);
+		if (apiKeyResult == null) {
+			// We reuse a constant permission error here as it will be cached, and
+			// using a single error instance can drastically reduce the memory used
+			throw apiActorPermissionError;
+		}
+		const actor = apiKeyResult.is_of__actor.__id;
+		if (actor == null) {
+			throw new Error('API key is not linked to a actor?!');
+		}
+		const permissions = await getApiKeyPermissionsQuery()(
+			{
+				apiKey,
+			},
+			undefined,
+			{ tx },
+		);
+		return {
+			permissions: permissions.map((permission) => permission.name),
+			actor,
+		};
+	};
 	return env.createCache(
-		'apiKeyActorId',
+		'apiKeyPermissionsAndActorId',
 		async (apiKey: string, tx?: Tx) => {
-			const apiKeyResult = await getApiKeyActorIdQuery()(
-				{
-					apiKey,
-				},
-				undefined,
-				{ tx },
-			);
-			if (apiKeyResult == null) {
-				// We reuse a constant permission error here as it will be cached, and
-				// using a single error instance can drastically reduce the memory used
-				throw apiActorPermissionError;
+			if (tx == null) {
+				return sbvrUtils.db.transaction(async ($tx) => {
+					return $getApiKeyPermissionsAndActorId(apiKey, $tx);
+				});
 			}
-			const apiKeyActorID = apiKeyResult.is_of__actor.__id;
-			if (apiKeyActorID == null) {
-				throw new Error('API key is not linked to a actor?!');
-			}
-			return apiKeyActorID;
+			return $getApiKeyPermissionsAndActorId(apiKey, tx);
 		},
 		{
-			promise: true,
 			primitive: true,
+			promise: true,
 			normalizer: ([apiKey]) => apiKey,
 		},
 	);
@@ -1577,8 +1562,13 @@ export const checkApiKey = async (
 	apiKey: string,
 	tx?: Tx,
 ): Promise<PermissionReq['apiKey']> => {
-	const permissions = await getApiKeyPermissions(apiKey, tx);
-	const actor = await getApiKeyActorId(apiKey, tx);
+	if (typeof apiKey !== 'string') {
+		throw new Error('API key has to be a string, got: ' + typeof apiKey);
+	}
+	const { permissions, actor } = await getApiKeyPermissionsAndActorId(
+		apiKey,
+		tx,
+	);
 	return {
 		key: apiKey,
 		permissions,
@@ -1762,7 +1752,7 @@ const getReqPermissions = async (
 	})();
 
 	let actorPermissions: string[] = [];
-	const addActorPermissions = (creds: Actor & { actor: number }) => {
+	const addActorPermissions = (creds: Actor) => {
 		odataBinds[DEFAULT_ACTOR_BIND] = ['Real', creds.actor];
 		if (creds.extraBinds != null) {
 			for (const [bindName, bindValue] of Object.entries(creds.extraBinds)) {
