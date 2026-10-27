@@ -1504,7 +1504,7 @@ const $getApiKeyPermissions = (() => {
 		},
 	);
 })();
-export const getApiKeyPermissions = async (
+const getApiKeyPermissions = async (
 	apiKey: string,
 	tx?: Tx,
 ): Promise<string[]> => {
