@@ -1,4 +1,24 @@
 - commits:
+    - subject: Remove unused Dockerfile and .dockerignore
+      hash: 4c396047d960846451cffb08b0fb07ce24a13330
+      body: >
+        Tests run via `docker-compose.npm-test.yml`, which builds no images, and
+
+        Flowzone does not build the Dockerfile (no `docker_images` input or
+
+        `docker-compose.test.yml`). Its `sut` stage also referenced a
+        nonexistent
+
+        `npm run mocha` script.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 25.0.3
+  title: ""
+  date: 2026-10-28T02:08:59.170Z
+- commits:
     - subject: Switch to using nodejs type stripping for build/test files
       hash: 8427acb840043bac2cf0c5a0c6ba523d0473e659
       body: ""
@@ -9110,6 +9130,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9132,6 +9153,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9361,6 +9383,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9845,6 +9868,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -9873,6 +9897,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10094,6 +10119,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10512,6 +10538,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -10657,6 +10684,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14159,6 +14187,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -14181,6 +14210,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14438,6 +14468,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14978,6 +15009,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -15006,6 +15038,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15255,6 +15288,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15729,6 +15763,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -15874,6 +15909,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
