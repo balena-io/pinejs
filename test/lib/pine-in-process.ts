@@ -1,9 +1,9 @@
 import { exit } from 'process';
 import cluster from 'node:cluster';
-import type { PineTestOptions } from './pine-init.js';
-import { init } from './pine-init.js';
+import type { PineTestOptions } from './pine-init.ts';
+import { init } from './pine-init.ts';
 import { tasks } from '@balena/pinejs';
-import { PINE_TEST_SIGNALS } from './common.js';
+import { PINE_TEST_SIGNALS } from './common.ts';
 import { type Serializable } from 'child_process';
 
 const createWorker = (

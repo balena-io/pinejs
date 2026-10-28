@@ -1,5 +1,5 @@
 import type { ConfigLoader } from '@balena/pinejs';
-import { v1AbstractSqlModel, v1Translations } from './translations/v1/index.js';
+import { v1AbstractSqlModel, v1Translations } from './translations/v1/index.ts';
 
 const apiRoot = 'actionsUniversity';
 const modelName = 'actionsUniversity';

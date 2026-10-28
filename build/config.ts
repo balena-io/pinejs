@@ -1,11 +1,9 @@
-import type { RequiredField } from '../src/sbvr-api/common-types.js' with {
-	'resolution-mode': 'import',
-};
+import type { RequiredField } from '../src/sbvr-api/common-types.ts';
 
 import * as path from 'path';
-import * as webpack from 'webpack';
+import webpack from 'webpack';
 import type { Configuration } from 'webpack';
-const root = path.dirname(__dirname);
+const root = path.dirname(import.meta.dirname);
 
 const config = {
 	mode: 'production',
@@ -47,6 +45,7 @@ const config = {
 		},
 	},
 	plugins: [
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- avoids TS4023 in declaration emit
 		new webpack.optimize.LimitChunkCountPlugin({
 			maxChunks: 1,
 		}) as webpack.WebpackPluginInstance,

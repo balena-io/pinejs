@@ -1,11 +1,11 @@
-const configPath = import.meta.dirname + '/fixtures/09-actions/config.js';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
+const configPath = import.meta.dirname + '/fixtures/09-actions/config.ts';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.ts';
 import { expect } from 'chai';
 import supertest from 'supertest';
 
-const actionsPath = import.meta.dirname + '/fixtures/09-actions/actions.js';
+const actionsPath = import.meta.dirname + '/fixtures/09-actions/actions.ts';
 const hooksPath =
-	import.meta.dirname + '/fixtures/09-actions/translations/hooks.js';
+	import.meta.dirname + '/fixtures/09-actions/translations/hooks.ts';
 
 const translations = [
 	{

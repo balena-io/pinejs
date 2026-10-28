@@ -1,6 +1,6 @@
 import type { ConfigLoader } from '@balena/pinejs';
 import { S3Handler } from '@balena/pinejs-webresource-s3';
-import { v1AbstractSqlModel, v1Translations } from './translations/v1/index.js';
+import { v1AbstractSqlModel, v1Translations } from './translations/v1/index.ts';
 import { requiredVar, intVar } from '@balena/env-parsing';
 
 const apiRoot = 'example';

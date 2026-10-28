@@ -1,7 +1,7 @@
 import supertest from 'supertest';
 import { expect } from 'chai';
-const configPath = import.meta.dirname + '/fixtures/07-permissions/config.js';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
+const configPath = import.meta.dirname + '/fixtures/07-permissions/config.ts';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.ts';
 import { sbvrUtils, permissions } from '@balena/pinejs';
 import type UserModel from '@balena/pinejs/out/sbvr-api/user.js';
 
