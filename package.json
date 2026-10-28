@@ -13,12 +13,12 @@
   "scripts": {
     "prepublish": "require-npm4-to-publish",
     "prepare": "node -e \"try { (await import('husky')).default() } catch (e) { if (e.code !== 'ERR_MODULE_NOT_FOUND') throw e }\" --input-type module && npm run build",
-    "build": "grunt --preload @swc-node/register --gruntfile Gruntfile.cts build",
-    "webpack-browser": "grunt  --preload @swc-node/register --gruntfile Gruntfile.cts browser",
-    "webpack-module": "grunt  --preload @swc-node/register --gruntfile Gruntfile.cts module",
-    "webpack-server": "grunt  --preload @swc-node/register --gruntfile Gruntfile.cts server",
+    "build": "grunt --gruntfile Gruntfile.ts build",
+    "webpack-browser": "grunt --gruntfile Gruntfile.ts browser",
+    "webpack-module": "grunt --gruntfile Gruntfile.ts module",
+    "webpack-server": "grunt --gruntfile Gruntfile.ts server",
     "webpack-build": "npm run webpack-browser && npm run webpack-module && npm run webpack-server",
-    "lint": "balena-lint -t tsconfig.dev.json -e js -e ts src test build typings Gruntfile.cts && npx tsc --project tsconfig.dev.json --noEmit",
+    "lint": "balena-lint -t tsconfig.dev.json -e js -e ts src test build typings Gruntfile.ts && npx tsc --project tsconfig.dev.json --noEmit",
     "test": "npm run build && npm run lint && npm run webpack-build && npm run test:compose && npm run test:generated-types",
     "test:start": "DATABASE_URL=postgres://docker:docker@localhost:5431/postgres PINEJS_WEBRESOURCE_MAXFILESIZE=31457280 S3_ENDPOINT=http://localhost:43680 S3_ACCESS_KEY=USERNAME S3_SECRET_KEY=PASSWORD S3_STORAGE_ADAPTER_BUCKET=balena-pine-web-resources S3_REGION=us-east-1 PINEJS_QUEUE_CONCURRENCY=1 TZ=UTC PINEJS_WEBRESOURCE_MULTIPART_ENABLED=true npx mocha",
     "fasttest-build": "docker compose -f docker-compose.npm-test.yml up -d",
@@ -26,7 +26,7 @@
     "fasttest-cleanup": "docker compose -f docker-compose.npm-test.yml down",
     "test:compose": "trap 'npm run fasttest-cleanup ; echo Stopped ; exit 0' INT; npm run fasttest-build && sleep 2 && npm run test:start",
     "test:generated-types": "npm run generate-types && git diff --exit-code ./src/sbvr-api/user.ts ./src/migrator/migrations.ts ./src/sbvr-api/dev.ts",
-    "lint-fix": "balena-lint -t tsconfig.dev.json -e js -e ts --fix src test build typings Gruntfile.cts",
+    "lint-fix": "balena-lint -t tsconfig.dev.json -e js -e ts --fix src test build typings Gruntfile.ts",
     "generate-types": "node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/user.sbvr ./src/sbvr-api/user.ts && node ./bin/sbvr-compiler.js generate-types ./src/migrator/migrations.sbvr ./src/migrator/migrations.ts && node ./bin/sbvr-compiler.js generate-types ./src/sbvr-api/dev.sbvr ./src/sbvr-api/dev.ts && node ./bin/sbvr-compiler.js generate-types ./src/tasks/tasks.sbvr ./src/tasks/tasks.ts && node ./bin/sbvr-compiler.js generate-types ./src/webresource-handler/webresource.sbvr ./src/webresource-handler/webresource.ts && balena-lint -t tsconfig.dev.json --fix ./src/sbvr-api/user.ts ./src/migrator/migrations.ts ./src/sbvr-api/dev.ts"
   },
   "dependencies": {
@@ -75,8 +75,6 @@
     "@balena/pinejs": "file:./",
     "@balena/pinejs-webresource-s3": "^2.1.27",
     "@faker-js/faker": "10.6.0",
-    "@swc-node/register": "1.12.1",
-    "@swc/core": "1.16.18",
     "@types/busboy": "1.5.4",
     "@types/chai": "5.2.3",
     "@types/grunt": "0.4.32",
@@ -145,7 +143,6 @@
     "extension": [
       ".test.ts"
     ],
-    "loader": "@swc-node/register/esm-register",
     "exit": true,
     "timeout": 60000,
     "recursive": true

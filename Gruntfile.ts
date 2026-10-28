@@ -1,14 +1,12 @@
 import type * as Grunt from 'grunt';
 import type { WebpackPluginInstance } from 'webpack';
 
-import * as _ from 'lodash';
-import * as $TerserPlugin from 'terser-webpack-plugin';
-import type TerserPluginType from 'terser-webpack-plugin';
-// @ts-expect-error we need to cat the terser plugin type due to having to use `* as` for runtime to work but default import for the type
-const TerserPlugin = $TerserPlugin as typeof TerserPluginType;
-import browserConfig from './build/browser.cts';
-import moduleConfig from './build/module.cts';
-import serverConfig from './build/server.cts';
+import _ from 'lodash';
+import TerserPlugin from 'terser-webpack-plugin';
+import loadGruntTasks from 'load-grunt-tasks';
+import browserConfig from './build/browser.ts';
+import moduleConfig from './build/module.ts';
+import serverConfig from './build/server.ts';
 
 const serverConfigs = {
 	browser: browserConfig,
@@ -37,7 +35,7 @@ for (const config of Object.values(serverConfigs)) {
 	};
 }
 
-export = (grunt: typeof Grunt) => {
+const gruntfile = (grunt: typeof Grunt) => {
 	grunt.initConfig({
 		clean: {
 			default: {
@@ -140,8 +138,7 @@ export = (grunt: typeof Grunt) => {
 		},
 	});
 
-	// eslint-disable-next-line @typescript-eslint/no-require-imports
-	require('load-grunt-tasks')(grunt);
+	loadGruntTasks(grunt);
 
 	if (!grunt.option('target')) {
 		grunt.option('target', 'out/');
@@ -167,3 +164,6 @@ export = (grunt: typeof Grunt) => {
 
 	grunt.registerTask('build', ['clean', 'checkDependencies', 'ts', 'copy']);
 };
+
+// Grunt loads the gruntfile via `require`, so expose the function as `module.exports`
+export { gruntfile as 'module.exports' };

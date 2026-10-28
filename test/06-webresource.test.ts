@@ -1,8 +1,8 @@
 import supertest from 'supertest';
 import { expect } from 'chai';
-const configPath = import.meta.dirname + '/fixtures/06-webresource/config.js';
+const configPath = import.meta.dirname + '/fixtures/06-webresource/config.ts';
 const hooksPath =
-	import.meta.dirname + '/fixtures/06-webresource/translations/hooks.js';
+	import.meta.dirname + '/fixtures/06-webresource/translations/hooks.ts';
 const testResourcePath =
 	import.meta.dirname + '/fixtures/06-webresource/resources/';
 
@@ -13,14 +13,14 @@ import util from 'util';
 import { randomUUID } from 'crypto';
 import { tmpdir } from 'os';
 import path from 'path';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.ts';
 import {
 	ListObjectsV2Command,
 	S3Client,
 	DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
 import { intVar, requiredVar } from '@balena/env-parsing';
-import { assertExists } from './lib/common.js';
+import { assertExists } from './lib/common.ts';
 import { PineTest } from 'pinejs-client-supertest';
 import type { webResourceHandler } from '@balena/pinejs';
 import type { WebResourceType as WebResource } from '@balena/sbvr-types';

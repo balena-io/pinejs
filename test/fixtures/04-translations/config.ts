@@ -5,11 +5,11 @@ const apiRoot = 'university';
 const modelName = 'university';
 const modelFile = import.meta.dirname + '/university.sbvr';
 
-import { v1AbstractSqlModel, v1Translations } from './translations/v1/index.js';
-import { v2AbstractSqlModel, v2Translations } from './translations/v2/index.js';
-import { v3AbstractSqlModel, v3Translations } from './translations/v3/index.js';
-import { v4AbstractSqlModel } from './translations/v4/index.js';
-import { v5AbstractSqlModel } from './translations/v5/index.js';
+import { v1AbstractSqlModel, v1Translations } from './translations/v1/index.ts';
+import { v2AbstractSqlModel, v2Translations } from './translations/v2/index.ts';
+import { v3AbstractSqlModel, v3Translations } from './translations/v3/index.ts';
+import { v4AbstractSqlModel } from './translations/v4/index.ts';
+import { v5AbstractSqlModel } from './translations/v5/index.ts';
 
 export const abstractSql = await getAbstractSqlModelFromFile(
 	modelFile,

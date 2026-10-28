@@ -1,6 +1,6 @@
 import { setTimeout } from 'timers/promises';
 import { sbvrUtils } from '@balena/pinejs';
-import { track } from './util.js';
+import { track } from './util.ts';
 
 sbvrUtils.addPureHook('POST', 'example', 'slow_resource', {
 	async POSTRUN({ request, api }) {

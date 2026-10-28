@@ -1,9 +1,9 @@
 import supertest from 'supertest';
 import { expect } from 'chai';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.ts';
 
-const configPath = import.meta.dirname + '/fixtures/11-extra-binds/config.js';
-const routesPath = import.meta.dirname + '/fixtures/11-extra-binds/routes.js';
+const configPath = import.meta.dirname + '/fixtures/11-extra-binds/config.ts';
+const routesPath = import.meta.dirname + '/fixtures/11-extra-binds/routes.ts';
 
 const names = (body: Array<{ name: string }>) => body.map((s) => s.name);
 

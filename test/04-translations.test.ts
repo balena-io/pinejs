@@ -1,13 +1,13 @@
-const configPath = import.meta.dirname + '/fixtures/04-translations/config.js';
+const configPath = import.meta.dirname + '/fixtures/04-translations/config.ts';
 const hooksPath =
-	import.meta.dirname + '/fixtures/04-translations/translations/hooks.js';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
+	import.meta.dirname + '/fixtures/04-translations/translations/hooks.ts';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.ts';
 import { faker } from '@faker-js/faker';
 import { expect } from 'chai';
 import type { AnyObject } from 'pinejs-client-core';
 
 import { PineTest } from 'pinejs-client-supertest';
-import { assertExists } from './lib/common.js';
+import { assertExists } from './lib/common.ts';
 
 describe('04 native translation tests', function () {
 	let pineServer: Awaited<ReturnType<typeof testInit>>;

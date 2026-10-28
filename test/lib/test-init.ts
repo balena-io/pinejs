@@ -3,7 +3,7 @@ import { fork } from 'child_process';
 import { boolVar } from '@balena/env-parsing';
 import type { types } from '@balena/pinejs';
 import { dbModule } from '@balena/pinejs';
-import type { PineTestOptions } from './pine-init.js';
+import type { PineTestOptions } from './pine-init.ts';
 export const listenPortDefault = 1337;
 export const testLocalServer = `http://localhost:${listenPortDefault}`;
 
@@ -30,7 +30,6 @@ export async function testInit(
 			[JSON.stringify(processArgs)],
 			{
 				detached: false,
-				execArgv: ['--import', '@swc-node/register/esm-register'],
 			},
 		);
 		await new Promise((resolve, reject) => {

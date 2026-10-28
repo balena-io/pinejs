@@ -1,7 +1,7 @@
 import { actions, errors } from '@balena/pinejs';
-import type ActionsUniversityModel from './actions-university.js';
-import { assertExists } from '../../lib/common.js';
-import './translations/v1/actions.js';
+import type ActionsUniversityModel from './actions-university.ts';
+import { assertExists } from '../../lib/common.ts';
+import './translations/v1/actions.ts';
 
 declare module '../../../out/sbvr-api/sbvr-utils.js' {
 	export interface API {

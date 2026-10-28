@@ -3,11 +3,11 @@ import { strict } from 'node:assert';
 import { randomUUID } from 'node:crypto';
 import { setTimeout } from 'node:timers/promises';
 import { PineTest } from 'pinejs-client-supertest';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.ts';
 import { env } from '@balena/pinejs';
 import type Model from '@balena/pinejs/out/tasks/tasks.js';
 import { CronExpressionParser } from 'cron-parser';
-import { assertExists, PINE_TEST_SIGNALS, waitFor } from './lib/common.js';
+import { assertExists, PINE_TEST_SIGNALS, waitFor } from './lib/common.ts';
 
 const actorId = 1;
 const fixturesBasePath = import.meta.dirname + '/fixtures/08-tasks/';
@@ -55,9 +55,9 @@ describe('08 task tests', function () {
 	let apikey: string;
 	before(async () => {
 		pineServer = await testInit({
-			configPath: fixturesBasePath + 'config.js',
+			configPath: fixturesBasePath + 'config.ts',
 			deleteDb: true,
-			taskHandlersPath: fixturesBasePath + 'task-handlers.js',
+			taskHandlersPath: fixturesBasePath + 'task-handlers.ts',
 			clusterInstances: 5,
 		});
 		pineTest = new PineTest(

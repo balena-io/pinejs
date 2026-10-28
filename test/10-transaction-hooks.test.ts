@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 const configPath =
-	import.meta.dirname + '/fixtures/10-transaction-hooks/config.js';
+	import.meta.dirname + '/fixtures/10-transaction-hooks/config.ts';
 const routesPath =
-	import.meta.dirname + '/fixtures/10-transaction-hooks/routes.js';
-import { testInit, testDeInit, testLocalServer } from './lib/test-init.js';
+	import.meta.dirname + '/fixtures/10-transaction-hooks/routes.ts';
+import { testInit, testDeInit, testLocalServer } from './lib/test-init.ts';
 import { PineTest } from 'pinejs-client-supertest';
 import supertest from 'supertest';
-import { waitFor } from './lib/common.js';
+import { waitFor } from './lib/common.ts';
 
 async function getHookLogs(
 	pineTest: PineTest,
