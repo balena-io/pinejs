@@ -1558,10 +1558,7 @@ const getApiKeyPermissionsAndActorId = (() => {
 	);
 })();
 
-export const checkApiKey = async (
-	apiKey: string,
-	tx?: Tx,
-): Promise<PermissionReq['apiKey']> => {
+export const checkApiKey = async (apiKey: string, tx?: Tx) => {
 	if (typeof apiKey !== 'string') {
 		throw new Error('API key has to be a string, got: ' + typeof apiKey);
 	}
@@ -1573,7 +1570,7 @@ export const checkApiKey = async (
 		key: apiKey,
 		permissions,
 		actor,
-	};
+	} satisfies PermissionReq['apiKey'];
 };
 
 export const resolveAuthHeader = async (
