@@ -222,7 +222,7 @@ export const getUploaderMiddlware = (
 							return;
 						}
 						const file: IncomingFile = {
-							originalname: info.filename,
+							originalname: info.filename!,
 							encoding: info.encoding,
 							mimetype: info.mimeType,
 							stream: filestream,
