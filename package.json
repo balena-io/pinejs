@@ -71,7 +71,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@balena/lint": "^9.4.15",
+    "@balena/lint": "^11.0.0",
     "@balena/pinejs": "file:./",
     "@balena/pinejs-webresource-s3": "^2.2.8",
     "@faker-js/faker": "10.6.0",
