@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update dependencies
+      hash: fcd6f8d4ad4c775642c8f138bafd6280a196129b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 25.0.5
+  title: ""
+  date: 2026-11-03T14:11:05.307Z
+- commits:
     - subject: Improve typings of `checkApiKey`
       hash: cc832daddcf889d93a9a77097efe6659c48055dc
       body: ""
@@ -9144,6 +9156,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9166,6 +9179,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9397,6 +9411,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9885,6 +9900,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -9913,6 +9929,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10136,6 +10153,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10558,6 +10576,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -10703,6 +10722,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14209,6 +14229,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -14231,6 +14252,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14490,6 +14512,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15034,6 +15057,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -15062,6 +15086,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15313,6 +15338,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15791,6 +15817,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -15936,6 +15963,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
