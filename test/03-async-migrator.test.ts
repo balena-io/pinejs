@@ -403,9 +403,8 @@ describe('03 Async Migrations', function () {
 			// It's meant to be a wait until we can 'surely' assume that the async migrations
 			// would have run at least one iteration. Still a magic number is undesired as it's error prone
 			await delay(2000); // wait for some migrations to have happened
-			let result: Migrator.MigrationStatus[] = [];
 
-			result = await getMigrationStatus();
+			const result = await getMigrationStatus();
 			expect(result).to.be.empty;
 
 			const res = await supertest(testLocalServer)

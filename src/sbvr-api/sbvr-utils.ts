@@ -574,14 +574,14 @@ export function generateModels(
 			lf = generateLfModel(se);
 		} catch (e) {
 			console.error(`Error parsing model '${vocab}':`, e);
-			throw new Error(`Error parsing model '${vocab}': ${e}`);
+			throw new Error(`Error parsing model '${vocab}': ${e}`, { cause: e });
 		}
 
 		try {
 			maybeAbstractSql = generateAbstractSqlModel(lf);
 		} catch (e) {
 			console.error(`Error translating model '${vocab}':`, e);
-			throw new Error(`Error translating model '${vocab}': ${e}`);
+			throw new Error(`Error translating model '${vocab}': ${e}`, { cause: e });
 		}
 	}
 	const abstractSql = maybeAbstractSql!;
@@ -613,7 +613,7 @@ export function generateModels(
 			sql = generateSqlModel(abstractSql, targetDatabaseEngine);
 		} catch (e) {
 			console.error(`Error compiling model '${vocab}':`, e);
-			throw new Error(`Error compiling model '${vocab}': ${e}`);
+			throw new Error(`Error compiling model '${vocab}': ${e}`, { cause: e });
 		}
 	}
 
@@ -839,7 +839,7 @@ export const runRule = (() => {
 			);
 		} catch (e) {
 			log.error('Error parsing rule', rule, e);
-			throw new Error(`Error parsing rule'${rule}': ${e}`);
+			throw new Error(`Error parsing rule'${rule}': ${e}`, { cause: e });
 		}
 
 		const ruleLF = lfModel.pop();
@@ -853,7 +853,7 @@ export const runRule = (() => {
 			abstractSqlModel = translator.match(slfModel, 'Process');
 		} catch (e) {
 			log.error('Error compiling rule', rule, e);
-			throw new Error(`Error compiling rule '${rule}': ${e}`);
+			throw new Error(`Error compiling rule '${rule}': ${e}`, { cause: e });
 		}
 
 		const formulationType = ruleLF[1][0];
