@@ -1793,7 +1793,6 @@ export const addPermissions = async (
 ): Promise<void> => {
 	const { resourceName, odataQuery, odataBinds } = request;
 	const finalVocabulary = request.translateVersions.at(-1)!;
-	let abstractSqlModel = sbvrUtils.getAbstractSqlModel(request);
 
 	let { permissionType } = request;
 	if (permissionType == null) {
@@ -1815,8 +1814,8 @@ export const addPermissions = async (
 
 	const permissionsLookup = await getReqPermissions(req, odataBinds);
 	// Update the request's abstract sql model to use the constrained version
-	request.abstractSqlModel = abstractSqlModel = memoizedGetConstrainedModel(
-		abstractSqlModel,
+	request.abstractSqlModel = memoizedGetConstrainedModel(
+		sbvrUtils.getAbstractSqlModel(request),
 		permissionsLookup,
 		finalVocabulary,
 	);

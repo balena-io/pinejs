@@ -377,7 +377,9 @@ WHERE NOT EXISTS (SELECT 1 FROM "migration status" WHERE "migration key" = ${5})
 		);
 	} catch (err: any) {
 		// we report any error here, as no error should happen at all
-		throw new Error(`unknown error in init migration status: ${err}`);
+		throw new Error(`unknown error in init migration status: ${err}`, {
+			cause: err,
+		});
 	}
 };
 
@@ -410,7 +412,9 @@ WHERE "migration status"."migration key" = ${7};`,
 		);
 	} catch (err: any) {
 		// we report any error here, as no error should happen at all
-		throw new Error(`unknown error in update migration status: ${err}`);
+		throw new Error(`unknown error in update migration status: ${err}`, {
+			cause: err,
+		});
 	}
 };
 
@@ -453,6 +457,8 @@ LIMIT 1;`,
 		};
 	} catch (err: any) {
 		// we report any error here, as no error should happen at all
-		throw new Error(`unknown error in read migration status: ${err}`);
+		throw new Error(`unknown error in read migration status: ${err}`, {
+			cause: err,
+		});
 	}
 };

@@ -235,7 +235,7 @@ export const setup = (app: Express.Application) => {
 							err.message = `${message} due to: ${err.message}`;
 							throw err;
 						}
-						throw new Error(message);
+						throw new Error(message, { cause: err });
 					}
 				})
 				.value();

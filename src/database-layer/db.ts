@@ -745,6 +745,7 @@ if (maybePg != null) {
 				} catch (err) {
 					throw new Error(
 						`getTxLevelLock error during getting lock from postgres db layer ${err}`,
+						{ cause: err },
 					);
 				}
 			}
