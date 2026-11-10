@@ -29,3 +29,5 @@ Fact Type: student has last name
 
 Fact Type: student studies at faculty
 	Necessity: each student studies at exactly one faculty
+
+Rule: It is necessary that each faculty has a name that has a Length (Type) that is greater than 1.
