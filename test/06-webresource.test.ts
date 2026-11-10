@@ -1217,6 +1217,24 @@ describe('06 webresources tests', function () {
 					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
+				it('fails to cancel upload if invalid payload', async () => {
+					for (const body of [
+						{},
+						{ uuid: 1 },
+						{ uuid: 'not-a-uuid' },
+						{ uuid: '5e7ba3b4-4d4b-4f7a-9a1c-2f3d4e5f6a7b', extra: 1 },
+					]) {
+						await api[model]
+							.post({
+								resource: 'organization',
+								id: testOrg.id,
+								action: 'cancelUpload',
+								body,
+							})
+							.expect(400, '"Invalid cancel upload payload"');
+					}
+				});
+
 				it('fails to generate upload URLs with chunk size too small', async () => {
 					await api[model]
 						.post({
