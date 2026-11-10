@@ -12,6 +12,15 @@ import type { Response } from '../../sbvr-api/sbvr-utils.js';
 import { api } from '../../sbvr-api/sbvr-utils.js';
 import { permissions } from '../../server-glue/module.js';
 import { getMultipartUploadHandler } from '../multipartUpload.js';
+import z from 'zod';
+
+const commitUploadPayloadSchema = z.compile(
+	z.strictObject({
+		uuid: z.uuid(),
+		// The contents are provider specific, so the provider validates them
+		providerCommitData: z.record(z.string(), z.unknown()).optional(),
+	}),
+);
 
 const commitUploadAction = async ({
 	request,
@@ -76,10 +85,11 @@ const getOngoingUpload = async (
 	affectedId: number,
 	tx: Tx,
 ) => {
-	const { uuid, providerCommitData } = request.values;
-	if (uuid == null || typeof uuid !== 'string') {
-		throw new BadRequestError('Invalid uuid type');
+	const result = commitUploadPayloadSchema.safeParse(request.values);
+	if (!result.success) {
+		throw new BadRequestError('Invalid commit upload payload');
 	}
+	const { uuid, providerCommitData } = result.data;
 
 	const multipartUpload = await api.webresource.get({
 		resource: 'multipart_upload',

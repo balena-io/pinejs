@@ -1235,6 +1235,28 @@ describe('06 webresources tests', function () {
 					}
 				});
 
+				it('fails to commit upload if invalid payload', async () => {
+					const uuid = '5e7ba3b4-4d4b-4f7a-9a1c-2f3d4e5f6a7b';
+					for (const body of [
+						{},
+						{ uuid: 1 },
+						{ uuid: 'not-a-uuid' },
+						{ uuid, extra: 1 },
+						{ uuid, providerCommitData: 'x' },
+						{ uuid, providerCommitData: [] },
+						{ uuid, providerCommitData: null },
+					]) {
+						await api[model]
+							.post({
+								resource: 'organization',
+								id: testOrg.id,
+								action: 'commitUpload',
+								body,
+							})
+							.expect(400, '"Invalid commit upload payload"');
+					}
+				});
+
 				it('fails to generate upload URLs with chunk size too small', async () => {
 					await api[model]
 						.post({
