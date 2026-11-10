@@ -1,7 +1,9 @@
 import type { FromSchema } from 'json-schema-to-ts';
 import { sbvrUtils, tasks, dbModule } from '@balena/pinejs';
+import z from 'zod';
 
-// Define JSON schema for accepted parameters
+// Define schemas for accepted parameters, using both the deprecated JSON Schema
+// and the zod forms
 const createDeviceParamsSchema = {
 	type: 'object',
 	properties: {
@@ -16,20 +18,14 @@ const createDeviceParamsSchema = {
 	additionalProperties: false,
 } as const;
 
-const incrementDeviceCountParamsSchema = {
-	type: 'object',
-	properties: {
-		deviceId: {
-			type: 'number',
-		},
-	},
-	required: ['deviceId'],
-	additionalProperties: false,
-} as const;
+const incrementDeviceCountParamsSchema = z.strictObject({
+	deviceId: z.int(),
+	amount: z.int().positive().default(1),
+});
 
 // Generate type from schema and export for callers to use
 export type CreateDeviceParams = FromSchema<typeof createDeviceParamsSchema>;
-export type IncrementDeviceCountParams = FromSchema<
+export type IncrementDeviceCountParams = z.input<
 	typeof incrementDeviceCountParamsSchema
 >;
 
@@ -74,10 +70,10 @@ export const initTaskHandlers = async () => {
 	tasks.addTaskHandler(
 		'increment_device_count',
 		async (options) => {
-			const deviceId = options.params.deviceId;
+			const { deviceId, amount } = options.params;
 			await sbvrUtils.db.executeSql(
-				'UPDATE device SET count = count + 1 WHERE id = $1',
-				[deviceId],
+				'UPDATE device SET count = count + $2 WHERE id = $1',
+				[deviceId, amount],
 			);
 			return { status: 'succeeded' };
 		},
