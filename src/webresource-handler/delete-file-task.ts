@@ -1,16 +1,10 @@
 import { addTaskHandler } from '../tasks/index.js';
 import { getWebresourceHandler } from './index.js';
+import z from 'zod';
 
-const deleteFileSchema = {
-	type: 'object',
-	properties: {
-		fileKey: {
-			type: 'string',
-		},
-	},
-	required: ['fileKey'],
-	additionalProperties: false,
-} as const;
+const deleteFileSchema = z.strictObject({
+	fileKey: z.string(),
+});
 
 export const addDeleteFileTaskHandler = () => {
 	addTaskHandler(
