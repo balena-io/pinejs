@@ -1,4 +1,91 @@
 - commits:
+    - subject: Update @balena/abstract-sql-to-typescript to 6.1.36
+      hash: 5e06eb5ce68f084b7d9d1b6febabcf6742a3ba13
+      body: |
+        Update @balena/abstract-sql-to-typescript from 6.1.32 to 6.1.36
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Fix the typings of references to id fields that aren't writable or
+                named `id`
+              hash: 945c698448b8eb6477e79a9061f75d95ea10942e
+              body: >
+                - References used the sql name of the referenced field, eg
+                  `Migration['Read']['model name']` for a `Database ID Field: model name`,
+                  which doesn't exist and so failed to compile; the OData name is now used
+                - The write typing of a reference was only in-lined when the
+                referenced
+                  field is computed, but it is also omitted from the referenced table's
+                  write typing when that table has a definition (giving `never`, eg for a
+                  foreign key to a definition backed resource) or `modifyFields` that
+                  don't include it (failing to compile). We now in-line it whenever the
+                  referenced field isn't writable, using its full typing (eg its allowed
+                  values) rather than just its base type
+                - A table whose writable fields are all computed regressed to
+                `Write: {}`
+                  (which accepts anything) rather than `Record<string, never>` when
+                  `modifyFields` support was added
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-6.1.36
+          title: ""
+          date: 2026-11-09T22:24:17.277Z
+        - commits:
+            - subject: Update dependency lint-staged to v17.6.0
+              hash: 97c903cc14166d72c98ce14fb8fb7bf59394db3e
+              body: |
+                Update lint-staged from 17.0.8 to 17.6.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.35
+          title: ""
+          date: 2026-11-07T01:54:30.137Z
+        - commits:
+            - subject: Update dependency chai to v6.3.0
+              hash: 62f3a6929dbb8743921d318ecd8a8ed03adf000c
+              body: |
+                Update chai from 6.2.2 to 6.3.0
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: balena-renovate[bot]
+              nested: []
+          version: abstract-sql-to-typescript-6.1.34
+          title: ""
+          date: 2026-11-07T00:57:52.717Z
+        - commits:
+            - subject: Stop skipping type checks of declaration files
+              hash: 019385abcbb5b436f2a29826a066207cd6c713a2
+              body: >
+                `skipLibCheck` hides errors in the `.d.ts` files we compile
+                against,
+
+                and types that fail to resolve there silently become `any`.
+                Checking
+
+                them means issues in dependencies' typings now fail the build
+                instead.
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+              nested: []
+          version: abstract-sql-to-typescript-6.1.33
+          title: ""
+          date: 2026-11-05T00:34:53.695Z
+  version: 25.0.7
+  title: ""
+  date: 2026-11-10T17:56:19.176Z
+- commits:
     - subject: Update @balena/lint to 11.x
       hash: 4182a20853847a25ef6f6bbc688217f86dbc3f21
       body: ""
@@ -9170,6 +9257,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9192,6 +9280,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9425,6 +9514,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9917,6 +10007,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -9945,6 +10036,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10170,6 +10262,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10596,6 +10689,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -10741,6 +10835,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14251,6 +14346,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -14273,6 +14369,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14534,6 +14631,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15082,6 +15180,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -15110,6 +15209,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15363,6 +15463,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15845,6 +15946,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -15990,6 +16092,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
