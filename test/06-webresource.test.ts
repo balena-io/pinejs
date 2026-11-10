@@ -1096,6 +1096,22 @@ describe('06 webresources tests', function () {
 			expect(await isBucketEventuallyEmpty()).to.be.true;
 		});
 
+		it('fails to generate upload URLs for a field alongside a __proto__ key', async () => {
+			const payload = JSON.stringify({
+				filename: 'test.png',
+				content_type: 'image/png',
+				size: 6291456,
+				chunk_size: 6000000,
+			});
+			await supertest(testLocalServer)
+				.post(`/example/organization(${testOrg.id})/beginUpload`)
+				.set('Content-Type', 'application/json')
+				.send(`{"__proto__": ${payload}, "logo_image": ${payload}}`)
+				.expect(400, '"Invalid begin upload payload"');
+
+			expect(await isBucketEventuallyEmpty()).to.be.true;
+		});
+
 		it('can start upload for a very large file (big int)', async () => {
 			const { body: org } = await api.example
 				.post({

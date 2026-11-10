@@ -11,8 +11,7 @@ import type {
 	ODataActionArgs,
 	ODataActionRequest,
 } from '../../sbvr-api/actions.js';
-import { ajv } from '../../tasks/common.js';
-import type { FromSchema } from 'json-schema-to-ts';
+import z from 'zod';
 
 type FakeWebResourcePatch = {
 	[key: string]: Omit<WebResource, 'href'> & {
@@ -20,26 +19,19 @@ type FakeWebResourcePatch = {
 	};
 };
 
-const beginUploadPayloadSchema = {
-	type: 'object',
-	minProperties: 1,
-	maxProperties: 1,
-	additionalProperties: {
-		type: 'object',
-		properties: {
-			filename: { type: 'string' },
-			content_type: { type: 'string' },
-			size: { type: 'number' },
-			chunk_size: { type: 'number' },
-		},
-		required: ['filename', 'content_type', 'size'],
-		additionalProperties: false,
-	},
-} as const;
-
-const validateBeginUpload = ajv.compile<
-	FromSchema<typeof beginUploadPayloadSchema>
->(beginUploadPayloadSchema);
+const beginUploadPayloadSchema = z.compile(
+	z
+		.record(
+			z.string(),
+			z.strictObject({
+				filename: z.string(),
+				content_type: z.string(),
+				size: z.number(),
+				chunk_size: z.number().optional(),
+			}),
+		)
+		.refine((payload) => Object.keys(payload).length === 1),
+);
 
 export type BeginMultipartUploadResponse = {
 	[key: string]: {
@@ -106,14 +98,16 @@ const parseBeginUpload = (
 	request: ODataActionRequest,
 	webResourceHandler: MultipartUploadHandler,
 ) => {
-	const { values } = request;
-	const isValid = validateBeginUpload(values);
-	if (!isValid) {
+	const result = beginUploadPayloadSchema.safeParse(request.values);
+	// zod drops a `__proto__` key when building a record, so the refine never
+	// sees it: count the raw keys too, to reject `{"__proto__": ..., "a": ...}`
+	if (!result.success || Object.keys(request.values).length !== 1) {
 		throw new BadRequestError('Invalid begin upload payload');
 	}
+	const values = result.data;
 
 	// This is ensured to be an object with exactly one key
-	// as the validator has minProperties: 1 and maxProperties: 1
+	// as the validator refines it to exactly one property
 	const fieldName = Object.keys(values)[0];
 
 	const webResourceFields = getWebResourceFields(request, false);
