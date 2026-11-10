@@ -24,10 +24,12 @@ const beginUploadPayloadSchema = z.compile(
 		.record(
 			z.string(),
 			z.strictObject({
-				filename: z.string(),
-				content_type: z.string(),
-				size: z.number(),
-				chunk_size: z.number().optional(),
+				// Bounded by the `multipart_upload` columns, so that an oversized value
+				// is rejected before the multipart upload is started on the provider
+				filename: z.string().max(255), // Short Text
+				content_type: z.string().max(255), // Short Text
+				size: z.int().nonnegative(), // Big Integer
+				chunk_size: z.int32().positive().optional(), // Integer
 			}),
 		)
 		.refine((payload) => Object.keys(payload).length === 1),

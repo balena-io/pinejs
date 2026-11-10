@@ -1186,6 +1186,34 @@ describe('06 webresources tests', function () {
 							body: { [resource]: {} },
 						})
 						.expect(400, '"Invalid begin upload payload"');
+
+					const validPayload = {
+						filename: 'test.png',
+						content_type: 'image/png',
+						size: 6291456,
+						chunk_size: 6000000,
+					};
+					for (const invalidValues of [
+						{ size: 6291456.5 },
+						{ size: -1 },
+						{ chunk_size: 6000000.5 },
+						{ chunk_size: 0 },
+						{ chunk_size: -6000000 },
+						{ chunk_size: 2 ** 31 },
+						{ filename: `${'a'.repeat(252)}.png` },
+						{ content_type: `image/${'a'.repeat(250)}` },
+					]) {
+						await api[model]
+							.post({
+								resource: 'organization',
+								id: testOrg.id,
+								action: 'beginUpload',
+								body: {
+									[resource]: { ...validPayload, ...invalidValues },
+								},
+							})
+							.expect(400, '"Invalid begin upload payload"');
+					}
 					expect(await isBucketEventuallyEmpty()).to.be.true;
 				});
 
