@@ -41,7 +41,7 @@ if (dbModule.engines.websql != null) {
 		databaseURL = process.env.DATABASE_URL;
 	} else if (dbModule.engines.postgres != null) {
 		databaseURL = 'postgres://postgres:.@localhost:5432/postgres';
-	} else if (dbModule.engines.mysql == null) {
+	} else if (dbModule.engines.mysql != null) {
 		databaseURL = 'mysql://mysql:.@localhost:3306';
 	} else {
 		throw new Error('No supported database options available');
