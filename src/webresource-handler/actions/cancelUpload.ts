@@ -11,6 +11,13 @@ import {
 import { api, type Response } from '../../sbvr-api/sbvr-utils.js';
 import { permissions } from '../../server-glue/module.js';
 import { getMultipartUploadHandler } from '../multipartUpload.js';
+import z from 'zod';
+
+const cancelUploadPayloadSchema = z.compile(
+	z.strictObject({
+		uuid: z.uuid(),
+	}),
+);
 
 const cancelUploadAction = async ({
 	request,
@@ -56,10 +63,11 @@ const getOngoingUpload = async (
 	affectedId: number,
 	tx: Tx,
 ) => {
-	const { uuid } = request.values;
-	if (uuid == null || typeof uuid !== 'string') {
-		throw new BadRequestError('Invalid uuid type');
+	const result = cancelUploadPayloadSchema.safeParse(request.values);
+	if (!result.success) {
+		throw new BadRequestError('Invalid cancel upload payload');
 	}
+	const { uuid } = result.data;
 
 	const multipartUpload = await api.webresource.get({
 		resource: 'multipart_upload',

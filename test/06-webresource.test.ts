@@ -1096,6 +1096,22 @@ describe('06 webresources tests', function () {
 			expect(await isBucketEventuallyEmpty()).to.be.true;
 		});
 
+		it('fails to generate upload URLs for a field alongside a __proto__ key', async () => {
+			const payload = JSON.stringify({
+				filename: 'test.png',
+				content_type: 'image/png',
+				size: 6291456,
+				chunk_size: 6000000,
+			});
+			await supertest(testLocalServer)
+				.post(`/example/organization(${testOrg.id})/beginUpload`)
+				.set('Content-Type', 'application/json')
+				.send(`{"__proto__": ${payload}, "logo_image": ${payload}}`)
+				.expect(400, '"Invalid begin upload payload"');
+
+			expect(await isBucketEventuallyEmpty()).to.be.true;
+		});
+
 		it('can start upload for a very large file (big int)', async () => {
 			const { body: org } = await api.example
 				.post({
@@ -1170,7 +1186,75 @@ describe('06 webresources tests', function () {
 							body: { [resource]: {} },
 						})
 						.expect(400, '"Invalid begin upload payload"');
+
+					const validPayload = {
+						filename: 'test.png',
+						content_type: 'image/png',
+						size: 6291456,
+						chunk_size: 6000000,
+					};
+					for (const invalidValues of [
+						{ size: 6291456.5 },
+						{ size: -1 },
+						{ chunk_size: 6000000.5 },
+						{ chunk_size: 0 },
+						{ chunk_size: -6000000 },
+						{ chunk_size: 2 ** 31 },
+						{ filename: `${'a'.repeat(252)}.png` },
+						{ content_type: `image/${'a'.repeat(250)}` },
+					]) {
+						await api[model]
+							.post({
+								resource: 'organization',
+								id: testOrg.id,
+								action: 'beginUpload',
+								body: {
+									[resource]: { ...validPayload, ...invalidValues },
+								},
+							})
+							.expect(400, '"Invalid begin upload payload"');
+					}
 					expect(await isBucketEventuallyEmpty()).to.be.true;
+				});
+
+				it('fails to cancel upload if invalid payload', async () => {
+					for (const body of [
+						{},
+						{ uuid: 1 },
+						{ uuid: 'not-a-uuid' },
+						{ uuid: '5e7ba3b4-4d4b-4f7a-9a1c-2f3d4e5f6a7b', extra: 1 },
+					]) {
+						await api[model]
+							.post({
+								resource: 'organization',
+								id: testOrg.id,
+								action: 'cancelUpload',
+								body,
+							})
+							.expect(400, '"Invalid cancel upload payload"');
+					}
+				});
+
+				it('fails to commit upload if invalid payload', async () => {
+					const uuid = '5e7ba3b4-4d4b-4f7a-9a1c-2f3d4e5f6a7b';
+					for (const body of [
+						{},
+						{ uuid: 1 },
+						{ uuid: 'not-a-uuid' },
+						{ uuid, extra: 1 },
+						{ uuid, providerCommitData: 'x' },
+						{ uuid, providerCommitData: [] },
+						{ uuid, providerCommitData: null },
+					]) {
+						await api[model]
+							.post({
+								resource: 'organization',
+								id: testOrg.id,
+								action: 'commitUpload',
+								body,
+							})
+							.expect(400, '"Invalid commit upload payload"');
+					}
 				});
 
 				it('fails to generate upload URLs with chunk size too small', async () => {
