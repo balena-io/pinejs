@@ -100,30 +100,41 @@ export const memoizedParseOdata = (() => {
 	const _memoizedParseOdata = env.createCache('parseOData', parseOdata, {
 		primitive: true,
 	});
+	// odata-parser treats both `'` and `%27` as an apostrophe
+	const countApostrophes = (segment: string) =>
+		segment.match(/'|%27/g)?.length ?? 0;
 	return (url: string) => {
 		const queryParamsIndex = url.indexOf('?');
 		if (queryParamsIndex !== -1) {
-			if (/[?&(]@/.test(url)) {
-				// Try to cache based on parameter aliases if there might be some
-				const parameterAliases = new URLSearchParams();
-				const queryParams = new URLSearchParams(url.slice(queryParamsIndex));
-				for (const [key, value] of Array.from(queryParams.entries())) {
-					if (key.startsWith('@')) {
-						parameterAliases.append(key, value);
-						queryParams.delete(key);
+			const query = url.slice(queryParamsIndex + 1);
+			if (/(?:^|&)@/.test(query)) {
+				// Cache the main query independently of the parameter alias values. The raw query is
+				// split without any decoding so the parser decodes it exactly once, as for other urls
+				const segments = query.split('&');
+				// An empty segment never parses, and an odd number of apostrophes means a `&` is inside a
+				// string literal (since OData escapes `'` in content as `''`). So for those we parse the
+				// full url to get the same result/error
+				if (
+					segments.every(
+						(segment) => segment !== '' && countApostrophes(segment) % 2 === 0,
+					)
+				) {
+					const querySegments: string[] = [];
+					const parameterAliasSegments: string[] = [];
+					for (const segment of segments) {
+						if (segment.startsWith('@')) {
+							parameterAliasSegments.push(segment);
+						} else {
+							querySegments.push(segment);
+						}
 					}
-				}
-				const parameterAliasesString = parameterAliases.toString();
-				if (parameterAliasesString !== '') {
 					const parsed = _.cloneDeep(
 						_memoizedParseOdata(
-							url.slice(0, queryParamsIndex) +
-								'?' +
-								decodeURIComponent(queryParams.toString()),
+							url.slice(0, queryParamsIndex + 1) + querySegments.join('&'),
 						),
 					);
 					const parsedParams = ODataParser.parse(
-						decodeURIComponent(parameterAliasesString),
+						parameterAliasSegments.join('&'),
 						{
 							startRule: 'ProcessRule',
 							rule: 'QueryOptions',
@@ -132,7 +143,12 @@ export const memoizedParseOdata = (() => {
 					parsed.tree.options ??= {};
 					for (const key of Object.keys(
 						parsedParams.tree,
-					) as ODataParser.BindKey[]) {
+					) as Array<`@${string}`>) {
+						if (!key.startsWith('@')) {
+							throw new BadRequestError(
+								`Invalid parameter alias definition: '${key}'`,
+							);
+						}
 						parsed.tree.options[key] = parsedParams.tree[key];
 						parsed.binds[key] = parsedParams.binds[key];
 					}
