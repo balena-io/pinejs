@@ -1,4 +1,27 @@
 - commits:
+    - subject: Fix inverted `mysql` check when picking the default database URL
+      hash: 31777b8e2231692b0ef633ad7bdb390ba351e328
+      body: |
+        When `DATABASE_URL` is unset and the `pg` driver isn't available,
+        pinejs falls back to a default mysql URL. The check was inverted, so
+        it picked the mysql URL only when the `mysql` driver was missing too
+        (and `connect` then failed on the unregistered engine), and threw "No
+        supported database options available" when the driver was installed.
+
+        The CoffeeScript original was an existence check
+        (`else if dbModule.mysql?`), which 8227c76a translated to `== null`
+        while translating the postgres branch correctly to `!= null`.
+        7f77fc0f then renamed it to `dbModule.engines.mysql`, keeping the
+        inversion. It now uses `!= null`, matching the postgres branch.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 25.0.8
+  title: ""
+  date: 2026-11-11T00:55:37.005Z
+- commits:
     - subject: Update @balena/abstract-sql-to-typescript to 6.1.36
       hash: 5e06eb5ce68f084b7d9d1b6febabcf6742a3ba13
       body: |
@@ -9258,6 +9281,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9280,6 +9304,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9514,6 +9539,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10008,6 +10034,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10036,6 +10063,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10262,6 +10290,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10690,6 +10719,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -10835,6 +10865,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14347,6 +14378,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -14369,6 +14401,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14631,6 +14664,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15181,6 +15215,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -15209,6 +15244,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15463,6 +15499,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15947,6 +15984,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -16092,6 +16130,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
