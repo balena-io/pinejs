@@ -40,8 +40,9 @@ Term:       user
 Fact type:  user has actor
 	Necessity: Each user has exactly one actor.
 	Necessity: Each actor is of at most one user.
+-- Pine does not support a second `Concept Type`, so the user's credential is a fact type
 Fact type:  user has credential
-	Necessity: Each user has at most one credential.
+	Necessity: Each user has exactly one credential.
 	Necessity: Each credential is of at most one user.
 Fact type:  user has username
 	Necessity: Each user has exactly one username.
@@ -60,6 +61,7 @@ Fact type:  user has permission
 
 Term:       api key
 	Reference Scheme: key
+	Concept Type: credential
 Fact type:  api key has key
 	Necessity: each api key has exactly one key
 	Necessity: each key is of exactly one api key
@@ -70,8 +72,10 @@ Fact type:  api key has role
 Fact type:  api key has permission
 Fact type:  api key is of actor
 	Necessity: each api key is of exactly one actor
+-- `api key` already has `Concept Type: credential` above; this fact type references that
+-- same relationship to make the `credential` column unique.
 Fact type:  api key has credential
-	Necessity: each api key has at most one credential.
+	Necessity: each api key has exactly one credential.
 	Necessity: each credential is of at most one api key.
 Fact type:  api key has name
 	Necessity: Each api key has at most one name.

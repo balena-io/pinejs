@@ -1251,7 +1251,7 @@ export const checkPassword = async (
 ): Promise<{
 	id: number;
 	actor: number;
-	credential: number | undefined;
+	credential: number;
 	username: string;
 	permissions: string[];
 }> => {
@@ -1270,7 +1270,7 @@ export const checkPassword = async (
 	return {
 		id: userId,
 		actor: user.actor.__id,
-		credential: user.credential?.__id,
+		credential: user.credential.__id,
 		username,
 		permissions,
 	};
@@ -1540,7 +1540,7 @@ const getApiKeyPermissionsAndActorId = (() => {
 		return {
 			permissions: permissions.map((permission) => permission.name),
 			actor,
-			credential: apiKeyResult.credential?.__id,
+			credential: apiKeyResult.credential.__id,
 		};
 	};
 	return env.createCache(
@@ -1960,6 +1960,15 @@ const authModelConfig = {
 			ALTER TABLE "api key"
 			ADD COLUMN IF NOT EXISTS "credential" INTEGER NULL UNIQUE REFERENCES "credential" ("id");
 		`,
+			// Runs after the finalized `25.3.0-credential-backfill` has given every
+			// user and api key a credential
+			'26.0.0-credential-required': `
+			ALTER TABLE "user"
+			ALTER COLUMN "credential" SET NOT NULL;
+
+			ALTER TABLE "api key"
+			ALTER COLUMN "credential" SET NOT NULL;
+		`,
 		},
 		async: {
 			// A single migration for both tables, as async migrations of the same
@@ -1981,6 +1990,8 @@ const authModelConfig = {
 				syncSql:
 					backfillCredentialsSql('user', 'FOR UPDATE') +
 					backfillCredentialsSql('api key', 'FOR UPDATE'),
+				// Backfills whatever is left synchronously, before the columns become required
+				finalize: true,
 			},
 		},
 	},

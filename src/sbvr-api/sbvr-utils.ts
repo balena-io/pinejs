@@ -145,8 +145,8 @@ export interface Actor {
 	actor: number;
 	/**
 	 * The credential that authenticated the request: the api key's when an api key was
-	 * used, otherwise the user's. Missing for users and api keys that the credential
-	 * backfill hasn't reached yet.
+	 * used, otherwise the user's. Optional as callers can build their own `req.user`,
+	 * such as `root`, which has no credential.
 	 */
 	credential?: number;
 	permissions?: string[];
