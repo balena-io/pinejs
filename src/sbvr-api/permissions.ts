@@ -2041,4 +2041,21 @@ export function setup() {
 				id: request.values.actor,
 			}),
 	});
+
+	// Every user and api key gets its own credential, replacing any credential in
+	// the request body. It is created as root as it holds no data, so creating a
+	// user or api key doesn't also need permission to create a credential. It is
+	// kept when its user or api key is deleted, so references to it still resolve.
+	for (const resource of ['user', 'api_key'] as const) {
+		addPureHook('POST', 'Auth', resource, {
+			POSTPARSE: async ({ request, api }) => {
+				const result = await api.post({
+					resource: 'credential',
+					passthrough: { req: root },
+					options: { returnResource: false },
+				});
+				request.values.credential = result.id;
+			},
+		});
+	}
 }
