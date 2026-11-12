@@ -1923,6 +1923,21 @@ const authModelConfig = {
 		'24.1.2-user-actor-unique': `
 			CREATE UNIQUE INDEX IF NOT EXISTS "user_actor_key" ON "user" ("actor");
 		`,
+		// Migrations run before the model's tables are created, so the credential
+		// table has to be created here for the foreign keys to reference it
+		'25.1.0-credential': `
+			CREATE TABLE IF NOT EXISTS "credential" (
+				"created at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+				"modified at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+				"id" SERIAL NOT NULL PRIMARY KEY
+			);
+
+			ALTER TABLE "user"
+			ADD COLUMN IF NOT EXISTS "credential" INTEGER NULL UNIQUE REFERENCES "credential" ("id");
+
+			ALTER TABLE "api key"
+			ADD COLUMN IF NOT EXISTS "credential" INTEGER NULL UNIQUE REFERENCES "credential" ("id");
+		`,
 	},
 } as const satisfies sbvrUtils.ExecutableModel;
 export const config = {

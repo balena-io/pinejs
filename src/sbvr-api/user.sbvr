@@ -28,6 +28,10 @@ Fact type:  role has permission
 
 Term:       actor
 
+-- What authenticated a request: an api key, or the user for a JWT.
+-- The actor is who the request acts on behalf of.
+Term:       credential
+
 Term:       user
 	Reference Scheme: username
 	Concept Type: actor
@@ -36,6 +40,9 @@ Term:       user
 Fact type:  user has actor
 	Necessity: Each user has exactly one actor.
 	Necessity: Each actor is of at most one user.
+Fact type:  user has credential
+	Necessity: Each user has at most one credential.
+	Necessity: Each credential is of at most one user.
 Fact type:  user has username
 	Necessity: Each user has exactly one username.
 	Necessity: Each username is of exactly one user.
@@ -63,6 +70,9 @@ Fact type:  api key has role
 Fact type:  api key has permission
 Fact type:  api key is of actor
 	Necessity: each api key is of exactly one actor
+Fact type:  api key has credential
+	Necessity: each api key has at most one credential.
+	Necessity: each credential is of at most one api key.
 Fact type:  api key has name
 	Necessity: Each api key has at most one name.
 Fact type:  api key has description

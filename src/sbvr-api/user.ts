@@ -75,12 +75,29 @@ export interface Actor {
 	};
 }
 
+export interface Credential {
+	Read: {
+		created_at: Types['Date Time']['Read'];
+		modified_at: Types['Date Time']['Read'];
+		id: Types['Serial']['Read'];
+		is_of__user?: Array<User['Read']>;
+		is_of__api_key?: Array<ApiKey['Read']>;
+	};
+	Write: {
+		created_at: Types['Date Time']['Write'];
+		modified_at: Types['Date Time']['Write'];
+		id: Types['Serial']['Write'];
+	};
+}
+
 export interface User {
 	Read: {
 		created_at: Types['Date Time']['Read'];
 		modified_at: Types['Date Time']['Read'];
 		id: Types['Serial']['Read'];
 		actor: { __id: Actor['Read']['id'] } | [Actor['Read']];
+		credential:
+			{ __id: Credential['Read']['id'] } | [Credential['Read']] | [] | null;
 		username: Types['Short Text']['Read'];
 		password: Types['Hashed']['Read'];
 		user__has__role?: Array<UserHasRole['Read']>;
@@ -93,6 +110,7 @@ export interface User {
 		modified_at: Types['Date Time']['Write'];
 		id: Types['Serial']['Write'];
 		actor: Actor['Write']['id'];
+		credential: Credential['Write']['id'] | null;
 		username: Types['Short Text']['Write'];
 		password: Types['Hashed']['Write'];
 	};
@@ -146,6 +164,8 @@ export interface ApiKey {
 		key: Types['Short Text']['Read'];
 		expiry_date: Types['Date Time']['Read'] | null;
 		is_of__actor: { __id: Actor['Read']['id'] } | [Actor['Read']];
+		credential:
+			{ __id: Credential['Read']['id'] } | [Credential['Read']] | [] | null;
 		name: Types['Text']['Read'] | null;
 		description: Types['Text']['Read'] | null;
 		api_key__has__role?: Array<ApiKeyHasRole['Read']>;
@@ -158,6 +178,7 @@ export interface ApiKey {
 		key: Types['Short Text']['Write'];
 		expiry_date: Types['Date Time']['Write'] | null;
 		is_of__actor: Actor['Write']['id'];
+		credential: Credential['Write']['id'] | null;
 		name: Types['Text']['Write'] | null;
 		description: Types['Text']['Write'] | null;
 	};
@@ -204,6 +225,7 @@ export default interface $Model {
 	role: Role;
 	role__has__permission: RoleHasPermission;
 	actor: Actor;
+	credential: Credential;
 	user: User;
 	user__has__role: UserHasRole;
 	user__has__permission: UserHasPermission;
