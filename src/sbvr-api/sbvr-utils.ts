@@ -143,6 +143,12 @@ export type ExtraBinds = Record<`@__${string}`, string>;
 
 export interface Actor {
 	actor: number;
+	/**
+	 * The credential that authenticated the request: the api key's when an api key was
+	 * used, otherwise the user's. Missing for users and api keys that the credential
+	 * backfill hasn't reached yet.
+	 */
+	credential?: number;
 	permissions?: string[];
 	/** Caller-supplied named binds; keys must use the `@__` prefix. `@__ACTOR_ID` is reserved. */
 	extraBinds?: ExtraBinds;

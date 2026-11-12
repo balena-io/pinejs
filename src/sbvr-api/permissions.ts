@@ -1239,7 +1239,7 @@ const getCheckPasswordQuery = _.once(() =>
 				username: { '@': 'username' },
 			},
 			options: {
-				$select: ['id', 'actor', 'password'],
+				$select: ['id', 'actor', 'credential', 'password'],
 			},
 		},
 		{ username: ['string'] },
@@ -1251,6 +1251,7 @@ export const checkPassword = async (
 ): Promise<{
 	id: number;
 	actor: number;
+	credential: number | undefined;
 	username: string;
 	permissions: string[];
 }> => {
@@ -1269,6 +1270,7 @@ export const checkPassword = async (
 	return {
 		id: userId,
 		actor: user.actor.__id,
+		credential: user.credential?.__id,
 		username,
 		permissions,
 	};
@@ -1400,7 +1402,7 @@ const getApiKeyPermissionsAndActorId = (() => {
 					key: { '@': 'apiKey' },
 				},
 				options: {
-					$select: 'is_of__actor',
+					$select: ['is_of__actor', 'credential'],
 					$filter: {
 						$or: [
 							{ expiry_date: null },
@@ -1538,6 +1540,7 @@ const getApiKeyPermissionsAndActorId = (() => {
 		return {
 			permissions: permissions.map((permission) => permission.name),
 			actor,
+			credential: apiKeyResult.credential?.__id,
 		};
 	};
 	return env.createCache(
@@ -1562,14 +1565,13 @@ export const checkApiKey = async (apiKey: string, tx?: Tx) => {
 	if (typeof apiKey !== 'string') {
 		throw new Error('API key has to be a string, got: ' + typeof apiKey);
 	}
-	const { permissions, actor } = await getApiKeyPermissionsAndActorId(
-		apiKey,
-		tx,
-	);
+	const { permissions, actor, credential } =
+		await getApiKeyPermissionsAndActorId(apiKey, tx);
 	return {
 		key: apiKey,
 		permissions,
 		actor,
+		credential,
 	} satisfies PermissionReq['apiKey'];
 };
 
