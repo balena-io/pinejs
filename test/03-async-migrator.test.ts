@@ -3,7 +3,7 @@ import type { ChildProcess } from 'child_process';
 import { assert, expect } from 'chai';
 import { setTimeout } from 'timers';
 import type { Migrator } from '@balena/pinejs';
-import { dbModule } from '@balena/pinejs';
+import { dbModule, permissions } from '@balena/pinejs';
 import { testInit, testDeInit, testLocalServer } from './lib/test-init.ts';
 
 const fixturesBasePath = import.meta.dirname + '/fixtures/03-async-migrator/';
@@ -88,13 +88,21 @@ const waitForAllDataMigrated = async function (
 	return [result, allResults];
 };
 
+// The Auth model has async migrations of its own, which run whenever pine starts
+// on an existing database, so they are left out of the statuses under test
+const authAsyncMigrationKeys = new Set(
+	Object.keys(permissions.config.models[0].migrations.async),
+);
 const getMigrationStatus = async function (): Promise<
 	Migrator.MigrationStatus[]
 > {
 	const res = await supertest(testLocalServer).get(
 		'/migrations/migration_status',
 	);
-	return res?.body?.d ?? [];
+	const statuses: Migrator.MigrationStatus[] = res?.body?.d ?? [];
+	return statuses.filter(
+		(status) => !authAsyncMigrationKeys.has(status.migration_key),
+	);
 };
 
 describe('03 Async Migrations', function () {

@@ -1833,12 +1833,32 @@ declare module './sbvr-utils.js' {
 		[authModelConfig.apiRoot]: PinejsClient<AuthModel>;
 	}
 }
+// Gives each row of `table` that has no credential a new one, created at the
+// same time as the row. The ids are taken from the credential sequence up front
+// so that each new credential can be paired with its row.
+const backfillCredentialsSql = (table: 'user' | 'api key', batch: string) => `
+	WITH "batch" AS (
+		SELECT "id", "created at", nextval(pg_get_serial_sequence('credential', 'id')) AS "credential"
+		FROM "${table}"
+		WHERE "credential" IS NULL
+		${batch}
+	), "inserted" AS (
+		INSERT INTO "credential" ("id", "created at")
+		SELECT "credential", "created at"
+		FROM "batch"
+	)
+	UPDATE "${table}"
+	SET "credential" = "batch"."credential"
+	FROM "batch"
+	WHERE "${table}"."id" = "batch"."id";
+`;
 const authModelConfig = {
 	apiRoot: 'Auth',
 	modelText: userModel,
 	customServerCode: { setup },
 	migrations: {
-		'11.0.0-modified-at': `
+		sync: {
+			'11.0.0-modified-at': `
 			ALTER TABLE "actor"
 			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
 
@@ -1862,70 +1882,70 @@ const authModelConfig = {
 			ALTER TABLE "user-has-permission"
 			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
 		`,
-		'11.0.1-modified-at': `
+			'11.0.1-modified-at': `
 			ALTER TABLE "role-has-permission"
 			ADD COLUMN IF NOT EXISTS "modified at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL;
 		`,
-		'14.42.0-api-key-expiry-date': `
+			'14.42.0-api-key-expiry-date': `
 			ALTER TABLE "api key"
 			ADD COLUMN IF NOT EXISTS "expiry date" TIMESTAMP NULL;
 		`,
-		'22.0.0-timestamps': async (tx, { db }) => {
-			switch (db.engine) {
-				// No need to migrate anything other than postgres
-				case 'postgres':
-					await tx.executeSql(`\
+			'22.0.0-timestamps': async (tx, { db }) => {
+				switch (db.engine) {
+					// No need to migrate anything other than postgres
+					case 'postgres':
+						await tx.executeSql(`\
 						ALTER TABLE "actor"
 						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
 						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
-					await tx.executeSql(`\
+						await tx.executeSql(`\
 						ALTER TABLE "api key"
 						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
 						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ,
 						ALTER COLUMN "expiry date" SET DATA TYPE TIMESTAMPTZ USING "expiry date"::TIMESTAMPTZ;`);
-					await tx.executeSql(`\
+						await tx.executeSql(`\
 						ALTER TABLE "api key-has-permission"
 						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
 						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
-					await tx.executeSql(`\
+						await tx.executeSql(`\
 						ALTER TABLE "api key-has-role"
 						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
 						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
-					await tx.executeSql(`\
+						await tx.executeSql(`\
 						ALTER TABLE "permission"
 						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
 						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
-					await tx.executeSql(`\
+						await tx.executeSql(`\
 						ALTER TABLE "role"
 						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
 						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
-					await tx.executeSql(`\
+						await tx.executeSql(`\
 						ALTER TABLE "role-has-permission"
 						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
 						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
-					await tx.executeSql(`\
+						await tx.executeSql(`\
 						ALTER TABLE "user"
 						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
 						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ;`);
-					await tx.executeSql(`\
+						await tx.executeSql(`\
 						ALTER TABLE "user-has-permission"
 						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
 						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ,
 						ALTER COLUMN "expiry date" SET DATA TYPE TIMESTAMPTZ USING "expiry date"::TIMESTAMPTZ;`);
-					await tx.executeSql(`\
+						await tx.executeSql(`\
 						ALTER TABLE "user-has-role"
 						ALTER COLUMN "created at" SET DATA TYPE TIMESTAMPTZ USING "created at"::TIMESTAMPTZ,
 						ALTER COLUMN "modified at" SET DATA TYPE TIMESTAMPTZ USING "modified at"::TIMESTAMPTZ,
 						ALTER COLUMN "expiry date" SET DATA TYPE TIMESTAMPTZ USING "expiry date"::TIMESTAMPTZ;`);
-					break;
-			}
-		},
-		'24.1.2-user-actor-unique': `
+						break;
+				}
+			},
+			'24.1.2-user-actor-unique': `
 			CREATE UNIQUE INDEX IF NOT EXISTS "user_actor_key" ON "user" ("actor");
 		`,
-		// Migrations run before the model's tables are created, so the credential
-		// table has to be created here for the foreign keys to reference it
-		'25.1.0-credential': `
+			// Migrations run before the model's tables are created, so the credential
+			// table has to be created here for the foreign keys to reference it
+			'25.1.0-credential': `
 			CREATE TABLE IF NOT EXISTS "credential" (
 				"created at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
 				"modified at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -1938,6 +1958,29 @@ const authModelConfig = {
 			ALTER TABLE "api key"
 			ADD COLUMN IF NOT EXISTS "credential" INTEGER NULL UNIQUE REFERENCES "credential" ("id");
 		`,
+		},
+		async: {
+			// A single migration for both tables, as async migrations of the same
+			// model wait for each other's lock with the longer backoff delay
+			'25.3.0-credential-backfill': {
+				asyncFn: async (tx, { batchSize }) => {
+					let migratedRows = 0;
+					for (const table of ['user', 'api key'] as const) {
+						const { rowsAffected } = await tx.executeSql(
+							backfillCredentialsSql(
+								table,
+								`LIMIT ${batchSize} FOR UPDATE SKIP LOCKED`,
+							),
+						);
+						migratedRows += rowsAffected;
+					}
+					return migratedRows;
+				},
+				syncSql:
+					backfillCredentialsSql('user', 'FOR UPDATE') +
+					backfillCredentialsSql('api key', 'FOR UPDATE'),
+			},
+		},
 	},
 } as const satisfies sbvrUtils.ExecutableModel;
 export const config = {
