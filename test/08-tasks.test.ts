@@ -562,6 +562,66 @@ describe('08 task tests', function () {
 				.expect(500);
 		});
 
+		it('should not allow tasks with invalid handler params [using a zod schema]', async () => {
+			// Handler requires an integer 'deviceId' param
+			await pineTest
+				.post({
+					resource: 'task',
+					body: {
+						key: randomUUID(),
+						is_executed_with__api_prefix: '/example/',
+						apikey,
+						is_executed_by__handler: 'increment_device_count',
+						is_executed_with__parameter_set: {
+							deviceId: '1',
+						},
+					},
+				})
+				.expect(500);
+		});
+
+		it('should fail tasks whose parameter set is no longer valid when executed', async () => {
+			const task = await createTask(pineTest, apikey, {
+				is_executed_by__handler: 'increment_device_count',
+				is_executed_with__parameter_set: {
+					deviceId: 1,
+				},
+				is_scheduled_to_execute_on__time: new Date(Date.now() + 3000),
+			});
+			// Updating the parameter set isn't validated, unlike creating the task
+			await pineTest
+				.patch({
+					resource: 'task',
+					id: task.id,
+					body: {
+						is_executed_with__parameter_set: {
+							deviceId: 1.5,
+							extra: true,
+						},
+					},
+				})
+				.expect(200);
+
+			await waitFor(async () => {
+				const { body: updatedTask } = await pineTest
+					.get({
+						resource: 'task',
+						id: task.id,
+						options: {
+							$select: 'status',
+						},
+					})
+					.expect(200);
+				return updatedTask?.status === 'failed';
+			}, env.tasks.queueIntervalMS);
+			await expectTask(pineTest, task.id, {
+				status: 'failed',
+				error_message:
+					'Invalid parameter set: deviceId: Invalid input: expected int, received number; Unrecognized key: "extra"',
+				attempt_count: 1,
+			});
+		});
+
 		it('should not pick up tasks while any worker is not running', async () => {
 			pineServer.send(PINE_TEST_SIGNALS.STOP_TASK_WORKER);
 

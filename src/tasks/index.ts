@@ -6,12 +6,13 @@ import * as permissions from '../sbvr-api/permissions.js';
 import * as sbvrUtils from '../sbvr-api/sbvr-utils.js';
 import type { ConfigLoader } from '../server-glue/module.js';
 import { ajv, apiRoot } from './common.js';
-import type { TaskHandler } from './worker.js';
+import type { ParameterSetValidator, TaskHandler } from './worker.js';
 import { Worker } from './worker.js';
 import type TasksModel from './tasks.js';
 import type { FromSchema } from 'json-schema-to-ts';
 import { importSBVR } from '../server-glue/sbvr-loader.js';
 import { BadRequestError, ConflictError } from '../sbvr-api/errors.js';
+import z from 'zod';
 
 export type * from './tasks.js';
 
@@ -131,10 +132,11 @@ const setup: ConfigLoader.SetupFunction = () => {
 
 			// Assert that the provided parameter set is valid
 			if (handler.validate != null) {
-				if (!handler.validate(request.values.is_executed_with__parameter_set)) {
-					throw new Error(
-						`Invalid parameter set: ${ajv.errorsText(handler.validate.errors)}`,
-					);
+				const result = handler.validate(
+					request.values.is_executed_with__parameter_set,
+				);
+				if (!result.success) {
+					throw new Error(`Invalid parameter set: ${result.error}`);
 				}
 			}
 		},
@@ -189,21 +191,69 @@ export const config: ConfigLoader.Config = {
 	],
 };
 
+const compileZod = <T extends z.core.$ZodType>(schema: T) => {
+	try {
+		return z.compile(schema, { strict: true });
+	} catch (err) {
+		if (err instanceof z.core.ZodCompileUnsupportedError) {
+			// Parts of the schema have no compiled fast path but zod still validates them
+			return z.compile(schema);
+		}
+		// eg async refinements, which would throw on every synchronous parse
+		throw err;
+	}
+};
+
+const compileValidator = (
+	schema: z.core.$ZodType | Schema,
+): ParameterSetValidator => {
+	if (schema instanceof z.core.$ZodType) {
+		const validator = compileZod(schema);
+		return (params) => {
+			const result = z.safeParse(validator, params);
+			if (result.success) {
+				return result;
+			}
+			return {
+				success: false,
+				error: result.error.issues
+					.map(({ path, message }) =>
+						path.length > 0 ? `${z.core.toDotPath(path)}: ${message}` : message,
+					)
+					.join('; '),
+			};
+		};
+	}
+	const validate = ajv.compile(schema);
+	return (params) => {
+		if (validate(params)) {
+			return { success: true, data: params ?? {} };
+		}
+		return { success: false, error: ajv.errorsText(validate.errors) };
+	};
+};
+
 // Register a task handler
 export function addTaskHandler(
 	name: string,
 	fn: TaskHandler['fn'],
 	schema?: undefined,
 ): void;
+export function addTaskHandler<T extends z.core.$ZodType>(
+	name: string,
+	fn: TaskHandler<z.output<T>>['fn'],
+	schema: T,
+): void;
+/** @deprecated Pass a zod schema instead of a JSON Schema */
 export function addTaskHandler<T extends Schema>(
 	name: string,
 	fn: TaskHandler<FromSchema<NonNullable<T>>>['fn'],
 	schema: T,
 ): void;
-export function addTaskHandler<T extends Schema>(
+export function addTaskHandler(
 	name: string,
 	fn: TaskHandler['fn'],
-	schema?: T,
+	schema?: z.core.$ZodType | Schema,
 ): void {
 	if (worker == null) {
 		throw new Error('Database does not support tasks');
@@ -215,7 +265,7 @@ export function addTaskHandler<T extends Schema>(
 	worker.handlers.set(name, {
 		name,
 		fn,
-		validate: schema != null ? ajv.compile(schema) : undefined,
+		validate: schema != null ? compileValidator(schema) : undefined,
 	});
 }
 
