@@ -1,4 +1,18 @@
 - commits:
+    - subject: Update pgsty/mc Docker tag to RELEASE.2026-10-26T00-00-00Z
+      hash: c00079796e2e92d1a3379bf108230073990b6717
+      body: >
+        Update pgsty/mc from RELEASE.2026-10-18T00-00-00Z to
+        RELEASE.2026-10-26T00-00-00Z
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 25.0.10
+  title: ""
+  date: 2026-11-13T05:29:13.713Z
+- commits:
     - subject: Validate `commitUpload` payloads with zod
       hash: 035fe8ef6d9527a6787ccf5a795f648b4afb1ee6
       body: |
@@ -9358,6 +9372,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9380,6 +9395,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9616,6 +9632,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10114,6 +10131,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10142,6 +10160,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10370,6 +10389,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10802,6 +10822,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -10947,6 +10968,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14463,6 +14485,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -14485,6 +14508,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14749,6 +14773,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15303,6 +15328,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -15331,6 +15357,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15587,6 +15614,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -16075,6 +16103,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -16220,6 +16249,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
