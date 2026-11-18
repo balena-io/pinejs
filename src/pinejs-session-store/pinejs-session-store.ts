@@ -72,8 +72,9 @@ export class PinejsSessionStore extends Store {
 	public set = ((sid, data, callback) => {
 		const body = {
 			session_id: sid,
-			// Convert from a `Session` instance into a plain object that is valid to pass
-			data: { ...data },
+			// Round-trip through JSON, as express-session's `MemoryStore` does, to get the plain
+			// object that will be stored, since eg `data.cookie` is a `Cookie` instance
+			data: JSON.parse(JSON.stringify(data)),
 			expiry_time: data?.cookie?.expires ?? null,
 		};
 		void asCallback(
