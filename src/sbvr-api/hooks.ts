@@ -61,6 +61,10 @@ export interface Hooks<Vocab extends string = string> {
 	'POSTRUN-ERROR'?: (
 		options: HookArgs<Vocab> & { tx: Tx; error: unknown },
 	) => HookResponse;
+	/** These are run in reverse translation order from newest to oldest */
+	'PRERESPOND-ERROR'?: (
+		options: HookArgs & { error: TypedError | any },
+	) => HookResponse;
 }
 export type HookBlueprints = {
 	[key in keyof Hooks]: Array<HookBlueprint<NonNullable<Hooks[key]>>>;
@@ -72,6 +76,7 @@ const hookNames: Array<keyof Hooks> = [
 	'POSTRUN',
 	'PRERESPOND',
 	'POSTRUN-ERROR',
+	'PRERESPOND-ERROR',
 ];
 const isValidHook = (x: any): x is keyof Hooks => hookNames.includes(x);
 
@@ -408,7 +413,7 @@ export const runHooks = async <T extends keyof Hooks>(
 	hookName: T,
 	/**
 	 * A list of modelName/hooks to run in order, which will be reversed for hooks after the "RUN" stage,
-	 * ie POSTRUN/PRERESPOND/POSTRUN-ERROR
+	 * ie POSTRUN/PRERESPOND/POSTRUN-ERROR/PRERESPOND-ERROR
 	 */
 	hooksList: Array<[modelName: string, hooks: InstantiatedHooks]> | undefined,
 	args: RunHookArgs<T>,
@@ -428,7 +433,11 @@ export const runHooks = async <T extends keyof Hooks>(
 	if (hooks.length === 0) {
 		return;
 	}
-	if (['POSTRUN', 'PRERESPOND', 'POSTRUN-ERROR'].includes(hookName)) {
+	if (
+		['POSTRUN', 'PRERESPOND', 'POSTRUN-ERROR', 'PRERESPOND-ERROR'].includes(
+			hookName,
+		)
+	) {
 		// Any hooks after we "run" the query are executed in reverse order from newest to oldest
 		// as they'll be translating the query results from "latest" backwards to the model that
 		// was actually requested
