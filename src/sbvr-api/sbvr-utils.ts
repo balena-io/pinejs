@@ -432,19 +432,20 @@ const bindsForAffectedIds = (
 	bindings: AbstractSQLCompiler.Binding[],
 	request?: Pick<
 		uriParser.ODataRequest,
-		| 'vocabulary'
-		| 'abstractSqlModel'
-		| 'method'
-		| 'resourceName'
-		| 'affectedIds'
+		'modifiedFields' | 'method' | 'affectedIds'
 	>,
 ) => {
 	if (request?.affectedIds == null) {
 		return {};
 	}
 
-	const tableName =
-		getAbstractSqlModel(request).tables[resolveSynonym(request)].name;
+	// The affected IDs are those of the table that the query modified, which we take from the
+	// query itself as the resource of the request can be for a different table, or not exist at
+	// all, in the model of a request that was translated from another version
+	const { modifiedFields } = request;
+	const tableName = Array.isArray(modifiedFields)
+		? modifiedFields.find((m) => m != null)?.table
+		: modifiedFields?.table;
 
 	// If we're deleting the affected IDs then we can't narrow our rule to
 	// those IDs that are now missing
@@ -480,7 +481,6 @@ const validateModel = async (
 		| 'modifiedFields'
 		| 'method'
 		| 'vocabulary'
-		| 'resourceName'
 		| 'affectedIds'
 	>,
 ): Promise<void> => {
