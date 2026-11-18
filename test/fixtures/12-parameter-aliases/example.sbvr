@@ -1,0 +1,9 @@
+Vocabulary: example
+
+Term: name
+	Concept Type: Short Text (Type)
+
+Term: note
+
+Fact Type: note has name
+	Necessity: each note has exactly one name
