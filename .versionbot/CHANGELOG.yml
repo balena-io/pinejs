@@ -1,4 +1,23 @@
 - commits:
+    - subject: Store session data as plain JSON objects
+      hash: 40ab712574e786b4db9e659ff4c3c47cf932fc61
+      body: |
+        `@balena/sbvr-types` 12.2 only accepts plain objects and arrays for
+        JSON fields, but the session store shallow copied the session, leaving
+        `data.cookie` as express-session's `Cookie` instance. Every session
+        `PUT` was rejected with a 400, which broke logging in.
+
+        The data is now round-tripped through JSON, as express-session's
+        `MemoryStore` does, giving the plain object that gets stored anyway.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 25.0.11
+  title: ""
+  date: 2026-11-18T03:10:08.266Z
+- commits:
     - subject: Update pgsty/mc Docker tag to RELEASE.2026-10-26T00-00-00Z
       hash: c00079796e2e92d1a3379bf108230073990b6717
       body: >
@@ -9373,6 +9392,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9395,6 +9415,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9632,6 +9653,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10132,6 +10154,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10160,6 +10183,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10389,6 +10413,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10823,6 +10848,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -10968,6 +10994,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14486,6 +14513,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -14508,6 +14536,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14773,6 +14802,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15329,6 +15359,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -15357,6 +15388,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15614,6 +15646,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -16104,6 +16137,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -16249,6 +16283,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
