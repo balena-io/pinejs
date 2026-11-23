@@ -1,4 +1,3 @@
-import type { ValidateFunction } from 'ajv';
 import { setTimeout } from 'node:timers/promises';
 import type { AnyObject } from 'pinejs-client-core';
 import { tasks as tasksEnv } from '../config-loader/env.js';
@@ -6,7 +5,6 @@ import type * as Db from '../database-layer/db.js';
 import * as permissions from '../sbvr-api/permissions.js';
 import { PinejsClient } from '../sbvr-api/sbvr-utils.js';
 import { sbvrUtils } from '../server-glue/module.js';
-import { ajv } from './common.js';
 import type { Task } from './tasks.js';
 import type TasksModel from './tasks.js';
 import type { Resolvable } from '../sbvr-api/common-types.js';
@@ -26,8 +24,13 @@ export interface TaskHandler<
 > {
 	name: string;
 	fn: (options: TaskArgs<T>) => TaskResponse;
-	validate?: ValidateFunction;
+	validate?: ParameterSetValidator;
 }
+
+// Returns the params to pass to the handler, or an error message if invalid
+export type ParameterSetValidator = (
+	params: unknown,
+) => { success: true; data: unknown } | { success: false; error: string };
 
 type PartialTask = Pick<
 	Task['Read'],
@@ -89,18 +92,20 @@ export class Worker {
 			// Validate parameters before execution so we can fail early if
 			// the parameter set is invalid. This can happen if the handler
 			// definition changes after a task is added to the queue.
-			if (
-				handler.validate != null &&
-				!handler.validate(task.is_executed_with__parameter_set)
-			) {
-				await this.update(
-					tx,
-					task,
-					startedOnTime,
-					'failed',
-					`Invalid parameter set: ${ajv.errorsText(handler.validate.errors)}`,
-				);
-				return;
+			let params = task.is_executed_with__parameter_set ?? {};
+			if (handler.validate != null) {
+				const result = handler.validate(task.is_executed_with__parameter_set);
+				if (!result.success) {
+					await this.update(
+						tx,
+						task,
+						startedOnTime,
+						'failed',
+						`Invalid parameter set: ${result.error}`,
+					);
+					return;
+				}
+				params = result.data as typeof params;
 			}
 
 			// Execute handler and update task with results
@@ -109,7 +114,7 @@ export class Worker {
 			try {
 				const results = await handler.fn({
 					api: new PinejsClient({}),
-					params: task.is_executed_with__parameter_set ?? {},
+					params,
 				});
 				status = results.status;
 				error = results.error;
