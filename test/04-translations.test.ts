@@ -322,6 +322,37 @@ describe('04 native translation tests', function () {
 			expect(v3CreatedCampus).to.deep.equal(vLatestFaculty);
 		});
 
+		it(`should validate the rules of the latest model when creating a campus for /v3`, async () => {
+			const { body } = await pineTest
+				.post({
+					apiPrefix: 'v3/',
+					resource: 'campus',
+					body: {
+						name: 'x',
+					},
+				})
+				.expect(400);
+			expect(body).to.equal(
+				'It is necessary that each faculty has a name that has a Length (Type) that is greater than 1.',
+			);
+		});
+
+		it(`should validate the rules of the latest model when updating a campus for /v3`, async () => {
+			const { body } = await pineTest
+				.patch({
+					apiPrefix: 'v3/',
+					resource: 'campus',
+					id: v3CreatedCampus.id,
+					body: {
+						name: 'x',
+					},
+				})
+				.expect(400);
+			expect(body).to.equal(
+				'It is necessary that each faculty has a name that has a Length (Type) that is greater than 1.',
+			);
+		});
+
 		it(`should create a /v3 student with old referenced field name that becomes a different referenced field name on latest model`, async () => {
 			const { body: v3StudentCreated } = await pineTest
 				.post({
