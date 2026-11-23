@@ -14,6 +14,7 @@ type InitialMigrationStatus = MigrationStatus &
 import {
 	type MigrationTuple,
 	getExecutedMigrations,
+	migrationTablesExist,
 	migratorEnv,
 	lockMigrations,
 	initMigrationStatus,
@@ -35,6 +36,12 @@ export const run = async (tx: Tx, model: ApiRootModel): Promise<void> => {
 	const asyncMigrations: RunnableAsyncMigrations | undefined =
 		getRunnableAsyncMigrations(migrations);
 	if (asyncMigrations == null) {
+		return;
+	}
+	// Models executed before the migrations model, such as Auth on a new database,
+	// have no table to keep the migration status in yet, and no data to migrate.
+	// Their async migrations start the next time the model is executed instead.
+	if (!(await migrationTablesExist(tx))) {
 		return;
 	}
 
