@@ -1,4 +1,26 @@
 - commits:
+    - subject: Serialise execution of the standard models across instances
+      hash: 2e0978b59c4c4fa0ec83a6b90a57a2424b8b4462
+      body: |
+        When multiple instances start at the same time against a database that
+        doesn't have the standard models yet, eg the cluster of the `08-tasks`
+        tests, they all executed the standard models concurrently. That fails
+        with a `UniqueConstraintError` on `pg_proc_proname_args_nsp_index` (or
+        a deadlock) as they create the same objects, so the losing instances
+        exited and were re-forked until one succeeded, which made CI flaky.
+
+        On postgres the instances now take a transaction level advisory lock in
+        the pinejs namespace while executing them, so they take turns and the
+        later ones find the models already executed.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 25.0.12
+  title: ""
+  date: 2026-11-23T17:13:25.014Z
+- commits:
     - subject: Store session data as plain JSON objects
       hash: 40ab712574e786b4db9e659ff4c3c47cf932fc61
       body: |
@@ -9393,6 +9415,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9415,6 +9438,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9653,6 +9677,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10155,6 +10180,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10183,6 +10209,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10413,6 +10440,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10849,6 +10877,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -10994,6 +11023,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14514,6 +14544,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -14536,6 +14567,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14802,6 +14834,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15360,6 +15393,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -15388,6 +15422,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15646,6 +15681,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -16138,6 +16174,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -16283,6 +16320,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
