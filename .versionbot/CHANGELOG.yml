@@ -1,4 +1,32 @@
 - commits:
+    - subject: Fix parameter alias parsing re-decoding the query
+      hash: 63838ed26db14db78fe023054629bb72972ed892
+      body: |
+        When a url defined a parameter alias, `memoizedParseOdata` split the
+        query with `URLSearchParams`, which decodes it, then re-serialised it
+        and ran `decodeURIComponent` on it before parsing, so the query was
+        decoded twice. Text literals came out wrong, eg `'x%20y'` became
+        `'x+y'` and `'%2541'` became `'A'`, and `'100%25'` failed to parse.
+        That also broke looking up api keys containing such characters.
+
+        The raw query is now split on `&`, and the segments starting with `@`
+        are parsed as the parameter aliases, without any decoding, so the
+        parser decodes everything exactly once, as it does for urls without
+        parameter aliases. Urls with an empty segment, or with a `&` inside a
+        string literal, are parsed in full instead, and an alias definition
+        that parses to anything other than a parameter alias is rejected.
+
+        As for urls without parameter aliases, empty segments (eg a trailing
+        `&`) and percent-encoded alias names in references are now rejected.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 25.0.14
+  title: ""
+  date: 2026-11-23T17:55:28.091Z
+- commits:
     - subject: Update dependency supertest to v7.3.2
       hash: f8c0ce403df80f1d9a3e5b8bc684d0153be164a2
       body: |
@@ -9430,6 +9458,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -9452,6 +9481,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -9692,6 +9722,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10198,6 +10229,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -10226,6 +10258,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10458,6 +10491,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -10898,6 +10932,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -11043,6 +11078,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14567,6 +14603,7 @@
 
 
 
+
                                                                 As balena-lint
                                                                 rejects `new
                                                                 Boolean()`, `new
@@ -14589,6 +14626,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -14857,6 +14895,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15419,6 +15458,7 @@
 
 
 
+
                                                                 This also deprecates
                                                                 the legacy version
                                                               footer:
@@ -15447,6 +15487,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -15707,6 +15748,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
@@ -16203,6 +16245,7 @@
 
 
 
+
                                                                 Update
                                                                 @balena/sbvr-types
                                                                 from 3.4.18 to 3.5.0
@@ -16348,6 +16391,7 @@
                                                               body: >
                                                                 
                                                                 
+
 
 
 
