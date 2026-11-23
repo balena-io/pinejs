@@ -106,6 +106,7 @@ export { resolveOdataBind } from './abstract-sql.js';
 import * as odataResponse from './odata-response.js';
 import * as validation from './validation.js';
 import { env } from '../server-glue/module.js';
+import { PINEJS_ADVISORY_LOCK } from '../config-loader/env.js';
 import { translateAbstractSqlModel } from './translations.js';
 import {
 	type MigrationExecutionResult,
@@ -2056,6 +2057,8 @@ const devModelConfig = {
 		},
 	},
 } as const satisfies ExecutableModel;
+// The key of the lock (in the pinejs advisory lock namespace) held while executing the standard models
+const STANDARD_MODELS_LOCK_KEY = 1;
 const executeStandardModels = async (tx: Db.Tx): Promise<void> => {
 	try {
 		// dev model must run first
@@ -2075,6 +2078,15 @@ export const setup = async (
 	db = $db;
 	try {
 		await db.transaction(async (tx) => {
+			if (db.engine === 'postgres') {
+				// Multiple instances can start at the same time (eg a cluster against a new database), and
+				// executing the standard models concurrently fails when they create the same objects, so
+				// the instances take turns. Later ones then find the models already executed
+				await tx.getTxLevelLock(
+					PINEJS_ADVISORY_LOCK.namespaceKey,
+					STANDARD_MODELS_LOCK_KEY,
+				);
+			}
 			await executeStandardModels(tx);
 			permissions.setup();
 		});
