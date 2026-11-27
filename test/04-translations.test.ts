@@ -397,4 +397,126 @@ describe('04 native translation tests', function () {
 			expect(vTranslatedStudent).to.deep.equal(vLatestStudentCreated);
 		});
 	});
+
+	// `student is member of faculty` has no translation definition, and its
+	// table is named "faculty membership" on the latest model but
+	// "student-is member of-faculty" on v5 and v4, so writes through those
+	// versions must target the table name of the latest model
+	for (const version of ['v5', 'v4']) {
+		describe(`translate untranslated ${version} resource with a different table name`, () => {
+			const createStudent = async () => {
+				const { body } = await pineTest
+					.post({
+						apiPrefix: 'university/',
+						resource: 'student',
+						body: {
+							matrix_number: faker.number.int({ min: 100000, max: 2 ** 31 }),
+							name: faker.person.firstName(),
+							last_name: faker.person.lastName(),
+							studies_at__faculty: faculty.id,
+						},
+					})
+					.expect(201);
+				return body;
+			};
+			let student: AnyObject;
+			let otherFaculty: AnyObject;
+			let membership: AnyObject;
+			before(async () => {
+				student = await createStudent();
+				({ body: otherFaculty } = await pineTest
+					.post({
+						apiPrefix: 'university/',
+						resource: 'faculty',
+						body: {
+							name: faker.word.words(3),
+						},
+					})
+					.expect(201));
+				({ body: membership } = await pineTest
+					.post({
+						apiPrefix: 'university/',
+						resource: 'student__is_member_of__faculty',
+						body: {
+							student: student.id,
+							is_member_of__faculty: faculty.id,
+						},
+					})
+					.expect(201));
+			});
+
+			it(`should create a /${version} student membership`, async () => {
+				const otherStudent = await createStudent();
+				const { body: membershipCreated } = await pineTest
+					.post({
+						apiPrefix: `${version}/`,
+						resource: 'student__is_member_of__faculty',
+						body: {
+							student: otherStudent.id,
+							is_member_of__faculty: faculty.id,
+						},
+					})
+					.expect(201);
+
+				const { body: vLatestMembership } = await pineTest
+					.get({
+						apiPrefix: 'university/',
+						resource: 'student__is_member_of__faculty',
+						id: membershipCreated.id,
+					})
+					.expect(200);
+				assertExists(vLatestMembership);
+				expect(vLatestMembership.student).to.deep.equal({
+					__id: otherStudent.id,
+				});
+				expect(vLatestMembership.is_member_of__faculty).to.deep.equal({
+					__id: faculty.id,
+				});
+			});
+
+			it(`should patch a /${version} student membership`, async () => {
+				await pineTest
+					.patch({
+						apiPrefix: `${version}/`,
+						resource: 'student__is_member_of__faculty',
+						id: membership.id,
+						body: {
+							is_member_of__faculty: otherFaculty.id,
+						},
+					})
+					.expect(200);
+
+				const { body: vLatestMembership } = await pineTest
+					.get({
+						apiPrefix: 'university/',
+						resource: 'student__is_member_of__faculty',
+						id: membership.id,
+					})
+					.expect(200);
+				assertExists(vLatestMembership);
+				expect(vLatestMembership.is_member_of__faculty).to.deep.equal({
+					__id: otherFaculty.id,
+				});
+			});
+
+			it(`should delete a /${version} student membership`, async () => {
+				await pineTest
+					.delete({
+						apiPrefix: `${version}/`,
+						resource: 'student__is_member_of__faculty',
+						id: membership.id,
+					})
+					.expect(200);
+
+				const { body: vLatestMembership } = await pineTest
+					.get({
+						apiPrefix: 'university/',
+						resource: 'student__is_member_of__faculty',
+						id: membership.id,
+					})
+					.expect(200);
+				expect(vLatestMembership).to.be.undefined;
+			});
+		});
+	}
 });
