@@ -29,3 +29,5 @@ Fact Type: student has last name
 
 Fact Type: student studies at faculty
 	Necessity: each student studies at exactly one faculty
+
+Fact Type: student is member of faculty

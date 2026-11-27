@@ -313,6 +313,7 @@ export const translateAbstractSqlModel = (
 				throw new Error(`Missing translation for: '${key}'`);
 			}
 			table.modifyFields = _.cloneDeep(toTable.modifyFields ?? toTable.fields);
+			table.modifyName = toTable.modifyName ?? toTable.name;
 			table.definition = {
 				abstractSql: ['Resource', `${key}${toVersionSuffix}`],
 			};
